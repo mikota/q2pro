@@ -999,7 +999,7 @@ void HTTP_RunDownloads(void)
     start_next_download();
 }
 
-size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
+static size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
 {
    return size * nmemb;
 }
@@ -1007,7 +1007,8 @@ int HTTP_Discord_Webhook(const char *payload, ...)
 {	
 	va_list argptr;
 	char text[1024];
-	int webhook_token;
+	char webhook_token[72];
+    char webhook_url[512];
 
 	// If stat logs are disabled or cl_webhook_discord_token is default, just return
 	webhook_token = Q_stricmp(cl_webhook_discord_token->string, "");
@@ -1015,7 +1016,7 @@ int HTTP_Discord_Webhook(const char *payload, ...)
 		return;
 	}
 	
-	Q_strncpyz(webhook_url, cl_webhook_discord_url->string, sizeof(webhook_url));
+	Q_strlcpy(webhook_url, cl_webhook_discord_url->string, sizeof(webhook_url));
 	
 	va_start (argptr, payload);
 	vsnprintf (text, sizeof(text), payload, argptr);
@@ -1053,7 +1054,7 @@ int HTTP_Discord_Webhook(const char *payload, ...)
         } while(still_running);
         curl_multi_cleanup(multi_handle);
         curl_easy_cleanup(curl);
-        curl_slist_free_all(headerlist);
+        curl_slist_free_all(headers);
     }
-    return 0
+    return 0;
 }
