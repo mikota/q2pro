@@ -24,6 +24,9 @@ static cvar_t  *cl_http_filelists;
 static cvar_t  *cl_http_max_connections;
 static cvar_t  *cl_http_proxy;
 static cvar_t  *cl_http_default_url;
+static cvar_t  *cl_webhook_discord;
+static cvar_t  *cl_webhook_discord_url;
+static cvar_t  *cl_webhook_discord_token;
 
 #if USE_DEBUG
 static cvar_t  *cl_http_debug;
@@ -466,6 +469,9 @@ void HTTP_Init(void)
     //cl_http_max_connections->changed = _cl_http_max_connections_changed;
     cl_http_proxy = Cvar_Get("cl_http_proxy", "", 0);
     cl_http_default_url = Cvar_Get("cl_http_default_url", "", 0);
+    cl_webhook_discord = Cvar_Get("cl_webhook_discord", "0", 0);
+    cl_webhook_discord_url = Cvar_Get("cl_webhook_discord_url", "", 0);
+    cl_webhook_discord_token = Cvar_Get("cl_webhook_discord_token", "", 0);
 
 #if USE_DEBUG
     cl_http_debug = Cvar_Get("cl_http_debug", "0", 0);
@@ -991,4 +997,63 @@ void HTTP_RunDownloads(void)
     }
 
     start_next_download();
+}
+
+size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
+{
+   return size * nmemb;
+}
+int HTTP_Discord_Webhook(const char *payload, ...)
+{	
+	va_list argptr;
+	char text[1024];
+	int webhook_token;
+
+	// If stat logs are disabled or cl_webhook_discord_token is default, just return
+	webhook_token = Q_stricmp(cl_webhook_discord_token->string, "");
+	if (!cl_webhook_discord->value || webhook_token == 0) {
+		return;
+	}
+	
+	Q_strncpyz(webhook_url, cl_webhook_discord_url->string, sizeof(webhook_url));
+	
+	va_start (argptr, payload);
+	vsnprintf (text, sizeof(text), payload, argptr);
+	va_end (argptr);
+
+	CURL *curl = curl_easy_init();
+    CURLM *multi_handle;
+    multi_handle = curl_multi_init();
+
+    if(curl && multi_handle) {
+        struct curl_slist *headers = NULL;
+        headers = curl_slist_append(headers, "Accept: application/json");
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+
+        curl_easy_setopt(curl, CURLOPT_URL, webhook_url);
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, text);
+        // Do not print responses from curl request
+        // Comment below if you are debugging responses
+        // Hint: Forbidden would mean your stat_url is malformed,
+        // and a key error indicates your api key is bad or expired
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+
+        curl_multi_add_handle(multi_handle, curl);
+        
+        do {
+            CURLMcode mc = curl_multi_perform(multi_handle, &still_running);
+        if(still_running)
+        /* wait for activity, timeout or "nothing" */
+        mc = curl_multi_poll(multi_handle, NULL, 0, 1000, NULL);
+
+        if(mc)
+            break;
+        } while(still_running);
+        curl_multi_cleanup(multi_handle);
+        curl_easy_cleanup(curl);
+        curl_slist_free_all(headerlist);
+    }
+    return 0
 }
