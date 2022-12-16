@@ -3336,7 +3336,7 @@ static void setup_game_paths(void)
             path->mode |= FS_PATH_GAME;
         }
 
-        Cvar_FullSet("gamedir", "", CVAR_ROM, FROM_CODE);
+        Cvar_FullSet("gamedir", "action", CVAR_ROM, FROM_CODE);
     }
 
     // this var is used by the game library to find it's home directory
