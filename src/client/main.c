@@ -367,9 +367,12 @@ void     CL_ShutdownDiscord(void);
 
 static void DiscordCallback(void* data, enum EDiscordResult result)
 {
+
     //Com_Printf("%s %s\n", __func__, data);
     
     discord.result = result;
+#if USE_DEBUG
+
     switch (discord.result)
     {
         case DiscordResult_Ok:
@@ -508,11 +511,13 @@ static void DiscordCallback(void* data, enum EDiscordResult result)
             Com_Printf("%s Unknown error code %i\n", __func__, discord.result);
             break;
     }
+#endif
 }
 
 // Log output - error, warning, information, debug
 static void DiscordLogCallback(void* hook_data, enum EDiscordLogLevel level, const char* message)
 {
+#if USE_DEBUG
     if (level == DiscordLogLevel_Error)
         Com_Printf("%s ERROR: %s\n", __func__, message);
     else if (level == DiscordLogLevel_Warn)
@@ -521,6 +526,7 @@ static void DiscordLogCallback(void* hook_data, enum EDiscordLogLevel level, con
         Com_Printf("%s INFO: %s\n", __func__, message);
     else if (level == DiscordLogLevel_Debug)
         Com_Printf("%s DEBUG: %s\n", __func__, message);
+#endif
 }
 
 //  Not used anywhere?
