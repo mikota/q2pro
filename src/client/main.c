@@ -367,11 +367,9 @@ void     CL_ShutdownDiscord(void);
 
 static void DiscordCallback(void* data, enum EDiscordResult result)
 {
-
     //Com_Printf("%s %s\n", __func__, data);
-    
-    discord.result = result;
 #if USE_DEBUG
+    discord.result = result;
 
     switch (discord.result)
     {

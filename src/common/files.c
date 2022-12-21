@@ -3497,6 +3497,9 @@ static void fs_game_changed(cvar_t *self)
 
     // validate it
     if (*s) {
+        // if (Q_stricmp(s, "action")) {
+        //     Cvar_SetByVar(self, "action", FROM_CODE);
+        // } else 
         if (!Q_stricmp(s, BASEGAME)) {
             Cvar_SetByVar(self, "", FROM_CODE);
         } else if (!COM_IsPath(s)) {
