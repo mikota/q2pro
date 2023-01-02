@@ -775,17 +775,16 @@ static void CL_UpdateActivity(void)
             // The result is cached to discord.server_hostname
             netadr_t    adr;
             neterr_t    ret;
-            if (cls.netchan)
-            {
-                adr = cls.netchan->remote_address;
-                CL_AddRequest(&adr, REQ_STATUS_DISCORD);
 
-                NET_Config(NET_CLIENT);
+            adr = cls.netchan.remote_address;
+            CL_AddRequest(&adr, REQ_STATUS_DISCORD);
 
-                ret = OOB_PRINT(NS_CLIENT, &adr, "status");
-                if (ret == NET_ERROR)
-                    Com_Printf("%s to %s\n", NET_ErrorString(), NET_AdrToString(&adr));
-            }
+            NET_Config(NET_CLIENT);
+
+            ret = OOB_PRINT(NS_CLIENT, &adr, "status");
+            if (ret == NET_ERROR)
+                Com_Printf("%s to %s\n", NET_ErrorString(), NET_AdrToString(&adr));
+
             return; // Wait for server to respond
         }
 
@@ -1345,10 +1344,7 @@ static void CL_UpdateGunSetting(void)
 {
     int nogun;
 
-    if (!cls.netchan) {
-        return;
-    }
-    if (cls.serverProtocol < PROTOCOL_VERSION_R1Q2) {
+    if (cls.netchan.protocol < PROTOCOL_VERSION_R1Q2) {
         return;
     }
 
@@ -1363,68 +1359,56 @@ static void CL_UpdateGunSetting(void)
     MSG_WriteByte(clc_setting);
     MSG_WriteShort(CLS_NOGUN);
     MSG_WriteShort(nogun);
-    MSG_FlushTo(&cls.netchan->message);
+    MSG_FlushTo(&cls.netchan.message);
 }
 
 static void CL_UpdateGibSetting(void)
 {
-    if (!cls.netchan) {
-        return;
-    }
-	if (cls.serverProtocol != PROTOCOL_VERSION_Q2PRO && cls.serverProtocol != PROTOCOL_VERSION_AQTION) {
+    if (cls.netchan.protocol != PROTOCOL_VERSION_Q2PRO && cls.netchan.protocol != PROTOCOL_VERSION_AQTION) {
         return;
     }
 
     MSG_WriteByte(clc_setting);
     MSG_WriteShort(CLS_NOGIBS);
     MSG_WriteShort(!cl_gibs->integer);
-    MSG_FlushTo(&cls.netchan->message);
+    MSG_FlushTo(&cls.netchan.message);
 }
 
 static void CL_UpdateFootstepsSetting(void)
 {
-    if (!cls.netchan) {
-        return;
-    }
-	if (cls.serverProtocol != PROTOCOL_VERSION_Q2PRO && cls.serverProtocol != PROTOCOL_VERSION_AQTION) {
+    if (cls.netchan.protocol != PROTOCOL_VERSION_Q2PRO && cls.netchan.protocol != PROTOCOL_VERSION_AQTION) {
         return;
     }
 
     MSG_WriteByte(clc_setting);
     MSG_WriteShort(CLS_NOFOOTSTEPS);
     MSG_WriteShort(!cl_footsteps->integer);
-    MSG_FlushTo(&cls.netchan->message);
+    MSG_FlushTo(&cls.netchan.message);
 }
 
 static void CL_UpdatePredictSetting(void)
 {
-    if (!cls.netchan) {
-        return;
-    }
-    if (cls.serverProtocol != PROTOCOL_VERSION_Q2PRO && cls.serverProtocol != PROTOCOL_VERSION_AQTION) {
+    if (cls.netchan.protocol != PROTOCOL_VERSION_Q2PRO && cls.netchan.protocol != PROTOCOL_VERSION_AQTION) {
         return;
     }
 
     MSG_WriteByte(clc_setting);
     MSG_WriteShort(CLS_NOPREDICT);
     MSG_WriteShort(!cl_predict->integer);
-    MSG_FlushTo(&cls.netchan->message);
+    MSG_FlushTo(&cls.netchan.message);
 }
 
 #if USE_FPS
 static void CL_UpdateRateSetting(void)
 {
-    if (!cls.netchan) {
-        return;
-    }
-    if (cls.serverProtocol != PROTOCOL_VERSION_Q2PRO && cls.serverProtocol != PROTOCOL_VERSION_AQTION) {
+    if (cls.netchan.protocol != PROTOCOL_VERSION_Q2PRO && cls.netchan.protocol != PROTOCOL_VERSION_AQTION) {
         return;
     }
 
     MSG_WriteByte(clc_setting);
     MSG_WriteShort(CLS_FPS);
     MSG_WriteShort(cl_updaterate->integer);
-    MSG_FlushTo(&cls.netchan->message);
+    MSG_FlushTo(&cls.netchan.message);
 }
 #endif
 
@@ -1432,10 +1416,7 @@ void CL_UpdateRecordingSetting(void)
 {
     int rec;
 
-    if (!cls.netchan) {
-        return;
-    }
-    if (cls.serverProtocol < PROTOCOL_VERSION_R1Q2) {
+    if (cls.netchan.protocol < PROTOCOL_VERSION_R1Q2) {
         return;
     }
 
@@ -1454,7 +1435,7 @@ void CL_UpdateRecordingSetting(void)
     MSG_WriteByte(clc_setting);
     MSG_WriteShort(CLS_RECORDING);
     MSG_WriteShort(rec);
-    MSG_FlushTo(&cls.netchan->message);
+    MSG_FlushTo(&cls.netchan.message);
 }
 
 /*
@@ -1464,7 +1445,7 @@ CL_ClientCommand
 */
 void CL_ClientCommand(const char *string)
 {
-    if (!cls.netchan) {
+    if (!cls.netchan.protocol) {
         return;
     }
 
@@ -1472,7 +1453,7 @@ void CL_ClientCommand(const char *string)
 
     MSG_WriteByte(clc_stringcmd);
     MSG_WriteString(string);
-    MSG_FlushTo(&cls.netchan->message);
+    MSG_FlushTo(&cls.netchan.message);
 }
 
 /*
@@ -1670,13 +1651,6 @@ static void CL_Connect_c(genctx_t *ctx, int argnum)
     if (argnum == 1) {
         CL_RecentIP_g(ctx);
         Com_Address_g(ctx);
-    } else if (argnum == 2) {
-        if (!ctx->partial[0] || (ctx->partial[0] == '3' && !ctx->partial[1])) {
-            Prompt_AddMatch(ctx, "34");
-            Prompt_AddMatch(ctx, "35");
-            Prompt_AddMatch(ctx, "36");
-			Prompt_AddMatch(ctx, "38");
-        }
     }
 }
 
@@ -1690,31 +1664,15 @@ static void CL_Connect_f(void)
 {
     char    *server, *p;
     netadr_t    address;
-    int protocol;
-    int argc = Cmd_Argc();
 
-    if (argc < 2) {
-usage:
-        Com_Printf("Usage: %s <server> [34|35|36]\n", Cmd_Argv(0));
+    if (Cmd_Argc() < 2) {
+        Com_Printf("Usage: %s <server>\n", Cmd_Argv(0));
         return;
     }
 
-    if (argc > 2) {
-        protocol = atoi(Cmd_Argv(2));
-        if (protocol < PROTOCOL_VERSION_DEFAULT ||
-            protocol > PROTOCOL_VERSION_AQTION ||
-			protocol == PROTOCOL_VERSION_MVD) {
-            goto usage;
-        }
-    } else {
-        protocol = cl_protocol->integer;
-        if (!protocol) {
-			#ifdef AQTION_EXTENSION
-			protocol = PROTOCOL_VERSION_AQTION;
-			#else
-			protocol = PROTOCOL_VERSION_Q2PRO;
-			#endif
-        }
+    if (Cmd_Argc() > 2) {
+        Com_Printf("Second argument to `%s' is now ignored. "
+                   "Set protocol via `cl_protocol' variable.\n", Cmd_Argv(0));
     }
 
     server = Cmd_Argv(1);
@@ -1743,8 +1701,7 @@ usage:
     CL_Disconnect(ERR_RECONNECT);
 
     cls.serverAddress = address;
-    cls.serverProtocol = protocol;
-    cls.protocolVersion = 0;
+    cls.serverProtocol = cl_protocol->integer;
     cls.passive = false;
     cls.state = ca_challenging;
     cls.connect_time -= CONNECT_FAST;
@@ -1843,7 +1800,8 @@ static void CL_Rcon_f(void)
         return;
     }
 
-    if (!cls.netchan) {
+    address = cls.netchan.remote_address;
+    if (!address.type) {
         if (!rcon_address->string[0]) {
             Com_Printf("You must either be connected, "
                        "or set the 'rcon_address' cvar "
@@ -1854,8 +1812,6 @@ static void CL_Rcon_f(void)
             Com_Printf("Bad address: %s\n", rcon_address->string);
             return;
         }
-    } else {
-        address = cls.netchan->remote_address;
     }
 
     CL_SendRcon(&address, rcon_password->string, COM_StripQuotes(Cmd_RawArgs()));
@@ -1938,17 +1894,16 @@ void CL_Disconnect(error_type_t type)
     cls.errorReceived = false;
 #endif
 
-    if (cls.netchan) {
+    if (cls.netchan.protocol) {
         // send a disconnect message to the server
         MSG_WriteByte(clc_stringcmd);
         MSG_WriteData("disconnect", 11);
 
-        cls.netchan->Transmit(cls.netchan, msg_write.cursize, msg_write.data, 3);
+        cls.netchan.Transmit(&cls.netchan, msg_write.cursize, msg_write.data, 3);
 
         SZ_Clear(&msg_write);
 
-        Netchan_Close(cls.netchan);
-        cls.netchan = NULL;
+        Netchan_Close(&cls.netchan);
     }
 
     // stop playback and/or recording
@@ -2006,11 +1961,11 @@ static void CL_ServerStatus_f(void)
     netadr_t    adr;
 
     if (Cmd_Argc() < 2) {
-        if (!cls.netchan) {
+        adr = cls.netchan.remote_address;
+        if (!adr.type) {
             Com_Printf("Usage: %s [address]\n", Cmd_Argv(0));
             return;
         }
-        adr = cls.netchan->remote_address;
     } else {
         s = Cmd_Argv(1);
         if (!NET_StringToAdr(s, &adr, PORT_SERVER)) {
@@ -2183,58 +2138,6 @@ static void CL_ParseInfoMessage(void)
 }
 
 /*
-====================
-CL_Packet_f
-
-packet <destination> <contents>
-
-Contents allows \n escape character
-====================
-*/
-/*
-void CL_Packet_f (void)
-{
-    char    send[2048];
-    int     i, l;
-    char    *in, *out;
-    netadr_t    adr;
-
-    if (Cmd_Argc() != 3)
-    {
-        Com_Printf ("packet <destination> <contents>\n");
-        return;
-    }
-
-    if (!NET_StringToAdr (Cmd_Argv(1), &adr))
-    {
-        Com_Printf ("Bad address\n");
-        return;
-    }
-    if (!adr.port)
-        adr.port = BigShort (PORT_SERVER);
-
-    in = Cmd_Argv(2);
-    out = send+4;
-    send[0] = send[1] = send[2] = send[3] = (char)0xff;
-
-    l = strlen (in);
-    for (i=0; i<l; i++)
-    {
-        if (in[i] == '\\' && in[i+1] == 'n')
-        {
-            *out++ = '\n';
-            i++;
-        }
-        else
-            *out++ = in[i];
-    }
-    *out = 0;
-
-    NET_SendPacket (NS_CLIENT, out-send, send, &adr);
-}
-*/
-
-/*
 =================
 CL_Changing_f
 
@@ -2293,16 +2196,18 @@ The server is changing levels
 */
 static void CL_Reconnect_f(void)
 {
-    if (cls.state >= ca_precached) {
+    if (cls.demo.playback) {
+        Com_Printf("No server to reconnect to.\n");
+        return;
+    }
+
+    if (cls.state >= ca_precached || Cmd_From() != FROM_STUFFTEXT) {
         CL_Disconnect(ERR_RECONNECT);
     }
 
     if (cls.state >= ca_connected) {
         cls.state = ca_connected;
 
-        if (cls.demo.playback) {
-            return;
-        }
         if (cls.download.file) {
             return; // if we are downloading, we don't change!
         }
@@ -2318,13 +2223,14 @@ static void CL_Reconnect_f(void)
         Com_Printf("No server to reconnect to.\n");
         return;
     }
-    if (cls.serverAddress.type == NA_LOOPBACK) {
+    if (cls.serverAddress.type == NA_LOOPBACK && !sv_running->integer) {
         Com_Printf("Can not reconnect to loopback.\n");
         return;
     }
 
     Com_Printf("Reconnecting...\n");
 
+    cls.serverProtocol = cl_protocol->integer;
     cls.state = ca_challenging;
     cls.connect_time -= CONNECT_FAST;
     cls.connect_count = 0;
@@ -2545,6 +2451,10 @@ static void CL_ConnectionlessPacket(void)
             }
         }
 
+        if (!cls.serverProtocol) {
+            cls.serverProtocol = PROTOCOL_VERSION_Q2PRO;
+        }
+
         // choose supported protocol
         switch (cls.serverProtocol) {
 		case PROTOCOL_VERSION_AQTION:
@@ -2636,18 +2546,15 @@ static void CL_ConnectionlessPacket(void)
 
         Com_Printf("Connected to %s (protocol %d).\n",
                    NET_AdrToString(&cls.serverAddress), cls.serverProtocol);
-        if (cls.netchan) {
-            // this may happen after svc_reconnect
-            Netchan_Close(cls.netchan);
-        }
-        cls.netchan = Netchan_Setup(NS_CLIENT, type, &cls.serverAddress,
-                                    cls.quakePort, 1024, cls.serverProtocol);
+        Netchan_Close(&cls.netchan);
+        Netchan_Setup(&cls.netchan, NS_CLIENT, type, &cls.serverAddress,
+                      cls.quakePort, 1024, cls.serverProtocol);
 
 #if USE_AC_CLIENT
         if (anticheat) {
             MSG_WriteByte(clc_nop);
-            MSG_FlushTo(&cls.netchan->message);
-            cls.netchan->Transmit(cls.netchan, 0, "", 3);
+            MSG_FlushTo(&cls.netchan.message);
+            cls.netchan.Transmit(&cls.netchan, 0, "", 3);
             S_StopAllSounds();
             cls.connect_count = -1;
             Com_Printf("Loading anticheat, this may take a few moments...\n");
@@ -2731,7 +2638,7 @@ static void CL_PacketEvent(void)
         return;
     }
 
-    if (!cls.netchan) {
+    if (cls.demo.playback) {
         return;     // dump it if not connected
     }
 
@@ -2743,13 +2650,13 @@ static void CL_PacketEvent(void)
     //
     // packet from server
     //
-    if (!NET_IsEqualAdr(&net_from, &cls.netchan->remote_address)) {
+    if (!NET_IsEqualAdr(&net_from, &cls.netchan.remote_address)) {
         Com_DPrintf("%s: sequenced packet without connection\n",
                     NET_AdrToString(&net_from));
         return;
     }
 
-    if (!cls.netchan->Process(cls.netchan))
+    if (!cls.netchan.Process(&cls.netchan))
         return;     // wasn't accepted for some reason
 
 #if USE_ICMP
@@ -2758,6 +2665,8 @@ static void CL_PacketEvent(void)
 
     CL_ParseServerMessage();
 
+    SCR_LagSample();
+
     // if recording demo, write the message out
     if (cls.demo.recording && !cls.demo.paused && CL_FRAMESYNC) {
         CL_WriteDemoMessage(&cls.demo.buffer);
@@ -2765,11 +2674,6 @@ static void CL_PacketEvent(void)
 
     // if running GTV server, transmit to client
     CL_GTV_Transmit();
-
-    if (!cls.netchan)
-        return;     // might have disconnected
-
-    SCR_LagSample();
 }
 
 #if USE_ICMP
@@ -2783,13 +2687,13 @@ void CL_ErrorEvent(netadr_t *from)
     if (cls.state < ca_connected) {
         return;
     }
-    if (!cls.netchan) {
+    if (cls.demo.playback) {
         return;     // dump it if not connected
     }
-    if (!NET_IsEqualBaseAdr(from, &cls.netchan->remote_address)) {
+    if (!NET_IsEqualBaseAdr(from, &cls.netchan.remote_address)) {
         return;
     }
-    if (from->port && from->port != cls.netchan->remote_address.port) {
+    if (from->port && from->port != cls.netchan.remote_address.port) {
         return;
     }
 
@@ -2830,7 +2734,11 @@ void CL_UpdateUserinfo(cvar_t *var, from_t from)
         CL_FixUpGender();
     }
 
-    if (!cls.netchan) {
+    if (cls.state < ca_connected) {
+        return;
+    }
+
+    if (cls.demo.playback) {
         return;
     }
 
@@ -3455,10 +3363,10 @@ static size_t CL_Ping_m(char *buffer, size_t size)
 
 static size_t CL_Lag_m(char *buffer, size_t size)
 {
-    float f = 0;
+    float f = 0.0f;
 
-    if (cls.netchan && cls.netchan->total_received)
-        f = (float)cls.netchan->total_dropped / cls.netchan->total_received;
+    if (cls.netchan.total_received)
+        f = (float)cls.netchan.total_dropped / cls.netchan.total_received;
 
     return Q_scnprintf(buffer, size, "%.2f%%", f * 100.0f);
 }
@@ -4132,8 +4040,8 @@ static void CL_MeasureStats(void)
     }
 
     // measure average ping
-    if (cls.netchan) {
-        int ack = cls.netchan->incoming_acknowledged;
+    if (cls.netchan.protocol) {
+        int ack = cls.netchan.incoming_acknowledged;
         int ping = 0;
         int j, k = 0;
 
@@ -4180,17 +4088,20 @@ static void CL_CheckForReply(void)
 
 static void CL_CheckTimeout(void)
 {
-    if (NET_IsLocalAddress(&cls.netchan->remote_address)) {
+    if (!cls.netchan.protocol) {
+        return;
+    }
+    if (NET_IsLocalAddress(&cls.netchan.remote_address)) {
         return;
     }
 
 #if USE_ICMP
-    if (cls.errorReceived && com_localTime - cls.netchan->last_received > 5000) {
+    if (cls.errorReceived && com_localTime - cls.netchan.last_received > 5000) {
         Com_Error(ERR_DISCONNECT, "Server connection was reset.");
     }
 #endif
 
-    if (cl_timeout->integer && com_localTime - cls.netchan->last_received > cl_timeout->integer) {
+    if (cl_timeout->integer && com_localTime - cls.netchan.last_received > cl_timeout->integer) {
         // timeoutcount saves debugger
         if (++cl.timeoutcount > 5) {
             Com_Error(ERR_DISCONNECT, "Server connection timed out.");
@@ -4474,8 +4385,7 @@ run_fx:
     }
 
     // check connection timeout
-    if (cls.netchan)
-        CL_CheckTimeout();
+    CL_CheckTimeout();
 
     C_FRAMES++;
 

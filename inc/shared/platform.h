@@ -32,6 +32,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #ifdef _WIN32
 #define LIBSUFFIX   ".dll"
+#elif __APPLE__
+#define LIBSUFFIX   ".dylib"
 #else
 #define LIBSUFFIX   ".so"
 #endif
@@ -100,7 +102,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define SOLIB_X_OK R_OK
 #else
 #define SOLIB_X_OK X_OK
-#endif    
+#endif   
 
 #ifdef __GNUC__
 

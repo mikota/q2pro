@@ -30,9 +30,6 @@ static bool match_ended_hack;
     if (mvd_shownet->integer > level) \
         Com_LPrintf(PRINT_DEVELOPER, __VA_ARGS__)
 
-#define MVD_ShowSVC(cmd) \
-    Com_Printf("%3zu:%s\n", msg_read.readcount - 1, MVD_ServerCommandString(cmd))
-
 static const char *MVD_ServerCommandString(int cmd)
 {
     switch (cmd) {
@@ -399,11 +396,9 @@ static void MVD_ParseUnicast(mvd_t *mvd, mvd_ops_t op, int extrabits)
 
     while (msg_read.readcount < last) {
         cmd = MSG_ReadByte();
-#if USE_DEBUG
-        if (mvd_shownet->integer > 1) {
-            MSG_ShowSVC(cmd);
-        }
-#endif
+
+        SHOWNET(1, "%3zu:%s\n", msg_read.readcount - 1, MSG_ServerCommandString(cmd));
+
         switch (cmd) {
         case svc_layout:
             MVD_UnicastLayout(mvd, player);
@@ -418,7 +413,7 @@ static void MVD_ParseUnicast(mvd_t *mvd, mvd_ops_t op, int extrabits)
             MVD_UnicastStuff(mvd, reliable, player);
             break;
         default:
-            SHOWNET(1, "%zu:SKIPPING UNICAST\n", msg_read.readcount - 1);
+            SHOWNET(1, "%3zu:SKIPPING UNICAST\n", msg_read.readcount - 1);
             // send remaining data and return
             data = msg_read.data + msg_read.readcount - 1;
             length = last - msg_read.readcount + 1;
@@ -429,7 +424,7 @@ static void MVD_ParseUnicast(mvd_t *mvd, mvd_ops_t op, int extrabits)
         }
     }
 
-    SHOWNET(1, "%zu:END OF UNICAST\n", msg_read.readcount);
+    SHOWNET(1, "%3zu:END OF UNICAST\n", msg_read.readcount);
 
     if (msg_read.readcount > last) {
         MVD_Destroyf(mvd, "%s: read past end of unicast", __func__);
@@ -840,8 +835,7 @@ void MVD_ClearState(mvd_t *mvd, bool full)
     }
     mvd->numsnapshots = 0;
 
-    Z_Free(mvd->snapshots);
-    mvd->snapshots = NULL;
+    Z_Freep(&mvd->snapshots);
 
     // free current map
     CM_FreeMap(&mvd->cm);
@@ -969,7 +963,7 @@ static void MVD_ParseServerData(mvd_t *mvd, int extrabits)
         Z_Free(mvd->players);
 
         // allocate new players
-        mvd->players = MVD_Mallocz(sizeof(mvd_player_t) * index);
+        mvd->players = MVD_Mallocz(sizeof(mvd->players[0]) * index);
         mvd->maxclients = index;
 
         // clear chase targets
@@ -1060,9 +1054,9 @@ bool MVD_ParseMessage(mvd_t *mvd)
 
 #if USE_DEBUG
     if (mvd_shownet->integer == 1) {
-        Com_Printf("%zu ", msg_read.cursize);
+        Com_LPrintf(PRINT_DEVELOPER, "%zu ", msg_read.cursize);
     } else if (mvd_shownet->integer > 1) {
-        Com_Printf("------------------\n");
+        Com_LPrintf(PRINT_DEVELOPER, "------------------\n");
     }
 #endif
 
@@ -1083,11 +1077,7 @@ bool MVD_ParseMessage(mvd_t *mvd)
         extrabits = cmd >> SVCMD_BITS;
         cmd &= SVCMD_MASK;
 
-#if USE_DEBUG
-        if (mvd_shownet->integer > 1) {
-            MVD_ShowSVC(cmd);
-        }
-#endif
+        SHOWNET(1, "%3zu:%s\n", msg_read.readcount - 1, MVD_ServerCommandString(cmd));
 
         switch (cmd) {
         case mvd_serverdata:

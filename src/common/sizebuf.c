@@ -19,6 +19,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "shared/shared.h"
 #include "common/protocol.h"
 #include "common/sizebuf.h"
+#include "common/intreadwrite.h"
 
 void SZ_TagInit(sizebuf_t *buf, void *data, size_t size, const char *tag)
 {
@@ -42,7 +43,6 @@ void SZ_Clear(sizebuf_t *buf)
 {
     buf->cursize = 0;
     buf->readcount = 0;
-    buf->bitpos = 0;
     buf->overflowed = false;
 }
 
@@ -76,7 +76,6 @@ void *SZ_GetSpace(sizebuf_t *buf, size_t len)
 
     data = buf->data + buf->cursize;
     buf->cursize += len;
-    buf->bitpos = buf->cursize << 3;
     return data;
 }
 
@@ -93,8 +92,7 @@ void SZ_WriteShort(sizebuf_t *sb, int c)
     byte    *buf;
 
     buf = SZ_GetSpace(sb, 2);
-    buf[0] = c & 0xff;
-    buf[1] = c >> 8;
+    WL16(buf, c);
 }
 
 void SZ_WriteLong(sizebuf_t *sb, int c)
@@ -102,13 +100,9 @@ void SZ_WriteLong(sizebuf_t *sb, int c)
     byte    *buf;
 
     buf = SZ_GetSpace(sb, 4);
-    buf[0] = c & 0xff;
-    buf[1] = (c >> 8) & 0xff;
-    buf[2] = (c >> 16) & 0xff;
-    buf[3] = c >> 24;
+    WL32(buf, c);
 }
 
-#if USE_MVD_SERVER
 void SZ_WriteString(sizebuf_t *sb, const char *s)
 {
     size_t len;
@@ -127,7 +121,6 @@ void SZ_WriteString(sizebuf_t *sb, const char *s)
 
     SZ_Write(sb, s, len + 1);
 }
-#endif
 
 void *SZ_ReadData(sizebuf_t *buf, size_t len)
 {
@@ -138,13 +131,11 @@ void *SZ_ReadData(sizebuf_t *buf, size_t len)
             Com_Error(ERR_DROP, "%s: read past end of message", __func__);
         }
         buf->readcount = buf->cursize + 1;
-        buf->bitpos = buf->readcount << 3;
         return NULL;
     }
 
     data = buf->data + buf->readcount;
     buf->readcount += len;
-    buf->bitpos = buf->readcount << 3;
     return data;
 }
 
@@ -157,11 +148,11 @@ int SZ_ReadByte(sizebuf_t *sb)
 int SZ_ReadShort(sizebuf_t *sb)
 {
     byte *buf = SZ_ReadData(sb, 2);
-    return buf ? (int16_t)LittleShortMem(buf) : -1;
+    return buf ? (int16_t)RL16(buf) : -1;
 }
 
 int SZ_ReadLong(sizebuf_t *sb)
 {
     byte *buf = SZ_ReadData(sb, 4);
-    return buf ? LittleLongMem(buf) : -1;
+    return buf ? RL32(buf) : -1;
 }

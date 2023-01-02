@@ -16,6 +16,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#define CURL_DISABLE_DEPRECATION
+
 #include "client.h"
 #include <curl/curl.h>
 
@@ -34,8 +36,10 @@ static cvar_t  *cl_http_blocking_timeout;
 #endif
 
 // size limits for filelists, must be power of two
-#define MAX_DLSIZE  0x100000    // 1 MiB
-#define MIN_DLSIZE  0x8000      // 32 KiB
+#define MAX_DLSIZE  (1 << 20)   // 1 MiB
+#define MIN_DLSIZE  (1 << 15)   // 32 KiB
+
+#define INSANE_SIZE (1LL << 40)
 
 typedef struct {
     CURL        *curl;
@@ -79,8 +83,8 @@ static int progress_func(void *clientp, curl_off_t dltotal, curl_off_t dlnow, cu
 {
     dlhandle_t *dl = (dlhandle_t *)clientp;
 
-    //abort if download exceedes 2 GiB
-    if (dlnow > INT_MAX)
+    //sanity check
+    if (dlnow > INSANE_SIZE)
         return -1;
 
     //don't care which download shows as long as something does :)
@@ -102,7 +106,7 @@ static size_t recv_func(void *ptr, size_t size, size_t nmemb, void *stream)
     dlhandle_t *dl = (dlhandle_t *)stream;
     size_t new_size, bytes;
 
-    if (!nmemb)
+    if (!size || !nmemb)
         return 0;
 
     if (size > SIZE_MAX / nmemb)
@@ -283,7 +287,7 @@ static void start_download(dlqueue_t *entry, dlhandle_t *dl)
         goto fail;
     }
 
-    curl_easy_setopt(dl->curl, CURLOPT_ENCODING, "");
+    curl_easy_setopt(dl->curl, CURLOPT_ACCEPT_ENCODING, "");
 #if USE_DEBUG
     if (cl_http_debug->integer) {
         curl_easy_setopt(dl->curl, CURLOPT_DEBUGFUNCTION, debug_func);
@@ -297,7 +301,7 @@ static void start_download(dlqueue_t *entry, dlhandle_t *dl)
     if (dl->file) {
         curl_easy_setopt(dl->curl, CURLOPT_WRITEDATA, dl->file);
         curl_easy_setopt(dl->curl, CURLOPT_WRITEFUNCTION, NULL);
-        curl_easy_setopt(dl->curl, CURLOPT_MAXFILESIZE, INT_MAX | 0L);
+        curl_easy_setopt(dl->curl, CURLOPT_MAXFILESIZE, 0L);
     } else {
         curl_easy_setopt(dl->curl, CURLOPT_WRITEDATA, dl);
         curl_easy_setopt(dl->curl, CURLOPT_WRITEFUNCTION, recv_func);
@@ -361,7 +365,7 @@ int HTTP_FetchFile(const char *url, void **data)
 
     memset(&tmp, 0, sizeof(tmp));
 
-    curl_easy_setopt(curl, CURLOPT_ENCODING, "");
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 #if USE_DEBUG
     if (cl_http_debug->integer) {
         curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, debug_func);
@@ -428,10 +432,7 @@ void HTTP_CleanupDownloads(void)
             dl->file = NULL;
         }
 
-        if (dl->buffer) {
-            Z_Free(dl->buffer);
-            dl->buffer = NULL;
-        }
+        Z_Freep(&dl->buffer);
 
         if (dl->curl) {
             if (curl_multi && dl->multi_added)
@@ -720,8 +721,7 @@ static void parse_file_list(dlhandle_t *dl)
         }
     }
 
-    Z_Free(dl->buffer);
-    dl->buffer = NULL;
+    Z_Freep(&dl->buffer);
 }
 
 // A pak file just downloaded, let's see if we can remove some stuff from
@@ -788,6 +788,7 @@ static bool finish_download(void)
         curl = msg->easy_handle;
         curl_easy_getinfo(curl, CURLINFO_PRIVATE, &dl);
         Q_assert(dl);
+        Q_assert(dl->curl == curl);
 
         cls.download.current = NULL;
         cls.download.percent = 0;
@@ -798,6 +799,11 @@ static bool finish_download(void)
             fclose(dl->file);
             dl->file = NULL;
         }
+
+        //remove the handle and mark it as such
+        Q_assert(dl->multi_added);
+        curl_multi_remove_handle(curl_multi, curl);
+        dl->multi_added = false;
 
         curl_handles--;
 
@@ -831,6 +837,7 @@ static bool finish_download(void)
         case CURLE_COULDNT_RESOLVE_HOST:
         case CURLE_COULDNT_CONNECT:
         case CURLE_COULDNT_RESOLVE_PROXY:
+        case CURLE_PEER_FAILED_VERIFICATION:
             //connection problems are fatal
             err = curl_easy_strerror(result);
             level = PRINT_ERROR;
@@ -853,15 +860,7 @@ fail2:
                 remove(dl->path);
                 dl->path[0] = 0;
             }
-            if (dl->buffer) {
-                Z_Free(dl->buffer);
-                dl->buffer = NULL;
-            }
-            if (dl->multi_added) {
-                //remove the handle and mark it as such
-                curl_multi_remove_handle(curl_multi, curl);
-                dl->multi_added = false;
-            }
+            Z_Freep(&dl->buffer);
             continue;
         }
 
@@ -875,12 +874,6 @@ fail2:
             sec = 0.001;
         Com_FormatSizeLong(size, sizeof(size), bytes);
         Com_FormatSizeLong(speed, sizeof(speed), bytes / sec);
-
-        if (dl->multi_added) {
-            //remove the handle and mark it as such
-            curl_multi_remove_handle(curl_multi, curl);
-            dl->multi_added = false;
-        }
 
         Com_Printf("[HTTP] %s [%s, %s/sec] [%d remaining file%s]\n",
                    dl->queue->path, size, speed, cls.download.pending,
@@ -973,21 +966,19 @@ void HTTP_RunDownloads(void)
 
     start_next_download();
 
-    do {
-        ret = curl_multi_perform(curl_multi, &new_count);
-        if (new_count < curl_handles) {
-            //hmm, something either finished or errored out.
-            if (!finish_download())
-                return; //aborted
-            curl_handles = new_count;
-        }
-    } while (ret == CURLM_CALL_MULTI_PERFORM);
-
+    ret = curl_multi_perform(curl_multi, &new_count);
     if (ret != CURLM_OK) {
         Com_EPrintf("[HTTP] Error running downloads: %s.\n",
                     curl_multi_strerror(ret));
         abort_downloads();
         return;
+    }
+
+    if (new_count < curl_handles) {
+        //hmm, something either finished or errored out.
+        if (!finish_download())
+            return; //aborted
+        curl_handles = new_count;
     }
 
     start_next_download();
