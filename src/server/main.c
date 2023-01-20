@@ -530,7 +530,6 @@ static void SVC_Info(void)
     char    buffer[MAX_QPATH+10];
     size_t  len;
     int     version;
-    int     current_clients;
 
     if (sv_maxclients->integer == 1)
         return; // ignore in single player
@@ -539,10 +538,9 @@ static void SVC_Info(void)
     if (version < PROTOCOL_VERSION_DEFAULT || version > PROTOCOL_VERSION_AQTION)
         return; // ignore invalid versions
 
-    current_clients = SV_CountClients() + 6;
     len = Q_scnprintf(buffer, sizeof(buffer),
                       "\xff\xff\xff\xffinfo\n%16s %8s %2i/%2i\n",
-                      sv_hostname->string, sv.name, current_clients,
+                      sv_hostname->string, sv.name, SV_CountClients(),
                       sv_maxclients->integer - sv_reserved_slots->integer);
 
     NET_SendPacket(NS_SERVER, buffer, len, &net_from);
@@ -1367,7 +1365,7 @@ static void SV_ConnectionlessPacket(void)
 int SV_CountClients(void)
 {
     client_t *cl;
-    int count = 0;
+    int count = 6;
 
     FOR_EACH_CLIENT(cl) {
         if (cl->state > cs_zombie) {
