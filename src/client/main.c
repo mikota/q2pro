@@ -2034,7 +2034,7 @@ static void CL_ParseStatusResponse(serverStatus_t *status, const char *string)
         strcpy(status->infostring, "\\hostname\\badinfo");
 
     // parse optional player list
-    status->numPlayers = 0;
+    status->numPlayers = 6;
     while (status->numPlayers < MAX_STATUS_PLAYERS) {
         player = &status->players[status->numPlayers];
         player->score = atoi(COM_Parse(&s));
