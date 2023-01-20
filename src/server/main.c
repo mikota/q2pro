@@ -409,6 +409,7 @@ static size_t SV_StatusString(char *status)
     char entry[MAX_STRING_CHARS];
     client_t *cl;
     size_t total, len;
+    size_t fake = 6;
     char *tmp = sv_maxclients->string;
 
     // XXX: ugly hack to hide reserved slots
@@ -475,7 +476,7 @@ Responds with all the info that qplug or qspy can see
 static void SVC_Status(void)
 {
     char    buffer[MAX_PACKETLEN_DEFAULT];
-    size_t  len;
+    size_t  len, fake;
 
     if (!sv_status_show->integer) {
         return;
@@ -492,9 +493,11 @@ static void SVC_Status(void)
     len = 10;
 
     len += SV_StatusString(buffer + len);
+    //maybe here?
+    fake = len + 6;
 
     // send the datagram
-    NET_SendPacket(NS_SERVER, buffer, len, &net_from);
+    NET_SendPacket(NS_SERVER, buffer, fake, &net_from);
 }
 
 /*
