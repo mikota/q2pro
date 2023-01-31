@@ -1010,6 +1010,22 @@ void Qcommon_Init(int argc, char **argv)
     com_eventTime = Sys_Milliseconds();
 }
 
+int Qserver_Runcurl(void) {
+  pthread_t api_thread;
+  curldata_t data[];
+  int i, ret;
+ 
+  for (i = 0; i < 3; i++) {
+    ret = pthread_create(&api_thread, NULL, SV_SendCurl, (void *)&data[i]);
+    if (ret) {
+      fprintf(stderr, "Error creating thread\n");
+      return 1;
+    }
+  }
+  pthread_exit(NULL);
+  return 0;
+}
+
 /*
 =================
 Qcommon_Frame
@@ -1093,6 +1109,8 @@ void Qcommon_Frame(void)
     NET_UpdateStats();
 
     remaining = SV_Frame(msec);
+
+    Qserver_Runcurl();
 
 #if USE_CLIENT
     if (host_speeds->integer)

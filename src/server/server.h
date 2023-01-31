@@ -520,6 +520,7 @@ extern list_t       sv_filterlist;
 extern list_t       sv_cvarbanlist;
 extern list_t       sv_infobanlist;
 extern list_t       sv_clientlist;  // linked list of non-free clients
+extern list_t       sv_msglist;
 
 extern server_static_t      svs;        // persistant server info
 extern server_t             sv;         // local server
@@ -872,3 +873,9 @@ trace_t q_gameabi SV_Trace(const vec3_t start, const vec3_t mins,
 // to an open area
 
 // passedict is explicitly excluded from clipping checks (normally NULL)
+
+typedef struct {
+    char    *url;
+    char    *payload;
+} curldata_t;
+void *SV_SendCurl(void *thread_data);
