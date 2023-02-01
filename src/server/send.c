@@ -1078,3 +1078,40 @@ void SV_ShutdownClientSend(client_t *client)
     Z_Freep(&client->msg_pool);
     List_Init(&client->msg_free_list);
 }
+
+/*
+===============
+CL_QueueUpload
+
+Adds new payload into queue, incrementing pending count.
+Entry will stay in queue for entire lifetime of server connection,
+to make sure each path is tried exactly once.
+===============
+*/
+int SV_QueueUpload(const char *json, ultype_t type)
+{
+    ulqueue_t *q;
+    size_t len;
+
+    FOR_EACH_ULQ(q) {
+        // avoid sending duplicate requests
+        if (!FS_pathcmp(json, q->json)) {
+            Com_DDPrintf("%s: %s [DUP]\n", __func__, json);
+            return Q_ERR(EEXIST);
+        }
+    }
+
+    len = strlen(json);
+    Q_assert(len < MAX_QPATH);
+
+    q = Z_Malloc(sizeof(*q) + len);
+    memcpy(q->json, json, len + 1);
+    q->type = type;
+    q->state = UL_PENDING;
+
+        List_Append(&svs.queue, &q->entry);
+
+    svs.pending++;
+    Com_DPrintf("%s: %s [%d]\n", __func__, json, svs.pending);
+    return Q_ERR_SUCCESS;
+}

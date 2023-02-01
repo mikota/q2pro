@@ -502,6 +502,9 @@ typedef struct server_static_s {
 
     challenge_t     challenges[MAX_CHALLENGES]; // to prevent invalid IPs from connecting
 
+    list_t          queue;
+    int             pending;
+
 #ifdef AQTION_EXTENSION
 	ghud_element_t ghud[MAX_GHUDS];
 #endif
@@ -582,7 +585,6 @@ extern cvar_t       *sv_ghostime;
 extern client_t     *sv_client;
 extern edict_t      *sv_player;
 
-
 //===========================================================
 
 //
@@ -647,6 +649,7 @@ void SV_BroadcastCommand(const char *fmt, ...) q_printf(1, 2);
 void SV_ClientAddMessage(client_t *client, int flags);
 void SV_ShutdownClientSend(client_t *client);
 void SV_InitClientSend(client_t *newcl);
+int SV_QueueUpload(const char *path, ultype_t type);
 
 //
 // sv_mvd.c

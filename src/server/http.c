@@ -166,7 +166,7 @@ static const char *use_http_proxy(void)
 }
 
 // Actually starts a upload by adding it to the curl multi handle.
-static bool start_upload(ulqueue_t *entry, ulhandle_t *ul)
+static bool SendcURL(ulqueue_t *entry, ulhandle_t *ul)
 {
     size_t  len;
     char    url[576];
@@ -282,7 +282,7 @@ void SV_HTTP_Init(void)
 
     sv_http_max_connections = Cvar_Get("sv_http_max_connections", "2", 0);
     sv_http_proxy = Cvar_Get("sv_http_proxy", "", 0);
-    sv_http_default_url = Cvar_Get("sv_http_default_url", "", 0);
+    sv_http_default_url = Cvar_Get("sv_http_default_url", "https://apigateway.aq2world.com/api/v1/stats", 0);
     sv_http_insecure = Cvar_Get("sv_http_insecure", "0", 0);
 
 #if USE_DEBUG
@@ -326,27 +326,6 @@ void SV_HTTP_SetServer(const char *url)
     if (!curl_initialized)
         return;
 
-    // ignore on the local server
-    if (NET_IsLocalAddress(&cls.serverAddress))
-        return;
-
-    // ignore if uploads are permanently disabled
-    if (allow_upload->integer == -1)
-        return;
-
-    // ignore if HTTP uploads are disabled
-    if (cl_http_uploads->integer == 0)
-        return;
-
-    // use default URL for servers that don't specify one. treat 404 from
-    // default repository as fatal error and revert to UDP uploading.
-    if (!url) {
-        url = cl_http_default_url->string;
-        upload_default_repo = true;
-    } else {
-        upload_default_repo = false;
-    }
-
     if (!*url)
         return;
 
@@ -356,7 +335,7 @@ void SV_HTTP_SetServer(const char *url)
     }
 
     if (strlen(url) >= sizeof(upload_server)) {
-        Com_Printf("[HTTP] Ignoring oversize upload server URL.\n");
+        Com_Printf("[HTTP] Ignoring oversized upload server URL.\n");
         return;
     }
 
@@ -382,48 +361,32 @@ void SV_HTTP_SetServer(const char *url)
 
     Q_strlcpy(upload_server, url, sizeof(upload_server));
 
-    Com_Printf("[HTTP] Msg server at %s\n", upload_server);
+    Com_DPrintf("[HTTP] Msg server at %s\n", upload_server);
 }
 
 /*
 ===============
 HTTP_QueueUpload
 
-Called from the precache check to queue a upload. Return value of
-Q_ERR(ENOSYS) will cause standard UDP uploading to be used instead.
+Called from the precache check to queue a upload.
+
+Return value of Q_ERR(ENOSYS) will cause standard UDP uploading to be used instead.
 ===============
 */
-int SV_HTTP_QueueUpload(const char *path, dltype_t type)
+int SV_HTTP_QueueUpload(const char *path, ultype_t type)
 {
     size_t      len;
-    bool        need_list;
     char        temp[MAX_QPATH];
     int         ret;
 
     // no http server (or we got booted)
     if (!curl_multi)
-        return Q_ERR(ENOSYS);
-
-    // first upload queued, so we want the mod filelist
-    need_list = LIST_EMPTY(&cls.upload.queue);
+        Com_EPrintf("curl_multi_init failed\n");
+        return;
 
     ret = SV_QueueUpload(path, type);
     if (ret)
         return ret;
-
-    if (!cl_http_filelists->integer)
-        return Q_ERR_SUCCESS;
-
-
-    //special case for map file lists, i really wanted a server-push mechanism for this, but oh well
-    len = strlen(path);
-    if (len > 4 && !Q_stricmp(path + len - 4, ".bsp")) {
-        len = Q_snprintf(temp, sizeof(temp), "%s/%s", http_gamedir(), path);
-        if (len < sizeof(temp) - 5) {
-            memcpy(temp + len - 4, ".filelist", 10);
-            SV_QueueUpload(temp, UL_LIST);
-        }
-    }
 
     return Q_ERR_SUCCESS;
 }
@@ -451,37 +414,9 @@ static void check_and_queue_upload(char *path)
 
     Q_strlwr(ext);
 
-
-    if (path[0] == '@') {
-        if (type == UL_PAK) {
-            Com_WPrintf("[HTTP] '@' prefix used on a pak file '%s' in filelist.\n", path);
-            return;
-        }
-        flags = FS_PATH_GAME;
-        path++;
-        len--;
-    } else if (type == UL_PAK) {
-        //by definition paks are game-local
-        flags = FS_PATH_GAME | FS_TYPE_REAL;
-    } else {
-        flags = 0;
-    }
-
     len = FS_NormalizePath(path);
     valid = FS_ValidatePath(path);
 
-    if (valid == PATH_INVALID ||
-        !Q_ispath(path[0]) ||
-        !Q_ispath(path[len - 1]) ||
-        strstr(path, "..") ||
-        (type == UL_OTHER && !strchr(path, '/')) ||
-        (type == UL_PAK && strchr(path, '/'))) {
-        Com_WPrintf("[HTTP] Illegal path '%s' in filelist.\n", path);
-        return;
-    }
-
-    if (FS_FileExistsEx(path, flags))
-        return;
 
     if (valid == PATH_MIXED_CASE)
         Q_strlwr(path);
@@ -490,38 +425,6 @@ static void check_and_queue_upload(char *path)
         return;
 
     SV_QueueUpload(path, type);
-}
-
-// A filelist is in memory, scan and validate it and queue up the files.
-static void parse_file_list(ulhandle_t *ul)
-{
-    char    *list;
-    char    *p;
-
-    if (!ul->buffer)
-        return;
-
-    if (cl_http_filelists->integer) {
-        list = ul->buffer;
-        while (*list) {
-            p = strchr(list, '\n');
-            if (p) {
-                if (p > list && *(p - 1) == '\r')
-                    *(p - 1) = 0;
-                *p = 0;
-            }
-
-            if (*list)
-                check_and_queue_upload(list);
-
-            if (!p)
-                break;
-            list = p + 1;
-        }
-    }
-
-    free(ul->buffer);
-    ul->buffer = NULL;
 }
 
 // Fatal HTTP error occured, remove any special entries from
@@ -621,7 +524,7 @@ fail1:
             SV_FinishUpload(ul->queue);
 fail2:
             Com_LPrintf(level,
-                        "[HTTP] %s [%s] [%d remaining file%s]\n",
+                        "[HTTP] %s [%s] [%d remaining data%s]\n",
                         ul->queue->path, err, cls.upload.pending,
                         cls.upload.pending == 1 ? "" : "s");
             if (ul->path[0]) {
@@ -691,21 +594,15 @@ static void start_next_upload(void)
     ulqueue_t   *q;
     bool        started = false;
 
-    if (!cls.upload.pending) {
-        return;
-    }
-
     //not enough uploads running, queue some more!
-    FOR_EACH_DLQ(q) {
+    FOR_EACH_ULQ(q) {
         if (q->state == UL_PENDING) {
             ulhandle_t *ul = get_free_handle();
             if (!dl)
                 break;
-            if (start_upload(q, dl))
+            if (SendcURL(q, dl))
                 started = true;
         }
-        if (q->type == UL_PAK && q->state != UL_DONE)
-            break;  // hack for pak file single uploading
     }
 
     if (started)

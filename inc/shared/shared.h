@@ -42,6 +42,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 //FIREBLADE
 
 #include "shared/platform.h"
+#include "shared/list.h"
 
 #define q_countof(a)        (sizeof(a) / sizeof(a[0]))
 
@@ -1477,3 +1478,31 @@ typedef struct {
 
     short       stats[MAX_STATS];       // fast status bar updates
 } player_state_t;
+
+typedef enum {
+    UL_STAT,
+    UL_CHAT,
+    UL_ANNOUNCE
+} ultype_t;
+
+typedef enum {
+    UL_FREE,
+    UL_PENDING,
+    UL_RUNNING,
+    UL_DONE
+} ulstate_t;
+
+typedef struct {
+    ultype_t    type;
+    ulstate_t   state;
+    char        json[1];
+} ulqueue_t;
+
+typedef struct {
+    list_t      queue;
+    int         pending;
+} svs_static_t;
+
+extern svs_static_t      srvs;
+#define FOR_EACH_ULQ(q) \
+    LIST_FOR_EACH(ulqueue_t, q, &srvs.queue, entry);

@@ -1278,6 +1278,9 @@ void Cmd_Say_f (edict_t * ent, qboolean team, qboolean arg0, qboolean partner_ms
 	char *args, text[256], *s;
 	int meing = 0, isadmin = 0;
 	qboolean show_info = false;
+	struct ulqueue_t ulq;
+	struct ulstate_t uls;
+	char *json;
 
 	if (gi.argc() < 2 && !arg0)
 		return;
@@ -1469,6 +1472,9 @@ void Cmd_Say_f (edict_t * ent, qboolean team, qboolean arg0, qboolean partner_ms
 		gi.cprintf (NULL, PRINT_CHAT, "%s", text);
 		if ((!team) && (!partner_msg)) {
 			IRC_printf (IRC_T_TALK, "%s", text);
+			Q_strncpyz(json, text, sizeof(json));
+			Q_strncpyz(ulq.type, 0);
+			Q_strncpyz(ulq.json, json);
 		}
 	}
 	
