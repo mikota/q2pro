@@ -52,9 +52,13 @@ typedef struct {
     atomic_int  state;
 } ulhandle_t;
 
+struct curl_slist   *headers = NULL;
+headers = curl_slist_append(headers, "Accept: application/json");
+headers = curl_slist_append(headers, "Content-Type: application/json");
+headers = curl_slist_append(headers, apikeyheader);
+
 static ulhandle_t   upload_handles[MAX_ULHANDLES];    //actual upload handles
-static char         upload_server[512];    //base url prefix to upload from
-static char         upload_referer[32];    //libcurl no longer requires a static string ;)
+static char         upload_server[512];    //base url prefix to upload to
 static bool         upload_default_repo;
 
 static pthread_mutex_t  progress_mutex;
@@ -169,6 +173,7 @@ static bool start_upload(ulqueue_t *entry, ulhandle_t *ul)
     char    temp[MAX_QPATH];
     char    escaped[MAX_QPATH * 4];
     int     err;
+    char    json[1024];
 
     len = Q_snprintf(url, sizeof(url), "%s%s", upload_server, escaped);
     if (len >= sizeof(url)) {
@@ -194,42 +199,34 @@ static bool start_upload(ulqueue_t *entry, ulhandle_t *ul)
     }
     curl_easy_setopt(ul->curl, CURLOPT_ACCEPT_ENCODING, "");
 #if USE_DEBUG
-    curl_easy_setopt(ul->curl, CURLOPT_VERBOSE, cl_http_debug->integer | 0L);
+    curl_easy_setopt(ul->curl, CURLOPT_VERBOSE, sv_http_debug->integer | 0L);
 #endif
     curl_easy_setopt(ul->curl, CURLOPT_NOPROGRESS, 0L);
-    if (ul->file) {
-        curl_easy_setopt(ul->curl, CURLOPT_WRITEDATA, dl->file);
-        curl_easy_setopt(ul->curl, CURLOPT_WRITEFUNCTION, NULL);
-        curl_easy_setopt(ul->curl, CURLOPT_MAXFILESIZE, 0L);
-    } else {
-        curl_easy_setopt(ul->curl, CURLOPT_WRITEDATA, dl);
-        curl_easy_setopt(ul->curl, CURLOPT_WRITEFUNCTION, recv_func);
-        curl_easy_setopt(ul->curl, CURLOPT_MAXFILESIZE, MAX_ULSIZE - 1L);
-    }
+    curl_easy_setopt(ul->curl, CURLOPT_WRITEDATA, ul);
+    curl_easy_setopt(ul->curl, CURLOPT_WRITEFUNCTION, recv_func);
     curl_easy_setopt(ul->curl, CURLOPT_PROXY, use_http_proxy());
     curl_easy_setopt(ul->curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(ul->curl, CURLOPT_MAXREDIRS, 5L);
-    curl_easy_setopt(ul->curl, CURLOPT_XFERINFOFUNCTION, progress_func);
-    curl_easy_setopt(ul->curl, CURLOPT_XFERINFODATA, dl);
     curl_easy_setopt(ul->curl, CURLOPT_USERAGENT, com_version->string);
-    curl_easy_setopt(ul->curl, CURLOPT_REFERER, upload_referer);
     curl_easy_setopt(ul->curl, CURLOPT_URL, url);
     curl_easy_setopt(ul->curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS | 0L);
-    curl_easy_setopt(ul->curl, CURLOPT_PRIVATE, dl);
+    curl_easy_setopt(ul->curl, CURLOPT_PRIVATE, ul);
+	curl_easy_setopt(ul->curl, CURLOPT_CUSTOMREQUEST, "POST");
+	curl_easy_setopt(ul->curl, CURLOPT_HTTPHEADER, headers);
+	curl_easy_setopt(ul->curl, CURLOPT_POSTFIELDS, json);
 
-    Com_DPrintf("[HTTP] Fetching %s...\n", url);
+    Com_DPrintf("[HTTP] Sending to %s...\n", url);
     entry->state = UL_RUNNING;
     atomic_store(&ul->state, UL_PENDING);
     return true;
 
 fail:
-    CL_FinishUpload(entry);
+    SV_FinishUpload(entry);
 
     // see if we have more to dl
-    CL_RequestNextUpload();
+    SV_RequestNextUpload();
     return false;
 }
-
 
 /*
 ===============
@@ -238,13 +235,12 @@ HTTP_CleanupUploads
 Disconnected from server, or fatal HTTP error occured. Clean up.
 ===============
 */
-void HTTP_CleanupUploads(void)
+void SV_HTTP_CleanupUploads(void)
 {
     ulhandle_t  *ul;
     int         i;
 
     upload_server[0] = 0;
-    upload_referer[0] = 0;
     upload_default_repo = false;
 
     if (curl_multi) {
@@ -282,7 +278,7 @@ HTTP_Init
 Init libcurl and multi handle.
 ===============
 */
-void HTTP_Init(void)
+void SV_HTTP_Init(void)
 
     sv_http_max_connections = Cvar_Get("sv_http_max_connections", "2", 0);
     sv_http_proxy = Cvar_Get("sv_http_proxy", "", 0);
@@ -302,12 +298,12 @@ void HTTP_Init(void)
     Com_DPrintf("%s initialized.\n", curl_version());
 }
 
-void HTTP_Shutdown(void)
+void SV_HTTP_Shutdown(void)
 {
     if (!curl_initialized)
         return;
 
-    HTTP_CleanupUploads();
+    SV_HTTP_CleanupUploads();
 
     curl_global_cleanup();
     curl_initialized = false;
@@ -320,7 +316,7 @@ HTTP_SetServer
 A new server is specified, so we nuke all our state.
 ===============
 */
-void HTTP_SetServer(const char *url)
+void SV_HTTP_SetServer(const char *url)
 {
     if (curl_multi) {
         Com_EPrintf("[HTTP] Set server without cleanup?\n");
@@ -385,10 +381,8 @@ void HTTP_SetServer(const char *url)
     }
 
     Q_strlcpy(upload_server, url, sizeof(upload_server));
-    Q_snprintf(upload_referer, sizeof(upload_referer),
-               "quake2://%s", NET_AdrToString(&cls.serverAddress));
 
-    Com_Printf("[HTTP] Upload server at %s\n", upload_server);
+    Com_Printf("[HTTP] Msg server at %s\n", upload_server);
 }
 
 /*
@@ -399,7 +393,7 @@ Called from the precache check to queue a upload. Return value of
 Q_ERR(ENOSYS) will cause standard UDP uploading to be used instead.
 ===============
 */
-int HTTP_QueueUpload(const char *path, dltype_t type)
+int SV_HTTP_QueueUpload(const char *path, dltype_t type)
 {
     size_t      len;
     bool        need_list;
@@ -413,7 +407,7 @@ int HTTP_QueueUpload(const char *path, dltype_t type)
     // first upload queued, so we want the mod filelist
     need_list = LIST_EMPTY(&cls.upload.queue);
 
-    ret = CL_QueueUpload(path, type);
+    ret = SV_QueueUpload(path, type);
     if (ret)
         return ret;
 
@@ -427,7 +421,7 @@ int HTTP_QueueUpload(const char *path, dltype_t type)
         len = Q_snprintf(temp, sizeof(temp), "%s/%s", http_gamedir(), path);
         if (len < sizeof(temp) - 5) {
             memcpy(temp + len - 4, ".filelist", 10);
-            CL_QueueUpload(temp, UL_LIST);
+            SV_QueueUpload(temp, UL_LIST);
         }
     }
 
@@ -492,10 +486,10 @@ static void check_and_queue_upload(char *path)
     if (valid == PATH_MIXED_CASE)
         Q_strlwr(path);
 
-    if (CL_IgnoreUpload(path))
+    if (SV_IgnoreUpload(path))
         return;
 
-    CL_QueueUpload(path, type);
+    SV_QueueUpload(path, type);
 }
 
 // A filelist is in memory, scan and validate it and queue up the files.
@@ -536,17 +530,17 @@ static void abort_upload(void)
 {
     ulqueue_t   *q;
 
-    HTTP_CleanupSend();
+    SV_HTTP_CleanupSend();
 
     FOR_EACH_DLQ(q) {
         if (q->state != UL_DONE && q->type >= UL_LIST)
-            CL_FinishSend(q);
+            SV_FinishSend(q);
         else if (q->state == UL_RUNNING)
             q->state = UL_PENDING;
     }
 
-    CL_RequestNextSend();
-    CL_StartNextSend();
+    SV_RequestNextSend();
+    SV_StartNextSend();
 }
 
 // A upload finished, find out whether there were any errors and if so, how severe
@@ -624,7 +618,7 @@ static void process_uploads(void)
 fail1:
             //we mark upload as done even if it errored
             //to prevent multiple attempts.
-            CL_FinishUpload(ul->queue);
+            SV_FinishUpload(ul->queue);
 fail2:
             Com_LPrintf(level,
                         "[HTTP] %s [%s] [%d remaining file%s]\n",
@@ -644,7 +638,7 @@ fail2:
         }
 
         //mark as done
-        CL_FinishUpload(ul->queue);
+        SV_FinishUpload(ul->queue);
 
         atomic_store(&ul->state, UL_FREE);
         finished = true;
@@ -662,7 +656,7 @@ fail2:
         cls.upload.position = 0;
 
         // see if we have more to dl
-        CL_RequestNextUpload();
+        SV_RequestNextUpload();
         return;
     }
 
@@ -793,7 +787,7 @@ connecting to minimise latency. Also starts new uploads if we're not doing
 the maximum already.
 ===============
 */
-void HTTP_RunUploads(void)
+void SV_HTTP_RunUploads(void)
 {
     CURLMcode ret;
 
@@ -821,7 +815,7 @@ connecting to minimise latency. Also starts new uploads if we're not doing
 the maximum already.
 ===============
 */
-void HTTP_RunUploads(void)
+void SV_HTTP_RunUploads(void)
 {
     CURLMcode ret;
 

@@ -873,9 +873,3 @@ trace_t q_gameabi SV_Trace(const vec3_t start, const vec3_t mins,
 // to an open area
 
 // passedict is explicitly excluded from clipping checks (normally NULL)
-
-typedef struct {
-    char    *url;
-    char    *payload;
-} curldata_t;
-void *SV_SendCurl(void *thread_data);

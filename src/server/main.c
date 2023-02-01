@@ -2436,23 +2436,3 @@ void SV_Shutdown(const char *finalmsg, error_type_t type)
 
     Z_LeakTest(TAG_SERVER);
 }
-
-void *SV_SendCurl(void *thread_data) {
-    CURL *curl;
-    CURLcode res;
-    curldata_t *data = (curldata_t *)thread_data;
-    
-    List_Init(&sv_msglist);
-
-    curl = curl_easy_init();
-    if(curl) {
-        //curl_easy_setopt(curl, CURLOPT_URL, data->url);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data->payload);
-        res = curl_easy_perform(curl);
-    if(res != CURLE_OK) {
-        fprintf(stderr, "cURL call failed: %s\n", curl_easy_strerror(res));
-    }
-    curl_easy_cleanup(curl);
-    }
-    pthread_exit(NULL);
-}
