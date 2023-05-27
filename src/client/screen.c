@@ -25,7 +25,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define STAT_MINUS      (STAT_PICS - 1)  // num frame for '-' stats digit
 
 float	r_viewmatrix[16];
-
+typedef struct {
+    char name[32];
+    size_t name_length;
+    qhandle_t image;
+} texticon_t;
 static struct {
     bool        initialized;        // ready to draw
 
@@ -53,6 +57,9 @@ static struct {
 	int			hud_x, hud_y;
     int         hud_width, hud_height;
     float       hud_scale;
+
+    texticon_t  texticons[256];
+    int         texticon_count;
 } scr;
 
 static cvar_t   *scr_viewsize;
@@ -99,6 +106,8 @@ static cvar_t   *xhair_x;
 static cvar_t   *xhair_y;
 static cvar_t   *xhair_elasticity;
 static cvar_t   *xhair_enabled;
+
+static cvar_t   *scr_draw_icons;
 
 static cvar_t   *r_maxfps;
 
@@ -808,9 +817,89 @@ void SCR_AddToChatHUD(const char *text)
     if (p)
         *p = 0;
 }
+static void Icons_Init(void) {
+    char** list;
+    int num = 0;
+    if (!(list = (char**)FS_ListFiles(
+        NULL, "pics/icons/*.png", FS_SEARCH_BYFILTER | FS_SEARCH_STRIPEXT, &num))) {
+     //   return;
+    }
+    scr.texticon_count = 0;
+    for (int i = 0; i < num; i++) {
+        char* name = list[i];
+        //name will be in format "name", need to make it ":name:"
+        scr.texticons[i].name[0] = ':';
+        strcpy(scr.texticons[i].name + 1, name);
+        scr.texticons[i].name[strlen(name) + 1] = ':';
+        scr.texticons[i].name[strlen(name) + 2] = 0;
+        scr.texticons[i].name_length = strlen(name)+2;
+        char name_with_path[256];
+        strcpy(name_with_path, "icons/");
+        strcat(name_with_path, name);
+        scr.texticons[i].image = R_RegisterPic(name);
+        scr.texticon_count++;
+    }
+    //print out all the icons in console
+    for (int i = 0; i < scr.texticon_count; i++) {
+        Com_Printf("%s\n", scr.texticons[i].name);
+    }
+}
+static int* Icons_ParseString(const char* s) {
+    int* result = (int*)malloc((strlen(s) + 1)*sizeof(int));
+    int* p = result;
+    //Icons_Init();
+    while (*s) {
+        int icon_index;
+        int icon_found = 0;
+        for (icon_index = 0; icon_index < scr.texticon_count; icon_index++) {
+            texticon_t* icon = &scr.texticons[icon_index];
+            if (strncmp(s, icon->name, icon->name_length) == 0) {
+                s += icon->name_length;
+                *p++ = 256+icon_index;
+                icon_found = 1;
+                break;
+            }
+        }
+        if (!icon_found) {
+            *p++ = *s++;
+        }
+    }
+    *p = 0;
+    return result;
+}
+static void SCR_DrawChatLine(int x, int y, int flags, const char* text) {
+    if (scr_draw_icons->integer) {
+        image_t* font_image = IMG_ForHandle(scr.font_pic);
+        int* parsed = Icons_ParseString(text);
+        int* s = parsed;
+        
+        while (*s) {
+            if (*s < 256) {
+                byte c = *s++;
+                R_DrawChar(x,y,flags,c,scr.font_pic);
+                x += CHAR_WIDTH;
+            } else {
+                int icon_index = *s++ - 256;
+                texticon_t* icon = &scr.texticons[icon_index];
+         //        image_t* icon_image = IMG_ForHandle(icon->image);
+         //       int height = CHAR_HEIGHT;
+         //      int width = icon_image->aspect*CHAR_WIDTH;
+                R_DrawStretchPic(x, y, 32, 16,icon->image);
 
+                x += 32;
+            }
+            
+           
+        }
+        free(parsed);
+        
+    } else {
+        SCR_DrawString(x, y, flags, text);
+    }
+}
 static void SCR_DrawChatHUD(void)
 {
+
     int x, y, i, lines, flags, step;
     float alpha;
     chatline_t *line;
@@ -853,10 +942,10 @@ static void SCR_DrawChatHUD(void)
                 break;
 
             R_SetAlpha(alpha * scr_alpha->value);
-            SCR_DrawString(x, y, flags, line->text);
+            SCR_DrawChatLine(x, y, flags, line->text);
             R_SetAlpha(scr_alpha->value);
         } else {
-            SCR_DrawString(x, y, flags, line->text);
+            SCR_DrawChatLine(x, y, flags, line->text);
         }
 
         y += step;
@@ -1286,6 +1375,8 @@ void SCR_Init(void)
     xhair_elasticity = Cvar_Get("xhair_elasticity","1",0);
     xhair_enabled = Cvar_Get("xhair_enabled","0",0);
 
+    scr_draw_icons = Cvar_Get("scr_draw_icons", "1", 0);
+
     r_maxfps = Cvar_Get("r_maxfps","0",0);
 
     ch_health = Cvar_Get("ch_health", "0", 0);
@@ -1324,6 +1415,8 @@ void SCR_Init(void)
 
     scr_scale_changed(scr_scale);
     scr_crosshair_changed(scr_crosshair);
+
+    Icons_Init();
 
     scr.initialized = true;
 }
