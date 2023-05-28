@@ -28,7 +28,8 @@ float	r_viewmatrix[16];
 typedef struct {
     char name[32];
     size_t name_length;
-    qhandle_t image;
+    char path[256];
+    qhandle_t pic_handle; //UNUSED CURRENTLY
 } texticon_t;
 static struct {
     bool        initialized;        // ready to draw
@@ -822,7 +823,7 @@ static void Icons_Init(void) {
     int num = 0;
     if (!(list = (char**)FS_ListFiles(
         NULL, "pics/icons/*.png", FS_SEARCH_BYFILTER | FS_SEARCH_STRIPEXT, &num))) {
-     //   return;
+        return;
     }
     scr.texticon_count = 0;
     for (int i = 0; i < num; i++) {
@@ -833,16 +834,14 @@ static void Icons_Init(void) {
         scr.texticons[i].name[strlen(name) + 1] = ':';
         scr.texticons[i].name[strlen(name) + 2] = 0;
         scr.texticons[i].name_length = strlen(name)+2;
-        char name_with_path[256];
-        strcpy(name_with_path, "icons/");
-        strcat(name_with_path, name);
-        scr.texticons[i].image = R_RegisterPic(name);
+        
+        strcpy(scr.texticons[i].path, "icons/");
+        strcat(scr.texticons[i].path, name);
+        scr.texticons[i].pic_handle = R_RegisterImage(scr.texticons[i].path,IT_PIC,IF_PERMANENT);
+
         scr.texticon_count++;
     }
-    //print out all the icons in console
-    for (int i = 0; i < scr.texticon_count; i++) {
-        Com_Printf("%s\n", scr.texticons[i].name);
-    }
+    FS_FreeList((void**)list);
 }
 static int* Icons_ParseString(const char* s) {
     int* result = (int*)malloc((strlen(s) + 1)*sizeof(int));
@@ -871,8 +870,7 @@ static void SCR_DrawChatLine(int x, int y, int flags, const char* text) {
     if (scr_draw_icons->integer) {
         image_t* font_image = IMG_ForHandle(scr.font_pic);
         int* parsed = Icons_ParseString(text);
-        int* s = parsed;
-        
+        int* s = parsed;        
         while (*s) {
             if (*s < 256) {
                 byte c = *s++;
@@ -881,25 +879,23 @@ static void SCR_DrawChatLine(int x, int y, int flags, const char* text) {
             } else {
                 int icon_index = *s++ - 256;
                 texticon_t* icon = &scr.texticons[icon_index];
-         //        image_t* icon_image = IMG_ForHandle(icon->image);
-         //       int height = CHAR_HEIGHT;
-         //      int width = icon_image->aspect*CHAR_WIDTH;
-                R_DrawStretchPic(x, y, 32, 16,icon->image);
+                qhandle_t pic = R_RegisterPic2(icon->path);
+                image_t* img = IMG_ForHandle(pic);
+                int extra_size = 4;
+                int height = CHAR_HEIGHT+extra_size;
+                int width = img->aspect*(CHAR_WIDTH+extra_size);
+                R_DrawStretchPic(x, y-extra_size/2,width,height,pic);
 
-                x += 32;
+                x += width;
             }
-            
-           
         }
         free(parsed);
-        
     } else {
         SCR_DrawString(x, y, flags, text);
     }
 }
 static void SCR_DrawChatHUD(void)
 {
-
     int x, y, i, lines, flags, step;
     float alpha;
     chatline_t *line;
