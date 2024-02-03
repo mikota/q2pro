@@ -135,7 +135,7 @@
 #include <time.h>
 #ifdef USE_AQTION
 #ifdef _WIN32
-#if _MSC_VER >= 1920 && !__INTEL_COMPILER
+#if _MSC_VER && !__INTEL_COMPILER
 #pragma comment(lib, "rpcrt4.lib")
 #include <rpc.h>
 #endif
@@ -1317,7 +1317,7 @@ void Cmd_Ghost_f(edict_t * ent)
 void generate_uuid(void)
 {
 #ifdef _WIN32
-#if _MSC_VER >= 1920 && !__INTEL_COMPILER
+#if _MSC_VER && !__INTEL_COMPILER
      UUID uuid;
      unsigned char* uuidStr;
 

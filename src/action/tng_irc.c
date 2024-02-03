@@ -13,7 +13,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <io.h>
 #include <winsock2.h>
 #define bzero(a,b) memset(a,0,b)
