@@ -458,12 +458,15 @@ cvar_t *radio_repeat_time;
 cvar_t *use_classic;		// Used to reset spread/gren strength to 1.52
 
 cvar_t *warmup;
+cvar_t *warmup_bots;
 cvar_t *round_begin;
 cvar_t *spectator_hud;
 
 cvar_t *medkit_drop;
 cvar_t *medkit_time;
 cvar_t *medkit_instant;
+cvar_t *medkit_max;
+cvar_t *medkit_value;
 
 #ifndef NO_BOTS
 cvar_t *ltk_jumpy;
@@ -473,16 +476,30 @@ cvar_t *ltk_chat;
 cvar_t *ltk_routing;
 cvar_t *ltk_botfile;
 cvar_t *ltk_loadbots;
-cvar_t *ltk_showbots;
+cvar_t *ltk_classic;
 #endif
 
 cvar_t *jump;			// jumping mod
 
 // BEGIN AQ2 ETE
-cvar_t *e_enhancedSlippers;
+cvar_t *esp;
+cvar_t *atl;
+cvar_t *etv;
+cvar_t *esp_atl;
+cvar_t *esp_punish;
+cvar_t *esp_etv_halftime;
+cvar_t *esp_showleader;
+cvar_t *esp_showtarget;
+cvar_t *esp_leaderequip;
+cvar_t *esp_leaderenhance;
+cvar_t *esp_enhancedslippers;
+cvar_t *esp_matchmode;
+cvar_t *esp_respawn_uvtime;
+cvar_t *esp_debug;
 // END AQ2 ETE
 
 // 2022
+
 cvar_t *sv_limp_highping;
 cvar_t *server_id;
 cvar_t *stat_logs;
@@ -494,6 +511,27 @@ cvar_t *gmf;
 cvar_t *sv_idleremove;
 cvar_t *g_spawn_items;
 
+// 2023
+cvar_t *use_killcounts;  // Display kill counts in console to clients on frag
+cvar_t *am;  // Attract mode toggle
+cvar_t *am_newnames;  // Attract mode new names, use new LTK bot names
+cvar_t *am_botcount;  // Attract mode botcount, how many bots at minimum at all times
+cvar_t *am_delay;  // Attract mode delay, unused at the moment
+cvar_t *am_team;  // Attract mode team, which team do you want the bots to join
+cvar_t *zoom_comp; // Compensates zoom-in frames with ping (high ping = fewer frames)
+cvar_t *item_kit_mode;  // Toggles item kit mode
+cvar_t *gun_dualmk23_enhance; // Enables laser sight for dual mk23 pistols
+cvar_t *printrules;  // Centerprint game rules when the countdown begins
+cvar_t *timedmsgs; // Toggles timed messages
+cvar_t *mm_captain_teamname; // Toggles if we want to use the captain's name for the team in matchmode
+cvar_t *sv_killgib; // Gibs on 'kill' command
+
+#ifdef AQTION_EXTENSION
+cvar_t *use_newirvision;
+cvar_t *use_indicators;
+cvar_t *use_xerp;
+#endif
+
 // Discord SDK integration with Q2Pro
 cvar_t *cl_discord;
 cvar_t *cl_discord_id;
@@ -501,7 +539,7 @@ cvar_t *cl_discord_discriminator;
 cvar_t *cl_discord_username;
 cvar_t *cl_discord_avatar;
 
-void SpawnEntities (const char *mapname, const char *entities, const char *spawnpoint);
+void SpawnEntities (char *mapname, char *entities, char *spawnpoint);
 void ClientThink (edict_t * ent, usercmd_t * cmd);
 qboolean ClientConnect (edict_t * ent, char *userinfo);
 void ClientUserinfoChanged (edict_t * ent, char *userinfo);
@@ -510,10 +548,10 @@ void ClientBegin (edict_t * ent);
 void ClientCommand (edict_t * ent);
 void CheckNeedPass (void);
 void RunEntity (edict_t * ent);
-void WriteGame (const char *filename, qboolean autosave);
-void ReadGame (const char *filename);
-void WriteLevel (const char *filename);
-void ReadLevel (const char *filename);
+void WriteGame (char *filename, qboolean autosave);
+void ReadGame (char *filename);
+void WriteLevel (char *filename);
+void ReadLevel (char *filename);
 void InitGame (void);
 void G_RunFrame (void);
 
@@ -554,7 +592,7 @@ void ShutdownGame (void)
   and global variables
   =================
 */
-q_exported game_export_t *GetGameAPI (game_import_t * import)
+game_export_t *GetGameAPI (game_import_t * import)
 {
 	gi = *import;
 #ifndef NO_BOTS
@@ -595,16 +633,18 @@ q_exported game_export_t *GetGameAPI (game_import_t * import)
 	engine_Client_GetProtocol = gi.CheckForExtension("Client_GetProtocol");
 	engine_Client_GetVersion = gi.CheckForExtension("Client_GetVersion");
 
-	engine_Ghud_SendUpdates = gi.CheckForExtension("Ghud_SendUpdates");
+	engine_Ghud_ClearForClient = gi.CheckForExtension("Ghud_ClearForClient");
 	engine_Ghud_NewElement = gi.CheckForExtension("Ghud_NewElement");
+	engine_Ghud_RemoveElement = gi.CheckForExtension("Ghud_RemoveElement");
 	engine_Ghud_SetFlags = gi.CheckForExtension("Ghud_SetFlags");
-	engine_Ghud_UnicastSetFlags = gi.CheckForExtension("Ghud_UnicastSetFlags");
 	engine_Ghud_SetInt = gi.CheckForExtension("Ghud_SetInt");
 	engine_Ghud_SetText = gi.CheckForExtension("Ghud_SetText");
 	engine_Ghud_SetPosition = gi.CheckForExtension("Ghud_SetPosition");
 	engine_Ghud_SetAnchor = gi.CheckForExtension("Ghud_SetAnchor");
 	engine_Ghud_SetColor = gi.CheckForExtension("Ghud_SetColor");
 	engine_Ghud_SetSize = gi.CheckForExtension("Ghud_SetSize");
+
+	engine_CvarSync_Set = gi.CheckForExtension("CvarSync_Set");
 #endif
 
 
@@ -612,19 +652,6 @@ q_exported game_export_t *GetGameAPI (game_import_t * import)
 }
 
 #ifndef GAME_HARD_LINKED
-// this is only here so the functions in q_shared.c and q_shwin.c can link
-void Sys_Error (const char *error, ...)
-{
-  va_list argptr;
-  char text[1024];
-
-  va_start (argptr, error);
-  vsnprintf (text, sizeof(text),error, argptr);
-  va_end (argptr);
-
-  gi.error("%s", text);
-}
-
 // this is only here so the functions in q_shared.c can link
 void Com_LPrintf(print_type_t type, const char *fmt, ...)
 {
@@ -653,6 +680,32 @@ void Com_Error(error_type_t type, const char *fmt, ...)
 
     gi.error("%s", text);
 }
+
+// // this is only here so the functions in q_shared.c and q_shwin.c can link
+// void Sys_Error (const char *error, ...)
+// {
+//   va_list argptr;
+//   char text[1024];
+
+//   va_start (argptr, error);
+//   vsnprintf (text, sizeof(text),error, argptr);
+//   va_end (argptr);
+
+//   gi.error("%s", text);
+// }
+
+// void Com_Printf (const char *msg, ...)
+// {
+//   va_list argptr;
+//   char text[1024];
+
+//   va_start (argptr, msg);
+//   vsnprintf (text, sizeof(text), msg, argptr);
+//   va_end (argptr);
+
+//   gi.dprintf("%s", text);
+// }
+
 #endif
 
 
@@ -738,6 +791,9 @@ void ClientEndServerFrames (void)
 		if (ent->client->chase_target)
 			UpdateChaseCam(ent);
 	}
+
+	if (timedmsgs->value)
+		FireTimedMessages();
 }
 
 /*
@@ -949,29 +1005,6 @@ void CheckDMRules (void)
 		if (!FRAMESYNC)
 			return;
 
-#ifdef AQTION_EXTENSION
-#ifdef AQTION_HUD
-		// Reki
-		// Update our ghud values for the team score
-		int i;
-		for (i = TEAM1; i < TEAM_TOP; i++)
-		{
-			if (teams[i].ghud_num <= 0)
-				continue;
-
-			if (teams[i].ghud_resettime && level.time > teams[i].ghud_resettime)
-			{
-				teams[i].ghud_resettime = 0;
-				Ghud_SetFlags(teams[i].ghud_icon, 0);
-				Ghud_SetFlags(teams[i].ghud_num, 0);
-			}
-
-			Ghud_SetInt(teams[i].ghud_num, teams[i].score);
-		}
-#endif
-#endif
-
-
 		if (CheckTeamRules())
 			return;
 	}
@@ -1000,7 +1033,7 @@ void CheckDMRules (void)
 			{
 				gi.bprintf (PRINT_HIGH, "Fraglimit hit.\n");
 				IRC_printf (IRC_T_GAME, "Fraglimit hit.");
-				if (ctf->value)
+				if (ctf->value || esp->value)
 					ResetPlayers ();
 				EndDMLevel ();
 				return;
@@ -1270,3 +1303,42 @@ void CheckNeedPass (void)
 }
 
 //FROM 3.20 END
+
+// This doesn't work yet but I'll keep trying
+edict_t *ChooseRandomPlayer(int teamNum, qboolean allowBot)
+{
+	int i, j;
+	edict_t *ent;
+	edict_t *plist[ MAX_CLIENTS ] = {NULL};
+	int pcount = 0;
+
+	// Supplied paramter must be a valid team number
+	if (teamNum < TEAM1 && teamNum > TEAM3)
+		return 0;
+	if (teamCount == 2 && teamNum == 3) {
+		// Somehow passing team 3 in a 2-team match?
+		gi.dprintf("Warning: Unable to ChooseRandomPlayer for a team that doesn't exist\n");
+		return 0;
+	}
+
+	for (i = 0, ent = &g_edicts[1]; i < game.maxclients; i++, ent++)
+	{
+		// Client must exist and be on a team, and not be a sub
+		if (!ent->inuse || !ent->client || !ent->client->resp.team || ent->client->resp.subteam)
+			continue;
+		if (!allowBot)
+			if (ent->is_bot)
+				continue;
+		pcount++;
+		players[i] = ent;
+		//gi.dprintf("%s\n", players[i]->client->pers.netname);
+	}
+
+	j = rand() % pcount;
+
+	ent = plist[j];
+	gi.dprintf("%s\n", ent->client->pers.netname);
+	
+	// Returns a random player
+	return ent;
+}

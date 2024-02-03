@@ -615,6 +615,10 @@ void P_FallingDamage (edict_t * ent)
 	if (lights_camera_action || ent->client->uvTime > 0)
 		return;
 	
+	// PaTMaN's jmod/jump LCA invulnerable
+	if (jump->value && ent->client->resp.toggle_lca)
+		return;
+	
 	if (ent->s.modelindex != 255)
 		return;			// not in the player model
 
@@ -634,6 +638,7 @@ void P_FallingDamage (edict_t * ent)
 		delta = ent->velocity[2] - oldvelocity[2];
 		ent->client->jumping = 0;
 	}
+
 	delta = delta * delta * 0.0001;
 
 	// never take damage if just release grapple or on grapple
@@ -694,6 +699,8 @@ void P_FallingDamage (edict_t * ent)
 			ent->s.event = EV_FALLFAR;
 		else			// all falls are far
 			ent->s.event = EV_FALLFAR;
+		if (esp_enhancedslippers->value && INV_AMMO(ent, SLIP_NUM))
+			ent->s.event = EV_FALL;
 	}
 
 	ent->pain_debounce_framenum = KEYFRAME(FRAMEDIV);	// no normal pain sound
@@ -706,14 +713,13 @@ void P_FallingDamage (edict_t * ent)
 		// zucc scale this up
 		damage *= 10;
 
-		// darksaint - reduce damage if e_enhancedSlippers are on and equipped
-		if (e_enhancedSlippers->value && INV_AMMO(ent, SLIP_NUM))
+		// darksaint - reduce damage if esp_enhancedslippers are on and equipped
+		if (esp_enhancedslippers->value && INV_AMMO(ent, SLIP_NUM))
 			damage /= 2;
 
 		VectorSet (dir, 0, 0, 1);
 
-		if (jump->value)
-		{
+		if (jump->value && (!ent->client->resp.toggle_lca || lights_camera_action)) {
 			gi.cprintf(ent, PRINT_HIGH, "Fall Damage: %d\n", damage);
 			ent->client->resp.jmp_falldmglast = damage;
 		} else {
@@ -815,24 +821,25 @@ void P_WorldEffects (void)
 	if (waterlevel == 3)
 	{
 		// breather or envirosuit give air
-		if (breather || envirosuit)
-		{
-			current_player->air_finished_framenum = level.framenum + 10 * HZ;
+		// AQ2 doesn't use the rebreather
+		// if (breather || envirosuit)
+		// {
+		// 	current_player->air_finished_framenum = level.framenum + 10 * HZ;
 
-			if (((current_client->breather_framenum - level.framenum) % (25 * FRAMEDIV)) == 0)
-			{
-				if (!current_client->breather_sound)
-					gi.sound (current_player, CHAN_AUTO,
-					gi.soundindex("player/u_breath1.wav"), 1, ATTN_NORM, 0);
-				else
-					gi.sound (current_player, CHAN_AUTO,
-					gi.soundindex("player/u_breath2.wav"), 1, ATTN_NORM, 0);
-				current_client->breather_sound ^= 1;
-				PlayerNoise (current_player, current_player->s.origin,
-				PNOISE_SELF);
-				//FIXME: release a bubble?
-			}
-		}
+		// 	if (((current_client->breather_framenum - level.framenum) % (25 * FRAMEDIV)) == 0)
+		// 	{
+		// 		if (!current_client->breather_sound)
+		// 			gi.sound (current_player, CHAN_AUTO,
+		// 			gi.soundindex("player/u_breath1.wav"), 1, ATTN_NORM, 0);
+		// 		else
+		// 			gi.sound (current_player, CHAN_AUTO,
+		// 			gi.soundindex("player/u_breath2.wav"), 1, ATTN_NORM, 0);
+		// 		current_client->breather_sound ^= 1;
+		// 		PlayerNoise (current_player, current_player->s.origin,
+		// 		PNOISE_SELF);
+		// 		//FIXME: release a bubble?
+		// 	}
+		// }
 
 		// if out of air, start drowning
 		if (current_player->air_finished_framenum < level.framenum)
@@ -1225,17 +1232,28 @@ void Do_MedKit( edict_t *ent )
 	if( ent->client->bandaging && (ent->client->bleeding || ent->client->leg_damage) )
 		return;
 
-	for( i = 0; i < 2; i ++ )
-	{
-		// Make sure we have any medkit and need to use it.
-		if( ent->client->medkit <= 0 )
+	// Don't use a medkit if ent doesn't have one, and don't use one if ent is at max_health
+	if( ent->client->medkit <= 0 )
 			return;
-		if( ent->health >= ent->max_health )
-			return;
+	if( ent->health >= ent->max_health )
+		return;
 
-		ent->health ++;
-		ent->client->medkit --;
+	// Espionage handles medkits differently, it uses medkits like healthpacks
+	if (!esp->value) {
+		for( i = 0; i < 2; i ++ ){
+			// One medkit == One health point, use all medkits in one bandage attempt
+			ent->health++;
+			ent->client->medkit--;
+		}
+	} else {
+		// Subtract one medkit, gain health per medkit_value
+		ent->health = ent->health + (int)medkit_value->value;
+		ent->client->medkit--;
 	}
+
+	// Handle overheals
+	if (ent->health > 100)
+		ent->health = 100;
 }
 
 
@@ -1351,6 +1369,27 @@ void ClientEndServerFrame (edict_t * ent)
 	current_player = ent;
 	current_client = ent->client;
 
+#ifdef AQTION_EXTENSION
+	if (current_client->arrow)
+	{
+		// set new origin
+		VectorCopy(ent->s.origin, current_client->arrow->s.origin);
+		current_client->arrow->s.origin[2] += ent->maxs[2];
+		current_client->arrow->s.origin[2] += 8 + sin(level.time * 2);
+		//
+
+		// fix oldorigin
+		VectorCopy(ent->s.old_origin, current_client->arrow->s.old_origin);
+		current_client->arrow->s.old_origin[2] += ent->maxs[2];
+		current_client->arrow->s.old_origin[2] += 8 + sin((level.time - FRAMETIME) * 2);
+		//
+
+		current_client->arrow->s.modelindex = level.model_arrow + (current_client->resp.team - 1);
+		current_client->arrow->s.renderfx = RF_INDICATOR;
+		current_client->arrow->dimension_visible = (1 << current_client->resp.team);
+	}
+#endif
+
 	//AQ2:TNG - Slicer : Stuffs the client x seconds after he enters the server, needed for Video check
 	if (ent->client->resp.checkframe[0] <= level.framenum)
 	{
@@ -1373,7 +1412,7 @@ void ClientEndServerFrame (edict_t * ent)
 			|| video_check_glclear->value || darkmatch->value)
 		{
 			if (ent->client->resp.vidref && Q_stricmp(ent->client->resp.vidref, "soft"))
-				stuffcmd (ent, "%cpsi $gl_modulate $gl_lockpvs $gl_clear $gl_dynamic $gl_driver\n");
+				stuffcmd (ent, "%cpsi $gl_modulate $gl_lockpvs $gl_clear $gl_dynamic $gl_brightness $gl_driver\n");
 		}
 
 	}

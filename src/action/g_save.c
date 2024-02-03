@@ -415,6 +415,8 @@ void InitGame( void )
 	medkit_drop = gi.cvar( "medkit_drop", "0", 0 );
 	medkit_time = gi.cvar( "medkit_time", "30", 0 );
 	medkit_instant = gi.cvar( "medkit_instant", "0", 0 );
+	medkit_max = gi.cvar( "medkit_max", "3", 0 );
+	medkit_value = gi.cvar( "medkit_value", "25", 0 );
 	dom = gi.cvar( "dom", "0", /*CVAR_SERVERINFO | */ CVAR_LATCH ); //Removed in favor of 'gmf' (gamemodeflags)
 	use_grapple = gi.cvar( "use_grapple", "0", 0 );
 	mv_public = gi.cvar( "mv_public", "0", 0 );	//slicer 
@@ -541,13 +543,37 @@ void InitGame( void )
 	jump = gi.cvar ("jump", "0", /*CVAR_SERVERINFO|*/ CVAR_LATCH); // jumping mod -- removed from serverinfo 2022
 
 	warmup = gi.cvar( "warmup", "0", CVAR_LATCH );
+	warmup_bots = gi.cvar( "warmup_bots", "0", CVAR_LATCH );
 	round_begin = gi.cvar( "round_begin", "15", 0 );
-	spectator_hud = gi.cvar( "spectator_hud", "0", CVAR_LATCH );
+	spectator_hud = gi.cvar( "spectator_hud", "1", CVAR_LATCH );
 
 	use_mvd2 = gi.cvar( "use_mvd2", "0", 0 );	// JBravo: q2pro MVD2 recording. 0 = off, 1 = on
 
 	// BEGIN AQ2 ETE
-	e_enhancedSlippers = gi.cvar( "e_enhancedSlippers", "0", 0);
+	esp = gi.cvar( "esp", "0", /*CVAR_SERVERINFO | */ CVAR_LATCH );  //Removed in favor of 'gm' (gamemode)
+	if (esp->value) {
+		atl = gi.cvar( "atl", "1", CVAR_LATCH );
+		etv = gi.cvar( "etv", "0", CVAR_LATCH );
+	};
+	esp_atl = gi.cvar( "esp_atl", "0", 0 ); // This forces ATL mode even if ETV mode is set in the .esp file
+	esp_punish = gi.cvar("esp_punish", "0", 0);
+	esp_etv_halftime = gi.cvar("esp_etv_halftime", "0", CVAR_LATCH);
+	if (esp_etv_halftime->value && roundlimit->value < 4) {
+		// Disabling halftime because roundlimit is not set
+		disablecvar(esp_etv_halftime, "Roundlimit set too low for halftime, minimum is 4 rounds");
+	}
+	esp_showleader = gi.cvar("esp_showleader", "1", 0);
+	esp_showtarget = gi.cvar("esp_showtarget", "1", 0);
+	esp_leaderequip = gi.cvar("esp_leaderequip", "1", 0);
+	esp_leaderenhance = gi.cvar("esp_leaderenhance", "0", 0);
+	esp_enhancedslippers = gi.cvar("esp_enhancedslippers", "0", 0);
+	esp_matchmode = gi.cvar("esp_matchmode", "0", 0);
+	esp_respawn_uvtime = gi.cvar("esp_respawn_uvtime", "10", 0);
+	if (esp_respawn_uvtime->value > 20) {
+		gi.dprintf("esp_respawn_uvtime was set too high, setting to 2 seconds\n");
+		gi.cvar_forceset("esp_respawn_uvtime", "20");
+	}
+	esp_debug = gi.cvar("esp_debug", "0", 0); // Set to 1 to enable debug messages for Espionage
 	// END AQ2 ETE
 
 	// 2022
@@ -562,12 +588,37 @@ void InitGame( void )
 	sv_antilag_interp = gi.cvar("sv_antilag_interp", "0", CVAR_SERVERINFO);
 	sv_limp_highping = gi.cvar("sv_limp_highping", "70", 0); 	// Removed it from Serverinfo
 	mapvote_next_limit = gi.cvar( "mapvote_next_limit", "0", 0);
-	stat_apikey = gi.cvar("stat_apikey", "none", 0);
+	stat_apikey = gi.cvar("stat_apikey", "none", 0); // Never include this in serverinfo!
 	stat_url = gi.cvar("stat_url", "https://apigateway.aq2world.com/api/v1/stats", 0);
 	gm = gi.cvar("gm", "dm", CVAR_SERVERINFO);
 	gmf = gi.cvar("gmf", "0", CVAR_SERVERINFO);
 	sv_idleremove = gi.cvar("sv_idleremove", "0", 0);
-  	g_spawn_items = gi.cvar("g_spawn_items", "0", CVAR_LATCH);
+	g_spawn_items = gi.cvar("g_spawn_items", "0", CVAR_LATCH);
+
+	// 2023
+	use_killcounts = gi.cvar("use_killcounts", "0", 0);
+	am = gi.cvar("am", "0", CVAR_SERVERINFO);
+	am_newnames = gi.cvar("am_newnames", "1", 0);
+	am_botcount = gi.cvar("am_botcount", "6", CVAR_SERVERINFO);
+	if (am_botcount->value < 0){
+    	gi.cvar_forceset("am_botcount", "0");
+	}
+	am_delay = gi.cvar("am_delay", "30", 0);
+	am_team = gi.cvar("am_team", "0", 0);
+	zoom_comp = gi.cvar("zoom_comp", "0", 0);
+	item_kit_mode = gi.cvar("item_kit_mode", "0", CVAR_LATCH);
+	gun_dualmk23_enhance = gi.cvar("gun_dualmk23_enhance", "0", 0);
+	printrules = gi.cvar("printrules", "0", 0);
+	timedmsgs = gi.cvar("timedmsgs", "0", 0);
+	mm_captain_teamname = gi.cvar("mm_captain_teamname", "0", 0);
+	sv_killgib = gi.cvar("sv_killgib", "0", 0);
+
+	// new AQtion Extension cvars
+#ifdef AQTION_EXTENSION
+	use_newirvision = gi.cvar("use_newirvision", "1", 0);
+	use_indicators = gi.cvar("use_indicators", "1", 0);
+	use_xerp = gi.cvar("use_xerp", "1", 0);
+#endif
 
 	// Discord SDK integration with Q2Pro
 	cl_discord = gi.cvar("cl_discord", "0", 0);
@@ -583,9 +634,9 @@ void InitGame( void )
 	ltk_showpath = gi.cvar( "ltk_showpath", "0", 0 );
 	ltk_chat = gi.cvar( "ltk_chat", "1", 0 );
 	ltk_routing = gi.cvar( "ltk_routing", "0", 0 );
-	ltk_botfile = gi.cvar( "ltk_botfile", "botdata.cfg", 0);
+	ltk_botfile = gi.cvar( "ltk_botfile", "botdata", 0);
 	ltk_loadbots = gi.cvar( "ltk_loadbots", "1", 0);
-	ltk_showbots = gi.cvar ( "ltk_showbots", "0", 0);
+	ltk_classic = gi.cvar( "ltk_classic", "1", 0);
 #endif
 
 	// items
@@ -665,22 +716,30 @@ void InitGame( void )
 	gi.cvar_forceset("g_view_predict", "1");
 	gi.cvar_forceset("g_view_high", va("%d", STANDING_VIEWHEIGHT));
 	gi.cvar_forceset("g_view_low", va("%d", CROUCHING_VIEWHEIGHT));
+
+#ifdef AQTION_EXTENSION
+	CvarSync_Set(clcvar_cl_antilag, "cl_antilag", "1");
+	CvarSync_Set(clcvar_cl_indicators, "cl_indicators", "1");
+	CvarSync_Set(clcvar_cl_xerp, "cl_xerp", "0");
+	CvarSync_Set(clcvar_cl_spectatorhud, "cl_spectatorhud", "1");
+	CvarSync_Set(clcvar_cl_spectatorkillfeed, "cl_spectatorkillfeed", "0");
+#endif
 }
 
 //=========================================================
 
-void WriteGame (const char *filename, qboolean autosave)
+void WriteGame (char *filename, qboolean autosave)
 {
 }
 
-void ReadGame (const char *filename)
+void ReadGame (char *filename)
 {
 }
 
-void WriteLevel (const char *filename)
+void WriteLevel (char *filename)
 {
 }
 
-void ReadLevel (const char *filename)
+void ReadLevel (char *filename)
 {
 }

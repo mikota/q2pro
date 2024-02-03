@@ -140,7 +140,7 @@ qboolean ACECM_Commands(edict_t *ent)
 ///////////////////////////////////////////////////////////////////////
 // Called when the level changes, store maps and bots (disconnected)
 ///////////////////////////////////////////////////////////////////////
-void ACECM_Store()
+void ACECM_Store(void)
 {
 	// Stop overwriting good node tables with bad!
 	if( numnodes < 100 )
@@ -191,15 +191,13 @@ void debug_printf(char *fmt, ...)
 
 }
 
-// void (*real_cprintf) (edict_t * ent, int printlevel, char *fmt, ...) = NULL;
-// void (*real_centerprintf) (edict_t * ent, char *fmt, ...) = NULL;
-void (*real_cprintf) (struct edict_s * ent, int printlevel, const char *fmt, ...) = NULL;
-void (*real_centerprintf) (struct edict_s * ent, const char *fmt, ...) = NULL;
+void (*real_cprintf) (edict_t * ent, int printlevel, const char *fmt, ...) = NULL;
+void (*real_centerprintf) (edict_t * ent, const char *fmt, ...) = NULL;
 
 ///////////////////////////////////////////////////////////////////////
 // botsafe cprintf
 ///////////////////////////////////////////////////////////////////////
-void safe_cprintf (struct edict_s * ent, int printlevel, const char *fmt, ...)
+void safe_cprintf (edict_t *ent, int printlevel, char *fmt, ...)
 {
 	char	bigbuffer[0x10000];
 	va_list		argptr;
@@ -220,7 +218,7 @@ void safe_cprintf (struct edict_s * ent, int printlevel, const char *fmt, ...)
 ///////////////////////////////////////////////////////////////////////
 // botsafe centerprintf
 ///////////////////////////////////////////////////////////////////////
-void safe_centerprintf (struct edict_s * ent, const char *fmt, ...)
+void safe_centerprintf (edict_t *ent, char *fmt, ...)
 {
 	char	bigbuffer[0x10000];
 	va_list		argptr;

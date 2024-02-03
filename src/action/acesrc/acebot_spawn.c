@@ -47,6 +47,7 @@
 #include "acebot.h"
 #include "botchat.h"
 #include "botscan.h"
+#include <time.h>
 
 //AQ2 ADD
 #define	CONFIG_FILE_VERSION 1
@@ -57,6 +58,7 @@ void	AllWeapons( edict_t *ent );
 void	EquipClient( edict_t *ent );
 char	*TeamName(int team);
 void	LTKsetBotName( char	*bot_name );
+void	LTKsetBotNameNew(char *bot_name);
 void	ACEAI_Cmd_Choose( edict_t *ent, char *s);
 
 //==========================================
@@ -118,7 +120,7 @@ void ACESP_JoinTeam(edict_t *ent, int desired_team)
 //======================================
 // Using RiEvEr's new config file
 //
-void ACESP_LoadBotConfig()
+void ACESP_LoadBotConfig(void)
 {
     FILE	*pIn;
 	cvar_t	*game_dir = NULL, *botdir = NULL;
@@ -180,7 +182,6 @@ if (ltk_loadbots->value){
 			strcat(filename, ltk_botfile->string);
 			strcat(filename, ".cfg");
 	#endif
-
 			// No bot file available, get out of here!
 			if((pIn = fopen(filename, "rb" )) == NULL) {
 				gi.dprintf("WARNING: No file containing bot data was found, no bots loaded.\n");
@@ -242,7 +243,7 @@ if (ltk_loadbots->value){
 //
 edict_t *ACESP_SpawnBotFromConfig( char *inString )
 {
-	edict_t	*bot;
+	edict_t	*bot = NULL;
 	char	userinfo[MAX_INFO_STRING];
 	int		count=1;
 	char	name[32];
@@ -282,7 +283,6 @@ edict_t *ACESP_SpawnBotFromConfig( char *inString )
 		// NAME (parameter 1)
 		if(count == 1 && ttype == STRLIT)
 		{
-//			strncpy( name, tokenString, 32 );
 			strcpy( name, tokenString);
 			continue;
 		}
@@ -332,10 +332,13 @@ edict_t *ACESP_SpawnBotFromConfig( char *inString )
 	Info_SetValueForKey( userinfo, "spectator", "0" ); // NOT a spectator
 	Info_SetValueForKey( userinfo, "gender", gender );
 	
-	Q_snprintf( team_str, 2, "%i", team );
-	
-	bot = ACESP_SpawnBot( team_str, name, modelskin, userinfo );
-	
+	// Only spawn from config if attract mode is disabled
+	if (Q_stricmp(am->string, "0") == 0) {
+		bot = ACESP_SpawnBot( team_str, name, modelskin, userinfo );
+	} else {
+		gi.dprintf("Warning: attract mode is enabled, I am not spawning bots from config.\n");
+	}
+
 	// FIXME: This might have to happen earlier to take effect.
 	if( bot )
 	{
@@ -389,7 +392,7 @@ void ACESP_HoldSpawn(edict_t *self)
 void ACESP_PutClientInServer( edict_t *bot, qboolean respawn, int team )
 {
 	bot->is_bot = true;
-	
+
 	// Use 'think' to pass the value of respawn to PutClientInServer.
 	if( ! respawn )
 	{
@@ -418,7 +421,7 @@ void ACESP_Respawn (edict_t *self)
 {
 	respawn( self );
 	
-	if( random() < 0.15)
+	if( random() < 0.05)
 	{
 		// Store current enemies available
 		int		i, counter = 0;
@@ -500,12 +503,13 @@ void ACESP_SetName(edict_t *bot, char *name, char *skin, char *team)
 	char bot_skin[MAX_INFO_STRING];
 	char bot_name[MAX_INFO_STRING];
 
-	// Set the name for the bot.
-	// name
 	if( (!name) || !strlen(name) )
 	{
 		// RiEvEr - new code to get random bot names
-		LTKsetBotName(bot_name);
+		if(!am_newnames->value)
+			LTKsetBotName(bot_name);
+		else
+			LTKsetBotNameNew(bot_name);
 	}
 	else
 		strcpy(bot_name,name);
@@ -518,27 +522,27 @@ void ACESP_SetName(edict_t *bot, char *name, char *skin, char *team)
 		if(rnd  < 0.05)
 			sprintf(bot_skin,"male/bluebeard");
 		else if(rnd < 0.1)
-			sprintf(bot_skin,"female/brianna");
+			sprintf(bot_skin,"female/leeloop");
 		else if(rnd < 0.15)
 			sprintf(bot_skin,"male/blues");
 		else if(rnd < 0.2)
-			sprintf(bot_skin,"female/ensign");
+			sprintf(bot_skin,"female/sarah_ohconnor");
 		else if(rnd < 0.25)
-			sprintf(bot_skin,"female/jezebel");
+			sprintf(bot_skin,"actionmale/chucky");
 		else if(rnd < 0.3)
-			sprintf(bot_skin,"female/jungle");
+			sprintf(bot_skin,"actionmale/axef");
 		else if(rnd < 0.35)
 			sprintf(bot_skin,"sas/sasurban");
 		else if(rnd < 0.4)
 			sprintf(bot_skin,"terror/urbanterr");
 		else if(rnd < 0.45)
-			sprintf(bot_skin,"female/venus");
+			sprintf(bot_skin,"aqmarine/urban");
 		else if(rnd < 0.5)
 			sprintf(bot_skin,"sydney/sydney");
 		else if(rnd < 0.55)
 			sprintf(bot_skin,"male/cajin");
 		else if(rnd < 0.6)
-			sprintf(bot_skin,"male/commando");
+			sprintf(bot_skin,"aqmarine/desert");
 		else if(rnd < 0.65)
 			sprintf(bot_skin,"male/grunt");
 		else if(rnd < 0.7)
@@ -597,10 +601,12 @@ edict_t *ACESP_SpawnBot( char *team_str, char *name, char *skin, char *userinfo 
 	bot->yaw_speed = 1000;  // deg/sec
 	
 	// To allow bots to respawn
-	if( ! userinfo )
+	if( ! userinfo ) {
+		// Classic naming method
 		ACESP_SetName( bot, name, skin, team_str );  // includes ClientConnect
-	else
+	} else {
 		ClientConnect( bot, userinfo );
+	}
 	
 	ClientBeginDeathmatch( bot );
 	
@@ -612,6 +618,23 @@ edict_t *ACESP_SpawnBot( char *team_str, char *name, char *skin, char *userinfo 
 		if( (team < TEAM1) || (team > teamCount) )
 			team = GetNextTeamNumber();
 		team_str = LocalTeamNames[ team ];
+	}
+
+	if(am->value) {
+		if(am_team->value && !teamplay->value){
+			// am_team set but not teamplay
+			team = 0;
+		}
+		if(am_team->value){
+			team = (int)am_team->value;
+			if ((!use_3teams->value) && (team >= TEAM3)){
+				gi.dprintf("Warning: am_team was %d, but use_3teams is not enabled!  Bots will default to team 1.\n", team);
+				gi.cvar_forceset("am_team", "1");
+				team = 1;
+			}
+		}
+
+		
 	}
 	
 	ACESP_PutClientInServer( bot, true, team );
@@ -643,7 +666,6 @@ edict_t *ACESP_SpawnBot( char *team_str, char *name, char *skin, char *userinfo 
 				LTK_Chat( bot, myplayer[rand()%counter], DBC_WELCOME);
 		}
 	}	
-	
 	return bot;
 }
 
@@ -669,7 +691,7 @@ void ACESP_RemoveBot(char *name)
 			if( bot->is_bot && (remove_all || !strlen(name) || Q_stricmp(bot->client->pers.netname,name)==0 || (find_team && bot->client->resp.team==find_team)) )
 			{
 				bot->health = 0;
-				player_die (bot, bot, bot, 100000, bot->s.origin);
+				player_die (bot, bot, bot, 100000, vec3_origin);
 				// don't even bother waiting for death frames
 //				bot->deadflag = DEAD_DEAD;
 //				bot->inuse = false;
@@ -705,10 +727,94 @@ void ACESP_RemoveBot(char *name)
 //	ACESP_SaveBots(); // Save them again
 }
 
+void attract_mode_bot_check(void)
+{
+	int maxclientsminus2 = (int)(maxclients->value - 2);
+	int adj = 0;
+
+	ACEIT_RebuildPlayerList();
+	// Some sanity checking before we proceed
+	if (am_botcount->value < 0){
+        gi.cvar_forceset("am_botcount", "0");
+	}
+	if (am_botcount->value >= maxclients->value) {
+		gi.cvar_forceset("am_botcount", va("%d", maxclientsminus2));
+		if (warmup_bots->value){
+			gi.cvar_forceset("warmup_bots", va("%d", maxclientsminus2));
+		}
+	}
+
+	// Cannot have the am_botcount at a value of N-2 of the maxclients
+	if ((am->value == 2) && (am_botcount->value >= maxclientsminus2))
+	{
+		// If maxclients is 10 or more, set the botcount value to 6, else disable attract mode.  Increase your maxclients!
+		if(maxclients->value >= 10){
+			gi.dprintf( "am is 2, am_botcount is %d, maxclients is too low at %d, forcing it to default (6)\n", (int)am_botcount->value, (int)maxclients->value);
+			gi.cvar_forceset("am_botcount", "6");
+		} else {
+			gi.dprintf( "am is 2, am_botcount is %d, maxclients is too low at %d, reducing bot count\n", (int)am_botcount->value, (int)maxclients->value);
+			adj = (maxclientsminus2 - 2);
+			gi.cvar_forceset("am_botcount", va("%d", adj));
+		}
+    }
+
+	int tgt_bot_count = (int)am_botcount->value;
+	int real_player_count = (num_players - game.bot_count);
+
+	/* 	// Debug area, uncomment for gratiuitous amounts of spam
+	if (teamplay->value){
+	 	gi.dprintf("Team 1: %d - Team 2: %d, - Team 3: %d\n", team1, team2, team3);
+	}
+	gi.dprintf("tgt_bot_count is %d, real_player_count is %d, num_players is %d, game.bot_count is %d\n", tgt_bot_count, real_player_count, num_players, game.bot_count);
+	*/ 	// End debug area
+
+	// Bot Maintenance
+	/* Logic is as follows:
+	  If (am_botcount - real_player_count) == game.botcount
+	    (Current bots - real players is equal to am_botcount value)
+	  Then do nothing, we are where we want to be
+
+	  Else
+
+	  If (am_botcount - real_player_count) > game.botcount
+	  	(Current Bots + Real Players is less than the am_botcount value)
+	  Then add a bot until these numbers are equal
+
+	  Else
+
+	  If (am_botcount - real_player_count) < game.botcount AND if am is 1
+	  	(Current Bots + Real Players is more than the am_botcount value)
+	  Then remove a bot until these numbers are equal
+
+	  Else
+
+	  If (total players == (maxclients - 1)) AND if am is 2
+	  	(Current Bots + Real Players is more than the am_botcount value)
+	  Then remove a bot only if we're near the maxclients number
+	 
+	*/
+	
+	if (tgt_bot_count - real_player_count == game.bot_count) {
+		return;
+	} else if (tgt_bot_count - real_player_count > game.bot_count) {
+		//gi.dprintf("I'm adding a bot because %d - %d < %d", tgt_bot_count, real_player_count, game.bot_count);
+		ACESP_SpawnBot(NULL, NULL, NULL, NULL);
+	} else if ((tgt_bot_count - real_player_count < game.bot_count) && (am->value == 1)) {
+		// This removes 1 bot per real player
+
+		//gi.dprintf("I'm removing a bot because %d - %d > %d", tgt_bot_count, real_player_count, game.bot_count);
+		ACESP_RemoveBot("");
+	} else if ((num_players == maxclientsminus2) && (am->value == 2)) {
+		// This removes 1 bot once we are at maxclients - 2 so we have room for a real player
+		gi.dprintf("Removing a bot because num_players = %d and maxclients is %d", num_players, game.maxclients);
+		ACESP_RemoveBot("");
+	}
+	
+}
+
 //====================================
 // Stuff to generate pseudo-random names
 //====================================
-#define NUMNAMES	10
 char	*names1[NUMNAMES] = {
 	"Bad", "Death", "L33t", "Fast", "Real", "Lethal", "Hyper", "Hard", "Angel", "Red"};
 
@@ -721,36 +827,79 @@ char	*names3[NUMNAMES] = {
 char	*names4[NUMNAMES] = {
 	"ders", "rog", "born", "dor", "fing", "galad", "bon", "loss", "orch", "riel" };
 
-qboolean	nameused[NUMNAMES][NUMNAMES];
+//====================================
+// AQ2World Staff Names -- come shoot at our bots!
+// TODO: Find time to implement this better
+//====================================
+char	*aq2names[] = {
+	"[BOT]bAron", "[BOT]darksaint", "[BOT]FragBait",
+	"[BOT]matic", "[BOT]JukS", "[BOT]TgT", "[BOT]dmc",
+	"[BOT]dox", "[BOT]KaniZ", "[BOT]keffo", "[BOT]QuimBy"
+	
+	"<ai>Rezet", "<ai>Royce", "<ai>vrol", "<ai>mikota",
+	"<ai>Reki", "<ai>ReKTeK", "<ai>Ralle", "<ai>Tech",
 
-//====================================
-// AQ2World Staff Names -- come shoot at us!
-// Find time to implement this!  Or better yet, 
-// load names from a file rather than this array
-//====================================
-// #define AQ2WORLDNUMNAMES	14
-// char	*aq2names[AQ2WORLDNUMNAMES] = {
-// 	"bAron", "darksaint", "FragBait", "matic", "stan0x", "TgT", "dmc", "dox", "KaniZ", "keffo", "QuimBy", "Rezet", "Royce", "vrol"
-// 	};
-//qboolean	adminnameused[AQ2WORLDNUMNAMES];
+	"-ROBO-JukS", "-ROBO-Nevi", "-ROBO-topdeck",
+	"-ROBO-dmc", "-ROBO-Raptor007", "-ROBO-Ferrick",
+
+	"Igor[ROCK].bot", "Suislide.bot", "Bartender.bot",
+	"Fex.bot", "Shagg.bot", "Black Angel.bot", "Rookie.bot",
+
+	"Fireblade>beep", "Cail>beep", "Gooseman>beep", "Ace12GA>beep",
+	"BlackMonk>beep", "hal9k>beep", "Fool Killer>beep", "Inghaw>beep",
+
+	"_NME_GreyDeath", "_NME_Ellusion", "_NME_Deathwatch", 
+	"_NME_Freud", "_NME_slicer", "_NME_JBravo", "_NME_Elviz"
+	};
+
 // END AQ2World Staff Names //
 
+// New AQ2World team bot names (am_newnames 1)
+void LTKsetBotNameNew(char *bot_name)
+{
+	edict_t ltknames;
+	int randomname = 0;
+	// /* TODO: Free up previously used names to be reused.
+	//    This may cause duplicates in-game though.
+	//    Fix this at some point.  Otherwise the game
+	//    runs out of valid values and will softlock
+	//    when generating LTK bots.
+
+	do
+    {
+        randomname = rand() % AQ2WTEAMSIZE;
+        if (!ltknames.newnameused[randomname])
+        {
+            ltknames.newnameused[randomname] = true;
+            break;
+        }
+    } while (ltknames.newnameused[randomname]);
+
+    strcpy(bot_name, aq2names[randomname]);
+
+	return;
+}
+
 //====================================
-// New random bot naming routine
+// Classic random bot naming routine
 //====================================
 void	LTKsetBotName( char	*bot_name )
 {
 	int	part1,part2;
 	part1 = part2 = 0;
+	edict_t ltknames;
 
-	do // Load random bot names from NUMNAMES lists
+	do
 	{
 		part1 = rand()% NUMNAMES;
 		part2 = rand()% NUMNAMES;
-	}while( nameused[part1][part2]);
+	}while( ltknames.nameused[part1][part2]);
 
 	// Mark that name as used
-	nameused[part1][part2] = true;
+	// TODO: This is causing crashes, figure out another way to mark them as used
+
+	ltknames.nameused[part1][part2] = true;
+	
 	// Now put the name together
 	if( random() < 0.5 )
 	{
@@ -764,18 +913,15 @@ void	LTKsetBotName( char	*bot_name )
 	}
 }
 
-int GetBotCount(void)
-{
-	int count = 0;
-	edict_t *pers = NULL;
-    // Count bots
-    for (int i = 0; i < game.maxclients; i++)
-    {
-        if (pers->is_bot)
-        {
-            count++;
+void LTKClearBotNames(void) {
+	edict_t ltknames;
+	int i, j;
+    for (i = 0; i < NUMNAMES; i++) {
+        for (j = 0; j < NUMNAMES; j++) {
+            ltknames.nameused[i][j] = false; // Reset all elements to false
         }
     }
-	return count;
+	for (i = 0; i < AQ2WTEAMSIZE; i++) {
+			ltknames.newnameused[i] = false; // Reset all elements to false
+    }
 }
-

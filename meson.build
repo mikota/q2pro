@@ -165,6 +165,7 @@ action_src = [
   'src/action/a_ctf.c',
   'src/action/a_dom.c',
   'src/action/a_doorkick.c',
+  'src/action/a_esp.c',
   'src/action/a_game.c',
   'src/action/a_items.c',
   'src/action/a_match.c',
@@ -544,16 +545,16 @@ executable('q2proded', common_src, server_src,
 
 ## Disabling building gamelib for now, no need
 
-# shared_library('game' + cpu, action_src,
-#   name_prefix:           '',
-#   dependencies:          game_deps,
-#   include_directories:   'inc',
-#   gnu_symbol_visibility: 'hidden',
-#   link_args:             dll_link_args,
-#   install:               system_wide,
-#   install_dir:           libdir / get_option('base-game'),
-#   override_options:      get_option('game-build-options'),
-# )
+shared_library('game' + cpu, action_src,
+  name_prefix:           '',
+  dependencies:          game_deps,
+  include_directories:   'inc',
+  gnu_symbol_visibility: 'hidden',
+  link_args:             dll_link_args,
+  install:               system_wide,
+  install_dir:           libdir / get_option('base-game'),
+  override_options:      get_option('game-build-options'),
+)
 
 config.set('REVISION',            meson.project_version().substring(1).split('~')[0].to_int())
 config.set_quoted('VERSION',      meson.project_version())

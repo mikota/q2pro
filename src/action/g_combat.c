@@ -202,7 +202,8 @@ qboolean CanDamage (edict_t * targ, edict_t * inflictor)
   Killed
   ============
 */
-void Killed (edict_t * targ, edict_t * inflictor, edict_t * attacker, int damage, vec3_t point)
+void Killed (edict_t * targ, edict_t * inflictor, edict_t * attacker, int damage,
+	const vec3_t point)
 {
 	if (targ->health < -999)
 		targ->health = -999;
@@ -396,7 +397,7 @@ void spray_sniper_blood(edict_t *self, vec3_t start, const vec3_t dir)
 	spray_blood( self, start, dir, 0, mod );
 }
 
-void VerifyHeadShot(vec3_t point, const vec3_t dir, float height, vec3_t newpoint)
+void VerifyHeadShot(vec3_t point, vec3_t dir, float height, vec3_t newpoint)
 {
 	vec3_t normdir;
 
@@ -413,7 +414,7 @@ void VerifyHeadShot(vec3_t point, const vec3_t dir, float height, vec3_t newpoin
 #define HEAD_HEIGHT 12.0f
 
 void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const vec3_t dir,
-	  vec3_t point, const vec3_t normal, int damage, int knockback, int dflags,
+	  const vec3_t point, const vec3_t normal, int damage, int knockback, int dflags,
 	  int mod)
 {
 	gclient_t *client;
@@ -442,8 +443,9 @@ void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const ve
 	//FIREBLADE
 	if (mod != MOD_TELEFRAG)
 	{
-		if (lights_camera_action)
+		if (lights_camera_action) {
 			return;
+		}
 
 		if (client)
 		{
@@ -538,28 +540,8 @@ void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const ve
 
 						if(attacker->client->resp.streakHS % 3 == 0)
 						{
-							if (use_rewards->value)
-							{
-								Q_snprintf(buf, sizeof(buf), "ACCURACY %s!", attacker->client->pers.netname);
-								CenterPrintAll(buf);
-								gi.sound(&g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("tng/accuracy.wav"), 1.0, ATTN_NONE, 0.0);
-
-								#if USE_AQTION
-
-								#ifndef NO_BOTS
-									// Check if there's an AI bot in the game, if so, do nothing
-									if (game.ai_ent_found) {
-										return;
-									}
-								#endif
-								if (stat_logs->value) {
-									char steamid[24];
-									char discordid[24];
-									Q_strncpyz(steamid, Info_ValueForKey(attacker->client->pers.userinfo, "steamid"), sizeof(steamid));
-									Q_strncpyz(discordid, Info_ValueForKey(attacker->client->pers.userinfo, "cl_discord_id"), sizeof(discordid));
-									LogAward(steamid, discordid, ACCURACY);
-								}
-								#endif
+							if (use_rewards->value) {
+								Announce_Reward(attacker, ACCURACY);
 							}
 						}
 					}
@@ -904,7 +886,12 @@ void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const ve
 		{
 			if (!friendlyFire && !in_warmup) {
 				attacker->client->resp.damage_dealt += damage;
+				// All normal weapon damage
 				if (mod > 0 && mod < MAX_GUNSTAT) {
+					attacker->client->resp.gunstats[mod].damage += damage;
+				}
+				// Grenade splash, kicks and punch damage
+				if (mod > 0 && ((mod == MOD_HG_SPLASH) || (mod == MOD_KICK) || (mod == MOD_PUNCH))) {
 					attacker->client->resp.gunstats[mod].damage += damage;
 				}
 			}

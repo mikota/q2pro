@@ -16,7 +16,7 @@
 #include "g_local.h"
 
 
-void G_ProjectSource (const vec3_t point, const vec3_t distance, const vec3_t forward, const vec3_t right,
+void G_ProjectSource (vec3_t point, vec3_t distance, vec3_t forward, vec3_t right,
 		 vec3_t result)
 {
 	result[0] = point[0] + forward[0] * distance[0] + right[0] * distance[1];
@@ -70,7 +70,7 @@ Returns entities that have origins within a spherical area
 findradius (origin, radius)
 =================
 */
-edict_t *findradius (edict_t * from, const vec3_t org, float rad)
+edict_t *findradius (edict_t * from, vec3_t org, float rad)
 {
 	vec3_t eorg;
 	int j;
@@ -288,11 +288,8 @@ VectorToString
 
 This is just a convenience function
 for printing vectors
-
-// No longer needed as Q2Pro inc/shared/shared.h provides this
 =============
 */
-
 // char *vtos (const vec3_t v)
 // {
 // 	static int index;
@@ -358,7 +355,7 @@ float vectoyaw (vec3_t vec)
 }
 
 
-void vectoangles (const vec3_t value1, vec3_t angles)
+void vectoangles (vec3_t value1, vec3_t angles)
 {
 	float forward;
 	float yaw, pitch;
@@ -722,3 +719,41 @@ qboolean infront( edict_t *self, edict_t *other )
 	return false;
 }
 #endif
+
+/*
+=============
+Toggle Cvars
+=============
+*/
+
+void disablecvar(cvar_t *cvar, char *msg)
+{
+	// Cvar is already disabled, do nothing
+	if (!cvar->value)
+		return;
+
+	if (msg)
+		gi.dprintf("%s: disabling %s\n", msg, cvar->name);
+
+	gi.cvar_forceset(cvar->name, "0");
+}
+
+void enablecvar(cvar_t *cvar, char *msg)
+{
+	// Cvar is already enabled, do nothing
+	if (cvar->value)
+		return;
+
+	if (msg)
+		gi.dprintf("%s: enabling %s\n", msg, cvar->name);
+
+	gi.cvar_forceset(cvar->name, "1");
+}
+
+/*
+Supply integer in seconds, calculates number of seconds
+based on variable FPS (HZ)
+*/
+int eztimer(int seconds){
+	return (level.framenum + seconds * HZ);
+}

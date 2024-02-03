@@ -386,7 +386,7 @@ qboolean ACEND_FollowPath(edict_t *self)
 		{
 			// Failed to find a path
 			if( debug_mode )
-				gi.bprintf(PRINT_HIGH,"%s: Target at(%i) - No Path to %i \n",
+				gi.bprintf(PRINT_HIGH,"%s: Target at(%i) - No Path (Next: %i)\n",
 					self->client->pers.netname, self->goal_node, self->next_node);
 			return false;
 		}
@@ -1206,7 +1206,7 @@ void ACEND_RemoveNodeEdge(edict_t *self, int from, int to)
 // This function will resolve all paths that are incomplete
 // usually called before saving to disk
 ///////////////////////////////////////////////////////////////////////
-void ACEND_ResolveAllPaths()
+void ACEND_ResolveAllPaths(void)
 {
 	int i, from, to;
 	int num=0;
@@ -1249,7 +1249,7 @@ void ACEND_ResolveAllPaths()
 // save out to a node file around 50-200k, so compression is not really
 // a big deal.
 ///////////////////////////////////////////////////////////////////////
-void ACEND_SaveNodes()
+void ACEND_SaveNodes(void)
 {
 	FILE *pOut;
 	char filename[60];

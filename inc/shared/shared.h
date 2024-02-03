@@ -451,9 +451,19 @@ static inline int Q_gcd(int a, int b)
     return a;
 }
 
+void ProjectPointOnPlane (vec3_t dst, const vec3_t p, const vec3_t normal);
+void PerpendicularVector (vec3_t dst, const vec3_t src);
+void RotatePointAroundVector (vec3_t dst, const vec3_t dir,
+			      const vec3_t point, float degrees);
+
+void VectorRotate( vec3_t in, vec3_t angles, vec3_t out );  // a_doorkick.c
+void VectorRotate2( vec3_t v, float degrees );
+
 void Q_srand(uint32_t seed);
 uint32_t Q_rand(void);
 uint32_t Q_rand_uniform(uint32_t n);
+
+#define bound(a,b,c) ((a) >= (c) ? (a) : (b) < (a) ? (a) : (b) > (c) ? (c) : (b))
 
 #define clamp(a,b,c)    ((a)<(b)?(a)=(b):(a)>(c)?(a)=(c):(a))
 #define cclamp(a,b,c)   ((b)>(c)?clamp(a,c,b):clamp(a,b,c))
@@ -1288,11 +1298,12 @@ enum {
     STAT_GRENADES,
     STAT_TEAM3_PIC,
     STAT_TEAM3_SCORE,
-    STAT_TEAM1_HEADER,
-    STAT_TEAM2_HEADER,
 
     MAX_STATS = 32
 };
+
+#define STAT_TEAM1_HEADER  30
+#define STAT_TEAM2_HEADER  31
 
 // STAT_LAYOUTS flags
 #define LAYOUTS_LAYOUT          BIT(0)
@@ -1320,8 +1331,11 @@ enum {
 #define DF_QUAD_DROP        BIT(14)
 #define DF_FIXED_FOV        BIT(15)
 
+// ACTION
+#define DF_WEAPON_RESPAWN   BIT(16)
+
 // RAFAEL
-#define DF_QUADFIRE_DROP    BIT(16)
+//#define DF_QUADFIRE_DROP    BIT(16)
 
 //ROGUE
 #define DF_NO_MINES         BIT(17)
@@ -1337,6 +1351,19 @@ enum {
 #define UF_MUTE_OBSERVERS   BIT(4)
 #define UF_MUTE_MISC        BIT(5)
 #define UF_PLAYERFOV        BIT(6)
+
+// PaTMaN - Flags for ToGgle
+#define	TG_LASER			BIT(0)
+#define	TG_SLIPPERS			BIT(1)
+#define	TG_SILENCER			BIT(2)
+#define	TG_VEST				BIT(3)
+#define	TG_KICKABLE			BIT(4)
+#define TG_HELMET           BIT(5)
+
+#define	TG_HUD_RANGE		BIT(7)
+
+#define	TG_IR				BIT(13)
+// Why the gaps, I do not know?
 
 /*
 ==========================================================

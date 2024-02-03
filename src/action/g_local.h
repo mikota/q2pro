@@ -299,14 +299,6 @@
 #define		getEnt(entnum)	(edict_t *)((char *)globals.edicts + (globals.edict_size * entnum))	//AQ:TNG Slicer - This was missing
 #define		GAMEVERSION			"action"	// the "gameversion" client command will print this plus compile date
 
-
-#define GMF_CLIENTNUM				0x00000001
-#define GMF_PROPERINUSE             0x00000002
-#define GMF_MVDSPEC					0x00000004
-#define GMF_WANT_ALL_DISCONNECTS    0x00000008
-#define GMF_VARIABLE_FPS			0x00000800
-#define GMF_EXTRA_USERINFO			0x00001000
-
 #ifndef NO_FPS
 #define G_GMF_VARIABLE_FPS GMF_VARIABLE_FPS
 #else
@@ -325,6 +317,8 @@
 #define svc_stufftext           11
 #define	svc_configstring		13
 
+// These are mapped to the enum svc_ops_t in protocol.h q2pro
+// If these need adjusted in q2pro, adjust them here too
 #define svc_extend				30
 #define svc_userstatistic		31
 
@@ -368,6 +362,7 @@
 // edict->client->pers.spec_flags
 #define SPECFL_KILLFEED					0x00000001
 #define SPECFL_SPECHUD					0x00000002
+#define SPECFL_SPECHUD_NEW				0x00000004
 
 // variable server FPS
 #ifndef NO_FPS
@@ -583,6 +578,14 @@ bind 6 "use Sniper Rifle"
 #define HELM_NAME    "Kevlar Helmet"
 #define LASER_NAME   "Lasersight"
 
+#define C_KIT_NAME	 "Commando Kit"
+#define S_KIT_NAME	 "Stealth Kit"
+#define A_KIT_NAME	 "Assassin Kit"
+
+#define C_KIT_NAME_FULL	 "Commando Kit (Bandolier + Helm)"
+#define S_KIT_NAME_FULL	 "Stealth Kit (Slippers + Silencer)"
+#define A_KIT_NAME_FULL	 "Assassin Kit (Laser + Silencer)"
+
 #define NO_NUM					0
 
 #define MK23_NUM				1
@@ -615,15 +618,24 @@ bind 6 "use Sniper Rifle"
 
 #define ITEM_MAX_NUM			24
 
+#define C_KIT_NUM				25
+#define S_KIT_NUM				26
+#define A_KIT_NUM				27
+
+#define KIT_MAX_NUM				28
+
 #define WEAPON_COUNT			9
 #define ITEM_COUNT				6
 #define AMMO_COUNT				5
+#define KIT_COUNT               3
 #define WEAPON_FIRST			1
 #define WEAPON_MAX				WEAPON_FIRST+WEAPON_COUNT
 #define ITEM_FIRST				WEAPON_MAX
 #define ITEM_MAX				ITEM_FIRST+ITEM_COUNT
 #define AMMO_FIRST				ITEM_MAX
 #define AMMO_MAX				AMMO_FIRST+AMMO_COUNT
+#define KIT_FIRST				C_KIT_NUM
+#define KIT_MAX					KIT_MAX_NUM
 
 //AQ2:TNG - Igor adding wp_flags/itm_flags
 #define STRINGIFY(x) #x
@@ -638,6 +650,9 @@ bind 6 "use Sniper Rifle"
 #define ITF_DEFAULT				63 //ITF_MASK
 #define ITF_DEFAULT_STR			TOSTRING(ITF_DEFAULT)
 #define ITF_ALLOWED(typeNum)	((int)itm_flags->value & items[typeNum].flag)
+
+#define MAX_SPAWNS 512		// max DM spawn points supported
+
 //AQ2:TNG End adding flags
 
 typedef struct itemList_s
@@ -670,19 +685,20 @@ extern itemList_t items[ITEM_MAX_NUM];
 // these should be server variables, when I get around to it
 //#define UNIQUE_WEAPONS_ALLOWED 2
 //#define UNIQUE_ITEMS_ALLOWED   1
-#define SPEC_WEAPON_RESPAWN 1
-#define BANDAGE_TIME    27	// 10 = 1 second
-#define BLEED_TIME      10	// 10 = 1 second is time for losing 1 health at slowest bleed rate
+#define SPEC_WEAPON_RESPAWN 		1
+#define BANDAGE_TIME    			27	// 10 = 1 second
+#define ENHANCED_BANDAGE_TIME		10
+#define BLEED_TIME      			10	// 10 = 1 second is time for losing 1 health at slowest bleed rate
 // Igor's back in Time to hard grenades :-)
-#define GRENADE_DAMRAD_CLASSIC  170
-#define GRENADE_DAMRAD          250
+#define GRENADE_DAMRAD_CLASSIC  	170
+#define GRENADE_DAMRAD          	250
 
 
 typedef struct gitem_s
 {
   char *classname;		// spawning name
 
-    qboolean (*pickup) (struct edict_s * ent, struct edict_s * other);
+  qboolean (*pickup) (struct edict_s * ent, struct edict_s * other);
   void (*use) (struct edict_s * ent, struct gitem_s * item);
   void (*drop) (struct edict_s * ent, struct gitem_s * item);
   void (*weaponthink) (struct edict_s * ent);
@@ -740,6 +756,7 @@ typedef struct
   int gamemodeflags;
   int roundNum;
   qboolean ai_ent_found;
+  int bot_count;
 }
 game_locals_t;
 
@@ -800,6 +817,9 @@ typedef struct
 
   int model_null;
   int model_lsight;
+#ifdef AQTION_EXTENSION
+  int model_arrow;
+#endif
 
   edict_t *current_entity;	// entity running from G_RunFrame
 
@@ -812,6 +832,17 @@ typedef struct
   float matchTime;
   float emptyTime;
   int weapon_sound_framenum;
+  int pic_teamplay_timer_icon;
+
+  int pic_leaderskin[TEAM_TOP];  
+  int pic_esp_teamtag[TEAM_TOP];
+  int pic_esp_teamicon[TEAM_TOP];
+  int pic_esp_leadericon[TEAM_TOP];
+  int pic_esp_respawn_icon;
+
+  // Point of interest
+  vec3_t poi_origin;
+  vec3_t poi_angle;
 }
 level_locals_t;
 
@@ -884,77 +915,103 @@ extern spawn_temp_t st;
 extern int sm_meat_index;
 
 // means of death
-#define MOD_UNKNOWN                     0
-
-#define MOD_MK23                        1
-#define MOD_MP5                         2
-#define MOD_M4                          3
-#define MOD_M3                          4
-#define MOD_HC                          5
-#define MOD_SNIPER                      6
-#define MOD_DUAL                        7
-#define MOD_KNIFE                       8
-#define MOD_KNIFE_THROWN                9
-#define MOD_GRENADE                     10
-#define MOD_G_SPLASH                    11
-#define MOD_HANDGRENADE                 12
-#define MOD_HG_SPLASH                   13
-#define MOD_PUNCH                       14
-#define MOD_BLASTER                     15
-#define MOD_HYPERBLASTER                16
-#define MOD_WATER                       17
-#define MOD_SLIME                       18
-#define MOD_LAVA                        19
-#define MOD_CRUSH                       20
-#define MOD_TELEFRAG                    21
-#define MOD_FALLING                     22
-#define MOD_SUICIDE                     23
-#define MOD_HELD_GRENADE                24
-#define MOD_EXPLOSIVE                   25
-#define MOD_BARREL                      26
-#define MOD_BOMB                        27
-#define MOD_EXIT                        28
-#define MOD_SPLASH                      29
-#define MOD_TARGET_LASER                30
-#define MOD_TRIGGER_HURT                31
-#define MOD_HIT                         32
-#define MOD_TARGET_BLASTER              33
-//zucc
-#define MOD_BLEEDING                    34
-#define MOD_KICK                        35
-#define MOD_GRAPPLE						36
-#define MOD_TOTAL						37
-#define MOD_FRIENDLY_FIRE               0x8000000
+typedef enum {
+    MOD_UNKNOWN = 0,
+    MOD_MK23,
+    MOD_MP5,
+    MOD_M4,
+    MOD_M3,
+    MOD_HC,
+    MOD_SNIPER,
+    MOD_DUAL,
+    MOD_KNIFE,
+    MOD_KNIFE_THROWN,
+    MOD_GRENADE,
+    MOD_G_SPLASH,
+    MOD_HANDGRENADE,
+    MOD_HG_SPLASH,
+    MOD_PUNCH,
+    MOD_BLASTER,
+    MOD_HYPERBLASTER,
+    MOD_WATER,
+    MOD_SLIME,
+    MOD_LAVA,
+    MOD_CRUSH,
+    MOD_TELEFRAG,
+    MOD_FALLING,
+    MOD_SUICIDE,
+    MOD_HELD_GRENADE,
+    MOD_EXPLOSIVE,
+    MOD_BARREL,
+    MOD_BOMB,
+    MOD_EXIT,
+    MOD_SPLASH,
+    MOD_TARGET_LASER,
+    MOD_TRIGGER_HURT,
+    MOD_HIT,
+    MOD_TARGET_BLASTER,
+    MOD_BLEEDING,
+    MOD_KICK,
+    MOD_GRAPPLE,
+    MOD_TOTAL,
+    MOD_FRIENDLY_FIRE = 0x8000000
+} ModTable;
 
 // types of locations that can be hit
-#define LOC_HDAM		1	// head
-#define LOC_CDAM		2	// chest
-#define LOC_SDAM		3	// stomach
-#define LOC_LDAM		4	// legs
-#define LOC_KVLR_HELMET 5	// kevlar helmet	Freud, for %D
-#define LOC_KVLR_VEST	6	// kevlar vest 		Freud, for %D
-#define LOC_NO			7	// Shot by shotgun or handcannon
-#define LOC_MAX			8
+typedef enum {
+    LOC_HDAM = 1,    // head
+    LOC_CDAM,        // chest
+    LOC_SDAM,        // stomach
+    LOC_LDAM,        // legs
+    LOC_KVLR_HELMET, // kevlar helmet	Freud, for %D
+    LOC_KVLR_VEST,   // kevlar vest 		Freud, for %D
+    LOC_NO,          // Shot by shotgun or handcannon
+    LOC_MAX
+} ModLocation;
 
 // Awards
-#define ACCURACY 0
-#define IMPRESSIVE 1
-#define EXCELLENT 2
+typedef enum {
+    ACCURACY,
+    IMPRESSIVE,
+    EXCELLENT,
+	DOMINATING,
+	UNSTOPPABLE,
+	AWARD_MAX
+} Awards;
 
 // Game Modes
-#define GM_TEAMPLAY 0
-#define GM_TEAMDM 1
-#define GM_CTF 2
-#define GM_TOURNEY 3
-#define GM_DEATHMATCH 4
-#define GM_DOMINATION 5
+typedef enum {
+    GM_TEAMPLAY,
+    GM_TEAMDM,
+    GM_CTF,
+    GM_TOURNEY,
+    GM_DEATHMATCH,
+    GM_DOMINATION,
+    GM_ASSASSINATE_THE_LEADER,
+    GM_ESCORT_THE_VIP,
+	GM_MAX
+} GameMode;
 
 // Game Mode Flags
 #define GMF_NONE 0
 #define GMF_3TEAMS 1
-//#define NEW_MODE 2       // If new game mode flags are created, use 2 for its value first
+//#define GMF_NEW_MODE 2       // If new game mode flags are created, use 2 for its value first
 #define GMF_DARKMATCH 4
 #define GMF_MATCHMODE 8
+
+// Game Mode Names
+#define GMN_TEAMPLAY "Teamplay"
+#define GMN_TEAMDM "TeamDM"
+#define GMN_CTF "CTF"
+#define GMN_TOURNEY "Tourney"
+#define GMN_DEATHMATCH "Deathmatch"
+#define GMN_DOMINATION "Domination"
+#define GMN_ESPIONAGE "Espionage"
+#define GMN_JUMP "Jump"
+#define GMN_3TEAMS "3 Teams"
+//#define GMN_NEW_MODE 2       // If new game mode flags are created, use 2 for its value first
+#define GMN_DARKMATCH "Darkmatch"
+#define GMN_MATCHMODE "Matchmode"
 
 extern int meansOfDeath;
 // zucc for hitlocation of death
@@ -973,6 +1030,11 @@ extern edict_t *g_edicts;
 #define crandom()       (2.0 * (random() - 0.5))
 
 #define DMFLAGS(x)     (((int)dmflags->value & x) != 0)
+
+#ifndef NO_BOTS
+#define AQ2WTEAMSIZE	46
+#define NUMNAMES		10
+#endif
 
 extern cvar_t *maxentities;
 extern cvar_t *deathmatch;
@@ -1084,6 +1146,7 @@ extern cvar_t *itm_flags;
 extern cvar_t *use_classic;	// Use_classic resets weapon balance to 1.52
 
 extern cvar_t *warmup;
+extern cvar_t *warmup_bots;
 extern cvar_t *round_begin;
 extern cvar_t *spectator_hud;
 
@@ -1155,11 +1218,41 @@ extern cvar_t *bholelife;
 extern cvar_t *medkit_drop;
 extern cvar_t *medkit_time;
 extern cvar_t *medkit_instant;
+extern cvar_t *medkit_max;
+extern cvar_t *medkit_value;
 
 // BEGIN AQ2 ETE
-extern cvar_t *e_enhancedSlippers;
+extern cvar_t *esp;
+extern cvar_t *atl;
+extern cvar_t *etv;
+extern cvar_t *esp_atl;
+extern cvar_t *esp_punish;
+extern cvar_t *esp_etv_halftime;
+extern cvar_t *esp_showleader;
+extern cvar_t *esp_showtarget;
+extern cvar_t *esp_leaderequip;
+extern cvar_t *esp_leaderenhance;
+extern cvar_t *esp_enhancedslippers;
+extern cvar_t *esp_matchmode;
+extern cvar_t *esp_respawn_uvtime;
+extern cvar_t *esp_debug;
 
 // END AQ2 ETE
+
+// 2023
+extern cvar_t *use_killcounts;
+extern cvar_t *am;
+extern cvar_t *am_newnames;
+extern cvar_t *am_botcount;
+extern cvar_t *am_delay;
+extern cvar_t *am_team;
+extern cvar_t *zoom_comp;
+extern cvar_t *item_kit_mode;
+extern cvar_t *gun_dualmk23_enhance;
+extern cvar_t *printrules;
+extern cvar_t *timedmsgs;
+extern cvar_t *mm_captain_teamname;
+extern cvar_t *sv_killgib;
 
 #ifdef AQTION_EXTENSION
 extern int (*engine_Client_GetVersion)(edict_t *ent);
@@ -1168,32 +1261,37 @@ extern int (*engine_Client_GetProtocol)(edict_t *ent);
 int Client_GetVersion(edict_t *ent);
 int Client_GetProtocol(edict_t *ent);
 
-extern void (*engine_Ghud_SendUpdates)(edict_t *ent);
-extern int(*engine_Ghud_NewElement)(int type);
-extern void(*engine_Ghud_SetFlags)(int i, int val);
-extern void(*engine_Ghud_UnicastSetFlags)(edict_t *ent, int i, int val);
-extern void(*engine_Ghud_SetInt)(int i, int val);
-extern void(*engine_Ghud_SetText)(int i, char *text);
-extern void(*engine_Ghud_SetPosition)(int i, int x, int y, int z);
-extern void(*engine_Ghud_SetAnchor)(int i, float x, float y);
-extern void(*engine_Ghud_SetColor)(int i, int r, int g, int b, int a);
-extern void(*engine_Ghud_SetSize)(int i, int x, int y);
+extern void(*engine_Ghud_ClearForClient)(edict_t *ent);
+extern int(*engine_Ghud_NewElement)(edict_t *ent, int type);
+extern void(*engine_Ghud_RemoveElement)(edict_t *ent, int i);
+extern void(*engine_Ghud_SetFlags)(edict_t *ent, int i, int val);
+extern void(*engine_Ghud_SetInt)(edict_t *ent, int i, int val);
+extern void(*engine_Ghud_SetText)(edict_t *ent, int i, char *text);
+extern void(*engine_Ghud_SetPosition)(edict_t *ent, int i, int x, int y, int z);
+extern void(*engine_Ghud_SetAnchor)(edict_t *ent, int i, float x, float y);
+extern void(*engine_Ghud_SetColor)(edict_t *ent, int i, int r, int g, int b, int a);
+extern void(*engine_Ghud_SetSize)(edict_t *ent, int i, int x, int y);
 
-void  Ghud_SendUpdates(edict_t *ent);
-int   Ghud_NewElement(int type);
-void  Ghud_SetFlags(int i, int val);
-void  Ghud_UnicastSetFlags(edict_t *ent, int i, int val);
-void  Ghud_SetInt(int i, int val);
-void  Ghud_SetText(int i, char *text);
-void  Ghud_SetPosition(int i, int x, int y);
-void  Ghud_SetPosition3D(int i, int x, int y, int z);
-void  Ghud_SetAnchor(int i, float x, float y);
-void  Ghud_SetColor(int i, int r, int g, int b, int a);
-void  Ghud_SetSize(int i, int x, int y);
+void  Ghud_ClearForClient(edict_t *ent);
+int   Ghud_NewElement(edict_t *ent, int type);
+void  Ghud_RemoveElement(edict_t *ent, int i);
+void  Ghud_SetFlags(edict_t *ent, int i, int val);
+void  Ghud_SetInt(edict_t *ent, int i, int val);
+void  Ghud_SetText(edict_t *ent, int i, char *text);
+void  Ghud_SetPosition(edict_t *ent, int i, int x, int y);
+void  Ghud_SetPosition3D(edict_t *ent, int i, int x, int y, int z);
+void  Ghud_SetAnchor(edict_t *ent, int i, float x, float y);
+void  Ghud_SetColor(edict_t *ent, int i, int r, int g, int b, int a);
+void  Ghud_SetSize(edict_t *ent, int i, int x, int y);
 
-int   Ghud_AddIcon(int x, int y, int image, int sizex, int sizey);
-int   Ghud_AddText(int x, int y, char *text);
-int   Ghud_AddNumber(int x, int y, int value);
+int   Ghud_AddIcon(edict_t *ent, int x, int y, int image, int sizex, int sizey);
+int   Ghud_AddText(edict_t *ent, int x, int y, char *text);
+void  Ghud_SetTextFlags(edict_t *ent, int i, int uiflags);
+int   Ghud_AddNumber(edict_t *ent, int x, int y, int value);
+
+
+extern void(*engine_CvarSync_Set)(int index, const char *name, const char *val);
+void  CvarSync_Set(int index, const char *name, const char *val);
 #endif
 
 // 2022
@@ -1208,17 +1306,18 @@ extern cvar_t *gm; // Gamemode
 extern cvar_t *gmf; // Gamemodeflags
 extern cvar_t *sv_idleremove; // Remove idlers
 
+#ifdef AQTION_EXTENSION
+extern cvar_t *use_newirvision;		// enable new irvision (only highlight baddies)
+extern cvar_t *use_indicators;		// enable/allow indicators
+extern cvar_t *use_xerp;			// allow clients to use cl_xerp
+#endif
+
 // Discord SDK integration with Q2Pro
 extern cvar_t *cl_discord;
 extern cvar_t *cl_discord_id;
 extern cvar_t *cl_discord_discriminator;
 extern cvar_t *cl_discord_username;
 extern cvar_t *cl_discord_avatar;
-
-
-// Q2Pro / TNG Merge
-extern void func_explosive_explode(edict_t *, edict_t *, edict_t *, int, vec3_t);
-extern void player_die(edict_t *, edict_t *, edict_t *, int, vec3_t);
 
 #define world   (&g_edicts[0])
 
@@ -1295,6 +1394,7 @@ void ChangeWeapon (edict_t * ent);
 void PrecacheItems( void );
 void SpawnItem (edict_t * ent, gitem_t * item);
 void Think_Weapon (edict_t * ent);
+void AddItem(edict_t *ent, gitem_t *item);
 qboolean Add_Ammo (edict_t * ent, gitem_t * item, int count);
 void Touch_Item (edict_t * ent, edict_t * other, cplane_t * plane,
 		 csurface_t * surf);
@@ -1303,9 +1403,9 @@ void Touch_Item (edict_t * ent, edict_t * other, cplane_t * plane,
 // g_utils.c
 //
 qboolean KillBox (edict_t *ent);
-void	G_ProjectSource(const vec3_t point, const vec3_t distance, const vec3_t forward, const vec3_t right, vec3_t result);
+void	G_ProjectSource(vec3_t point, vec3_t distance, vec3_t forward, vec3_t right, vec3_t result);
 edict_t *G_Find(edict_t *from, ptrdiff_t fieldofs, char *match);
-edict_t *findradius(edict_t *from, const vec3_t org, float rad);
+edict_t *findradius(edict_t *from, vec3_t org, float rad);
 edict_t *G_PickTarget(char *targetname);
 void	G_UseTargets(edict_t *ent, edict_t * activator);
 void	G_SetMovedir(vec3_t angles, vec3_t movedir);
@@ -1327,13 +1427,15 @@ qboolean visible(edict_t *self, edict_t *other, int mask);
 qboolean ai_visible( edict_t *self, edict_t *other );
 qboolean infront( edict_t *self, edict_t *other );
 #endif
+void disablecvar(cvar_t *cvar, char *msg);
+int eztimer(int seconds);
 
 // Re-enabled for bots
 float *tv (float x, float y, float z);
 char *vtos (const vec3_t v);
 
 float vectoyaw (vec3_t vec);
-void vectoangles (const vec3_t vec, vec3_t angles);
+void vectoangles (vec3_t vec, vec3_t angles);
 
 //
 // g_combat.c
@@ -1341,7 +1443,7 @@ void vectoangles (const vec3_t vec, vec3_t angles);
 qboolean OnSameTeam (edict_t * ent1, edict_t * ent2);
 qboolean CanDamage (edict_t * targ, edict_t * inflictor);
 void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker,
-	       const vec3_t dir, vec3_t point, const vec3_t normal, int damage,
+	       const vec3_t dir, const vec3_t point, const vec3_t normal, int damage,
 	       int knockback, int dflags, int mod);
 void T_RadiusDamage (edict_t * inflictor, edict_t * attacker, float damage,
 		     edict_t * ignore, float radius, int mod);
@@ -1375,25 +1477,25 @@ void SP_misc_teleporter_dest(edict_t* ent);
 // g_weapon.c
 //
 void ThrowDebris (edict_t * self, char *modelname, float speed,
-		  const vec3_t origin);
-void fire_bullet (edict_t * self, const vec3_t start, vec3_t aimdir, int damage,
+		  vec3_t origin);
+void fire_bullet (edict_t * self, vec3_t start, vec3_t aimdir, int damage,
 		  int kick, int hspread, int vspread, int mod);
-void fire_shotgun (edict_t * self, const vec3_t start, vec3_t aimdir, int damage,
+void fire_shotgun (edict_t * self, vec3_t start, vec3_t aimdir, int damage,
 		   int kick, int hspread, int vspread, int count, int mod);
 //SLIC2 changed argument name hyper to hyperb
-void fire_blaster (edict_t * self, const vec3_t start, vec3_t aimdir, int damage,
+void fire_blaster (edict_t * self, vec3_t start, vec3_t aimdir, int damage,
 		   int speed, int effect, qboolean hyperb);
-void fire_grenade2 (edict_t * self, const vec3_t start, const vec3_t aimdir, int damage,
+void fire_grenade2 (edict_t * self, vec3_t start, vec3_t aimdir, int damage,
 	int speed, int timer, float damage_radius,
 		    qboolean held);
 
 void kick_attack(edict_t *ent);
 void punch_attack(edict_t *ent);
-int knife_attack(edict_t *self, const vec3_t start, vec3_t aimdir, int damage, int kick);
-void knife_throw(edict_t *self, const vec3_t start, vec3_t dir, int damage, int speed);
+int knife_attack(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick);
+void knife_throw(edict_t *self, vec3_t start, vec3_t dir, int damage, int speed);
 void knife_touch(edict_t* ent, edict_t* other, cplane_t* plane, csurface_t* surf);
-void fire_bullet_sparks(edict_t *self, const vec3_t start, vec3_t aimdir, int damage, int kick, int hspread, int vspread, int mod);
-void fire_bullet_sniper(edict_t *self, const vec3_t start, vec3_t aimdir, int damage, int kick, int hspread, int vspread, int mod);
+void fire_bullet_sparks(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick, int hspread, int vspread, int mod);
+void fire_bullet_sniper(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick, int hspread, int vspread, int mod);
 void setFFState(edict_t* ent);
 
 //
@@ -1417,7 +1519,8 @@ void* G_FetchGameExtension(char *name);
 // g_player.c
 //
 void player_pain (edict_t * self, edict_t * other, float kick, int damage);
-void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point);
+void player_die (edict_t * self, edict_t * inflictor, edict_t * attacker,
+		 int damage, const vec3_t point);
 
 //
 // g_svcmds.c
@@ -1439,6 +1542,7 @@ qboolean OnLadder( edict_t *ent );
 // p_hud.c
 //
 void MoveClientToIntermission (edict_t * client);
+void MoveClientToPOI(edict_t *ent, edict_t *poi);
 void G_SetStats (edict_t * ent);
 void G_CheckChaseStats (edict_t * ent);
 void ValidateSelectedItem (edict_t * ent);
@@ -1448,7 +1552,7 @@ void DeathmatchScoreboardMessage (edict_t * client, edict_t * killer);
 //
 // g_pweapon.c
 //
-void PlayerNoise (edict_t * who, const vec3_t where, int type);
+void PlayerNoise (edict_t * who, vec3_t where, int type);
 
 //
 // g_phys.c
@@ -1460,6 +1564,7 @@ void G_RunEntity (edict_t * ent);
 //
 void EndDMLevel (void);
 void ExitLevel (void);
+edict_t *ChooseRandomPlayer(int teamNum, qboolean allowBot);
 
 //
 // g_chase.c
@@ -1471,6 +1576,8 @@ void SetChase( edict_t *ent, edict_t *target );
 void ChaseNext (edict_t * ent);
 void ChasePrev (edict_t * ent);
 void GetChaseTarget (edict_t * ent);
+void TeamplayChaseCam(edict_t *self, edict_t *attacker);
+void EspionageChaseCam(edict_t *self, edict_t *attacker);
 
 
 //
@@ -1483,19 +1590,22 @@ void G_UpdateSpectatorStatusbar( void );
 void G_UpdatePlayerStatusbar( edict_t *ent, int force );
 int Gamemodeflag(void);
 int Gamemode(void);
+#ifdef USE_AQTION
 void generate_uuid(void);
-
+#endif
 //
 // p_client.c
 //
 edict_t* SelectRandomDeathmatchSpawnPoint(void);
 edict_t* SelectFarthestDeathmatchSpawnPoint(void);
+edict_t* SelectDeathmatchSpawnPoint(void);
 float PlayersRangeFromSpot(edict_t* spot);
 void ClientLegDamage(edict_t* ent);
 void ClientFixLegs(edict_t *ent);
 void ClientUserinfoChanged(edict_t* ent, char* userinfo);
 void ClientDisconnect(edict_t* ent);
 void CopyToBodyQue(edict_t* ent);
+void Announce_Reward(edict_t *ent, int rewardType);
 
 //p_weapon.c
 void Weapon_Generic( edict_t * ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST,
@@ -1505,18 +1615,21 @@ void Weapon_Generic( edict_t * ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST
 	void( *fire ) (edict_t * ent) );
 void PlayWeaponSound( edict_t *ent );
 
-void P_ProjectSource(gclient_t *client, const vec3_t point, const vec3_t distance, const vec3_t forward, const vec3_t right, vec3_t result);
+void P_ProjectSource(gclient_t *client, vec3_t point, vec3_t distance, vec3_t forward, vec3_t right, vec3_t result);
 void weapon_grenade_fire(edict_t* ent, qboolean held);
 void InitTookDamage(void);
 void ProduceShotgunDamageReport(edict_t*);
 
 //tng_stats.c
 void StatBotCheck(void);
+#if USE_AQTION
 void LogKill(edict_t *self, edict_t *inflictor, edict_t *attacker);
 void LogWorldKill(edict_t *self);
+void LogCapture(edict_t *capturer);
 void LogMatch(void);
-void LogAward(char* steamid, char* discordid, int award);
+void LogAward(edict_t *ent, int award);
 void LogEndMatchStats(void);
+#endif
 
 //============================================================================
 
@@ -1532,6 +1645,7 @@ void LogEndMatchStats(void);
 #define ANIM_REVERSE            -1
 
 #define MAX_SKINLEN				32
+#define MAX_TEAMNAMELEN			32
 
 #define MAX_GUNSTAT MOD_GRENADE //Max MOD to track
 
@@ -1589,10 +1703,14 @@ typedef struct
 	int menu_shown;		// has the main menu been shown
 	qboolean dm_selected;		// if dm weapon selection has been done once
 
-	// Reki - added these options, controllable via userinfo cvar
+	// Reki - added these options, controllable via userinfo cvar (Reki update 2/24/23, controllable via cvarsync as well)
 	int limp_nopred;
 	int spec_flags;
 	qboolean antilag_optout;
+#ifdef AQTION_EXTENSION
+	int cl_xerp;
+	int cl_indicators;
+#endif
 
 	int mk23_mode;		// firing mode, semi or auto
 	int mp5_mode;
@@ -1604,8 +1722,13 @@ typedef struct
 	int irvision;			// ir on or off (only matters if player has ir device, currently bandolier)
 
 	ignorelist_t ignorelist;
+	gitem_t *chosenItem2;		// Support for item kit mode
 
-	bool is_bot;         // client is a bot
+	#if USE_AQTION
+	char steamid[24];
+	char discordid[24];
+	#endif
+
 }
 client_persistant_t;
 
@@ -1644,6 +1767,8 @@ typedef struct
  
   int motd_refreshes;
   int last_motd_refresh;
+  int gamemsg_refreshes;
+  int last_gamemsg_refresh;
   edict_t *last_chase_target;	// last person they chased, to resume at the same place later...
 
   // Number of team kills this game
@@ -1667,12 +1792,13 @@ typedef struct
   int shotsTotal;					//Total number of shots
   int hitsTotal;					//Total number of hits
   int streakKills;					//Kills in a row
+  int roundStreakKills;				//Kills in a row in that round
   int streakHS;						//Headshots in a Row
   int streakKillsHighest;			//Highest kills in a row
   int streakHSHighest;				//Highest headshots in a Row
 
   int hitsLocations[LOC_MAX];		//Number of hits for different locations
-  gunStats_t gunstats[MAX_GUNSTAT]; //Number of shots/hits for different guns
+  gunStats_t gunstats[MOD_TOTAL]; //Number of shots/hits for different guns, adjusted to MOD_TOTAL to allow grenade, kick and punch stats
 
   //AQ2:TNG - Slicer: Video Checking and further Cheat cheking vars
   char vidref[16];
@@ -1681,6 +1807,7 @@ typedef struct
   float glmodulate;
   float glclear;
   float gldynamic;
+  float glbrightness;
   qboolean checked;
   int checkframe[3];
 
@@ -1692,7 +1819,39 @@ typedef struct
   vec3_t jmp_teleport_v_angle;
   qboolean jmp_teleport_ducked;
 
-  //char skin[MAX_SKINLEN];
+#ifdef AQTION_EXTENSION
+  int	hud_items[128];
+  int	hud_type;
+#endif
+
+  int esp_state;
+  int esp_caps;						// How many times a player has captured the case
+  int esp_capstreak;				// As leader, how many caps in a row
+  int esp_capstreakbest;			// Best cap streak
+  int esp_leaderkillstreak;			// How many enemy leader kills a player has had in a row
+  int esp_leaderkillstreakbest;		// Best leader kill streak
+  int esp_leaderprotectcount;		// How many times a player has protected the leader
+  int esp_leaderfragcount;			// How many times this player has fragged a leader
+  int esp_capdefendercount;			// How many times a player has defended the capture point
+  
+  // timers
+  int esp_lastprotectcap;			// Last time this player protected the capture point (framenum)
+  int esp_lastprotectleader;		// Last time this player protected the leader (framenum)
+  int esp_lasthurtleader;			// Last time this player hurt the leader (framenum)
+  int esp_leadertime;				// Last time this player was leader (framenum) to prevent spamming
+  int esp_respawn_sounds;			// 3: Played Lights, 2: Played Camera, 1: Played Action, 0: Play nothing
+  qboolean is_volunteer;
+
+  int medkit_award_time;
+
+  //PaTMaN's jmod
+  int toggle_lca;
+  int toggles;
+
+  // Domination stats
+  int dom_caps;						// How many times a player captured a dom point
+  int dom_capstreak;				// How many times a player captured a dom point in a row
+  int dom_capstreakbest;			// Best cap streak for domination
 }
 client_respawn_t;
 
@@ -1706,6 +1865,11 @@ struct gclient_s
 
 	// known to compatible server
 	int				clientNum;
+
+	// Reki: cvar sync
+#ifdef AQTION_EXTENSION
+	cvarsyncvalue_t cl_cvar[CVARSYNC_MAX];
+#endif
 
 	// private to game
 	client_persistant_t	pers;
@@ -1887,13 +2051,16 @@ struct gclient_s
 	int			ctf_grapplestate;		// true if pulling
 	int			ctf_grapplereleaseframe;	// frame of grapple release
 
+#ifdef AQTION_EXTENSION
+	//AQTION - Reki: Teammate indicators
+	edict_t		*arrow;
+#endif
 
 	// used for extrapolation
 	usercmd_t	cmd_last;
 
 	// visiblity mask
 	unsigned int dimension_observe;
-
 };
 
 
@@ -1979,7 +2146,7 @@ struct edict_s
 	void		(*touch)(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf);
 	void		(*use)(edict_t *self, edict_t *other, edict_t *activator);
 	void		(*pain)(edict_t *self, edict_t *other, float kick, int damage);
-	void		(*die)(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point);
+	void		(*die)(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, const vec3_t point);
 
 	int			touch_debounce_framenum;	// are all these legit?  do we need more/less of them?
 	int			pain_debounce_framenum;
@@ -2067,7 +2234,7 @@ struct edict_s
 
 	qboolean is_bot; 
 	qboolean is_jumping; 
-	qboolean is_triggering; 
+	qboolean is_triggering;
 	 
 	// For movement 
 	vec3_t move_vector;  
@@ -2119,7 +2286,14 @@ struct edict_s
 	int bot_speed; 
 	qboolean	bCrawl; 
 	qboolean	bLastJump; 
-	vec3_t	lastPosition; 
+	vec3_t	lastPosition;
+	qboolean	nameused[NUMNAMES][NUMNAMES];
+	qboolean	newnameused[AQ2WTEAMSIZE];
+	#ifdef AQTION_EXTENSION
+	//AQTION - Reki: Entity indicators
+	edict_t		*obj_arrow;
+	#endif
+
 #endif
 };
 
@@ -2137,10 +2311,20 @@ typedef struct
 	int shotsTotal;
 	int hitsTotal;
 	int hitsLocations[LOC_MAX];
-	gunStats_t gunstats[MAX_GUNSTAT];
+	gunStats_t gunstats[MOD_TOTAL];
 	int team;
 	gitem_t *weapon;
 	gitem_t *item;
+	// Extended stats
+	#if USE_AQTION
+	char steamid[24];
+	char discordid[24];
+	#endif
+	int ctf_capstreak;
+	int team_kills;
+	int streakKillsHighest;
+	int streakHSHighest;
+
 }
 gghost_t;
 
@@ -2168,6 +2352,7 @@ void Cmd_TKOk (edict_t * ent);	// AQ:TNG - JBravo adding tkok
 void Cmd_FF_f( edict_t *ent );
 void Cmd_Time (edict_t * ent);	// AQ:TNG - JBravo adding time
 void Cmd_Roundtimeleft_f(edict_t *ent); // AQ:TNG - DW added roundtimeleft
+void Cmd_Noclip_f(edict_t *ent);
 void DropSpecialWeapon (edict_t * ent);
 void ReadySpecialWeapon (edict_t * ent);
 void DropSpecialItem (edict_t * ent);
@@ -2183,7 +2368,7 @@ void Drop_Spec (edict_t * ent, gitem_t * item);
 void SpecThink (edict_t * spec);
 void DeadDropSpec (edict_t * ent);
 
-void temp_think_specweap (edict_t * ent);	// p_weapons.c
+void SpecialWeaponRespawnTimer (edict_t * ent);	// p_weapons.c
 void ThinkSpecWeap (edict_t * ent);
 void DropExtraSpecial (edict_t * ent);
 void TransparentListSet (solid_t solid_type);
@@ -2197,7 +2382,7 @@ void A_ScoreboardMessage( edict_t * ent, edict_t * killer );
 //local to g_combat but needed in p_view
 void SpawnDamage (int type, const vec3_t origin, const vec3_t normal, int damage);
 void Killed (edict_t * targ, edict_t * inflictor, edict_t * attacker,
-	     int damage, vec3_t point);
+	     int damage, const vec3_t point);
 
 void Add_Frag(edict_t * ent, int mod);
 void Subtract_Frag (edict_t * ent);
@@ -2243,7 +2428,7 @@ void Cmd_AutoRecord_f(edict_t * ent);
 
 typedef struct team_s
 {
-	char name[20];
+	char name[24];
 	char skin[MAX_SKINLEN];
 	char skin_index[MAX_QPATH];
 	int score, total;
@@ -2251,14 +2436,13 @@ typedef struct team_s
 	int pauses_used, wantReset;
 	cvar_t	*teamscore;
 	edict_t	*captain;
-
-#ifdef AQTION_EXTENSION
-#ifdef AQTION_HUD
-	int	 ghud_resettime;
-	byte ghud_icon;
-	byte ghud_num;
-#endif
-#endif
+	// Espionage
+	edict_t *leader;
+	int respawn_timer;
+	qboolean leader_dead;
+	char leader_name[MAX_SKINLEN];
+	char leader_skin[MAX_QPATH];
+	char leader_skin_index[MAX_QPATH];
 }team_t;
 
 extern team_t teams[TEAM_TOP];
@@ -2275,16 +2459,65 @@ extern int gameSettings;
 
 #include "a_ctf.h"
 #include "a_dom.h"
+#include "a_esp.h"
 
 #ifdef AQTION_EXTENSION
-extern int ghud_team1_icon;
-extern int ghud_team1_num;
-extern int ghud_team2_icon;
-extern int ghud_team2_num;
-extern int ghud_team3_icon;
-extern int ghud_team3_num;
+#define HAS_CVARSYNC(ent) (Client_GetProtocol(ent) == 38 && Client_GetVersion(ent) >= 3013)
+
+// hud (through ghud extension)
+typedef enum {
+	h_nameplate_l = 0,
+	h_nameplate_r = 30,
+	h_nameplate_end = 61,
+	h_team_l,
+	h_team_l_num,
+	h_team_r,
+	h_team_r_num,
+} huditem_t;
+
+void HUD_SetType(edict_t *clent, int type);
+void HUD_ClientSetup(edict_t *clent);
+void HUD_ClientUpdate(edict_t *clent);
+void HUD_SpectatorSetup(edict_t *clent);
+void HUD_SpectatorUpdate(edict_t *clent);
+
+// cvar sync
+typedef enum {
+	clcvar_cl_antilag,
+	clcvar_cl_indicators,
+	clcvar_cl_xerp,
+	clcvar_cl_spectatorhud,
+	clcvar_cl_spectatorkillfeed,
+} clcvar_t;
+
+// UI flags from q2pro
+#define UI_LEFT             0x00000001
+#define UI_RIGHT            0x00000002
+#define UI_CENTER           (UI_LEFT | UI_RIGHT)
+#define UI_BOTTOM           0x00000004
+#define UI_TOP              0x00000008
+#define UI_MIDDLE           (UI_BOTTOM | UI_TOP)
+#define UI_DROPSHADOW       0x00000010
+#define UI_ALTCOLOR         0x00000020
+#define UI_IGNORECOLOR      0x00000040
+#define UI_XORCOLOR         0x00000080
+#define UI_AUTOWRAP         0x00000100
+#define UI_MULTILINE        0x00000200
+#define UI_DRAWCURSOR       0x00000400
 #endif
 
 #ifndef NO_BOTS
 #include "acesrc/acebot.h"
 #endif
+
+typedef struct {
+    int teamNum;
+    edict_t *ent;
+    int seconds;
+    char *msg;
+    qboolean fired;
+} Message;
+extern Message *timedMessages;
+
+void addTimedMessage(int teamNum, edict_t *ent, int seconds, char *msg);
+void FireTimedMessages(void);

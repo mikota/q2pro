@@ -67,7 +67,6 @@
 //-----------------------------------------------------------------------------
 
 #include "g_local.h"
-#include "shared/shared.h"
 
 
 qboolean Pickup_Weapon (edict_t * ent, edict_t * other);
@@ -415,14 +414,14 @@ void Drop_Special (edict_t * ent, gitem_t * item)
 void DropSpecialItem (edict_t * ent)
 {
 	// this is the order I'd probably want to drop them in...       
-	if (INV_AMMO(ent, LASER_NUM))
-		Drop_Special (ent, GET_ITEM(LASER_NUM));
-	else if (INV_AMMO(ent, SLIP_NUM))
-		Drop_Special (ent, GET_ITEM(SLIP_NUM));
-	else if (INV_AMMO(ent, SIL_NUM))
+	if (INV_AMMO(ent, SIL_NUM))
 		Drop_Special (ent, GET_ITEM(SIL_NUM));
 	else if (INV_AMMO(ent, BAND_NUM))
 		Drop_Special (ent, GET_ITEM(BAND_NUM));
+	else if (INV_AMMO(ent, LASER_NUM))
+		Drop_Special (ent, GET_ITEM(LASER_NUM));
+	else if (INV_AMMO(ent, SLIP_NUM))
+		Drop_Special (ent, GET_ITEM(SLIP_NUM));
 	else if (INV_AMMO(ent, HELM_NUM))
 		Drop_Special (ent, GET_ITEM(HELM_NUM));
 	else if (INV_AMMO(ent, KEV_NUM))
@@ -1507,7 +1506,7 @@ world_model_flags int               copied to 'ent->s.effects' (see s.effects fo
    Drop_Weapon,
    Weapon_Gas,
    NULL,
-   "models/items/ammo/grenades/medium/tris.md2",
+   "models/objects/grenade2/tris.md2",
    0,
    "models/weapons/v_handgr/tris.md2",
    "a_m61frag",
@@ -1704,7 +1703,7 @@ always owned, never in the world^M
    Drop_Special,
    NULL,
    "misc/veston.wav",		// sound
-   "models/items/slippers/slippers.md2",
+   "models/items/slippers/tris.md2",
    0,
    NULL,
 /* icon */ "slippers",
@@ -2001,5 +2000,4 @@ void SetItemNames (void)
 		it = &itemlist[i];
 		gi.configstring (CS_ITEMS + i, it->pickup_name);
 	}
-
 }
