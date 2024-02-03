@@ -646,7 +646,7 @@ void VideoCheckClient(edict_t *ent)
 Message *timedMessages = NULL;
 int numMessages = 0;
 
-qboolean TimedMessageAtTimeAll()
+qboolean TimedMessageAtTimeAll(void)
 {
     int crl = (current_round_length / 10);
     qboolean anyMessageFired = false;
@@ -669,7 +669,7 @@ qboolean TimedMessageAtTimeAll()
     return anyMessageFired;
 }
 
-qboolean TimedMessageAtTimeEnt()
+qboolean TimedMessageAtTimeEnt(void)
 {
     int crl = (current_round_length / 10);
     qboolean anyMessageFired = false;
@@ -679,7 +679,7 @@ qboolean TimedMessageAtTimeEnt()
 		team_round_going &&
 		crl >= timedMessages[i].seconds && 
 		timedMessages[i].ent != NULL) {
-            gi.centerprintf(timedMessages[i].ent, timedMessages[i].msg);
+            gi.centerprintf(timedMessages[i].ent, "%s", timedMessages[i].msg);
             timedMessages[i].fired = true;
             anyMessageFired = true;
         }
@@ -688,7 +688,7 @@ qboolean TimedMessageAtTimeEnt()
     return anyMessageFired;
 }
 
-void FireTimedMessages()
+void FireTimedMessages(void)
 {
 	TimedMessageAtTimeAll();
 	TimedMessageAtTimeEnt();

@@ -507,8 +507,8 @@ void EspMakeCapturePoint(edict_t *flag)
 		gi.linkentity(flag->obj_arrow);
 
 		if (esp_debug->value){
-			gi.dprintf("%s: ** Indicator arrow spawned at <%d %d %d>\n", __FUNCTION__, flag->obj_arrow->s.origin[0], flag->obj_arrow->s.origin[1], flag->obj_arrow->s.origin[2]);
-			gi.dprintf("%s: ** Flag coordinates are: <%d %d %d>\n", __FUNCTION__, flag->s.origin[0], flag->s.origin[1], flag->s.origin[2]);
+			gi.dprintf("%s: ** Indicator arrow spawned at <%f %f %f>\n", __FUNCTION__, flag->obj_arrow->s.origin[0], flag->obj_arrow->s.origin[1], flag->obj_arrow->s.origin[2]);
+			gi.dprintf("%s: ** Flag coordinates are: <%f %f %f>\n", __FUNCTION__, flag->s.origin[0], flag->s.origin[1], flag->s.origin[2]);
 		}
 	}
 	#endif

@@ -1454,7 +1454,7 @@ void LookAtKiller(edict_t * self, edict_t * inflictor, edict_t * attacker)
 player_die
 ==================
 */
-void player_die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, const vec3_t point)
+void player_die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point)
 {
 	int n, mod;
 
@@ -1947,7 +1947,7 @@ void InitBodyQue(void)
 	}
 }
 
-void body_die(edict_t * self, edict_t * inflictor, edict_t * attacker, int damage, const vec3_t point)
+void body_die(edict_t * self, edict_t * inflictor, edict_t * attacker, int damage, vec3_t point)
 {
 /*      int     n;*/
 
@@ -3011,7 +3011,7 @@ void ClientBeginDeathmatch(edict_t * ent)
 	if(am->value && game.bot_count > 0){
 		char msg[128];
 		Q_snprintf(msg, sizeof(msg), "** This server contains BOTS for you to play with until real players join up!  Enjoy! **");
-		gi.centerprintf(ent, msg);
+		gi.centerprintf(ent, "%s", msg);
 	}
 
 	ent->client->resp.motd_refreshes = 1;
@@ -3461,7 +3461,7 @@ void CreateGhost(edict_t * ent)
 edict_t *pm_passent;
 
 // pmove doesn't need to know about passent and contentmask
-trace_t q_gameabi PM_trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end)
+trace_t q_gameabi PM_trace(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end)
 {
 	if (pm_passent && pm_passent->health > 0)
 		return gi.trace(start, mins, maxs, end, pm_passent, MASK_PLAYERSOLID);

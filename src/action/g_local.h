@@ -1520,7 +1520,7 @@ void* G_FetchGameExtension(char *name);
 //
 void player_pain (edict_t * self, edict_t * other, float kick, int damage);
 void player_die (edict_t * self, edict_t * inflictor, edict_t * attacker,
-		 int damage, const vec3_t point);
+		 int damage, vec3_t point);
 
 //
 // g_svcmds.c
@@ -2146,7 +2146,7 @@ struct edict_s
 	void		(*touch)(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf);
 	void		(*use)(edict_t *self, edict_t *other, edict_t *activator);
 	void		(*pain)(edict_t *self, edict_t *other, float kick, int damage);
-	void		(*die)(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, const vec3_t point);
+	void		(*die)(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point);
 
 	int			touch_debounce_framenum;	// are all these legit?  do we need more/less of them?
 	int			pain_debounce_framenum;

@@ -727,7 +727,7 @@ static void Cmd_Notarget_f (edict_t * ent)
 	else
 		msg = "notarget ON\n";
 
-	gi.cprintf (ent, PRINT_HIGH, msg);
+	gi.cprintf (ent, PRINT_HIGH, "%s", msg);
 }
 
 
@@ -753,7 +753,7 @@ void Cmd_Noclip_f (edict_t * ent)
 		msg = "noclip ON\n";
 	}
 
-	gi.cprintf (ent, PRINT_HIGH, msg);
+	gi.cprintf (ent, PRINT_HIGH, "%s", msg);
 }
 
 
@@ -1713,7 +1713,7 @@ static void Cmd_PrintSettings_f( edict_t * ent )
 		(int)llsound->value );
 	#endif
 
-	gi.cprintf( ent, PRINT_HIGH, text );
+	gi.cprintf( ent, PRINT_HIGH, "%s", text);
 }
 
 static void Cmd_Follow_f( edict_t *ent )

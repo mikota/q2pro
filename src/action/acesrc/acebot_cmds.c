@@ -197,7 +197,7 @@ void (*real_centerprintf) (edict_t * ent, const char *fmt, ...) = NULL;
 ///////////////////////////////////////////////////////////////////////
 // botsafe cprintf
 ///////////////////////////////////////////////////////////////////////
-void safe_cprintf (edict_t *ent, int printlevel, char *fmt, ...)
+void safe_cprintf (edict_t *ent, int printlevel, const char *fmt, ...)
 {
 	char	bigbuffer[0x10000];
 	va_list		argptr;
@@ -218,7 +218,7 @@ void safe_cprintf (edict_t *ent, int printlevel, char *fmt, ...)
 ///////////////////////////////////////////////////////////////////////
 // botsafe centerprintf
 ///////////////////////////////////////////////////////////////////////
-void safe_centerprintf (edict_t *ent, char *fmt, ...)
+void safe_centerprintf (edict_t *ent, const char *fmt, ...)
 {
 	char	bigbuffer[0x10000];
 	va_list		argptr;
