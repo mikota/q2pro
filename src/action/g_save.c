@@ -323,6 +323,8 @@ void InitGame( void )
 {
 	cvar_t *cv;
 
+	int features = G_FEATURES;
+
 	InitCommandList();
 
 	IRC_init();
@@ -540,6 +542,24 @@ void InitGame( void )
 	// flood control
 	flood_threshold = gi.cvar( "flood_threshold", "4", 0 );
 
+	gi.dprintf( "Reading extra server features\n" );
+	cv = gi.cvar( "sv_features", NULL, 0 );
+	if (cv) {
+		game.serverfeatures = (int)cv->value;
+
+		if (game.serverfeatures & GMF_CLIENTNUM) {
+			gi.dprintf( "...server supports GMF_CLIENTNUM\n" );
+		}
+
+		if (game.serverfeatures & GMF_PROTOCOL_EXTENSIONS && (int)g_protocol_extensions->value) {
+			features |= GMF_PROTOCOL_EXTENSIONS;
+			gi.dprintf( "...server supports GMF_PROTOCOL_EXTENSIONS\n" );
+			game.csr = cs_remap_new;
+		} else {
+			game.csr = cs_remap_old;
+		}
+	}
+
 	jump = gi.cvar ("jump", "0", /*CVAR_SERVERINFO|*/ CVAR_LATCH); // jumping mod -- removed from serverinfo 2022
 
 	warmup = gi.cvar( "warmup", "0", CVAR_LATCH );
@@ -649,7 +669,7 @@ void InitGame( void )
 
 	// initialize all entities for this game
 	game.maxentities = maxentities->value;
-	clamp(game.maxentities, globals.num_edicts, MAX_EDICTS);
+	clamp(game.maxentities, globals.num_edicts, game.csr.max_edicts);
 	g_edicts = gi.TagMalloc( game.maxentities * sizeof(g_edicts[0]), TAG_GAME );
 	globals.edicts = g_edicts;
 	globals.max_edicts = game.maxentities;
@@ -712,7 +732,7 @@ void InitGame( void )
 	}
 #endif
 
-	gi.cvar_forceset("g_features", va("%d", G_FEATURES));
+	gi.cvar_forceset("g_features", va("%d", features));
 	gi.cvar_forceset("g_view_predict", "1");
 	gi.cvar_forceset("g_view_high", va("%d", STANDING_VIEWHEIGHT));
 	gi.cvar_forceset("g_view_low", va("%d", CROUCHING_VIEWHEIGHT));

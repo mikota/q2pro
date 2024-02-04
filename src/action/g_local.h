@@ -305,7 +305,13 @@
 #define G_GMF_VARIABLE_FPS 0
 #endif
 
-#define G_FEATURES (GMF_CLIENTNUM | GMF_PROPERINUSE | GMF_MVDSPEC | GMF_WANT_ALL_DISCONNECTS | G_GMF_VARIABLE_FPS)
+#if USE_PROTOCOL_EXTENSIONS
+#define G_GMF_PROTOCOL_EXTENSIONS GMF_PROTOCOL_EXTENSIONS
+#else
+#define G_GMF_PROTOCOL_EXTENSIONS 0
+#endif
+
+#define G_FEATURES (GMF_CLIENTNUM | GMF_PROPERINUSE | GMF_MVDSPEC | GMF_WANT_ALL_DISCONNECTS | G_GMF_VARIABLE_FPS | G_GMF_PROTOCOL_EXTENSIONS)
 
 // protocol bytes that can be directly added to messages
 #define svc_muzzleflash         1
@@ -749,6 +755,9 @@ typedef struct
 
   // items
   int num_items;
+
+  //q2pro protocol extensions
+  cs_remap_t  csr;
 	
   // stats
   char matchid[MAX_QPATH];
@@ -1156,6 +1165,7 @@ extern cvar_t *maptime;
 extern cvar_t *capturelimit;
 extern cvar_t *password;
 extern cvar_t *g_select_empty;
+extern cvar_t *g_protocol_extensions;
 extern cvar_t *dedicated;
 extern cvar_t *steamid;
 
@@ -2092,7 +2102,7 @@ struct edict_s
 	int			clipmask;
 	edict_t		*owner;
 
-
+	entity_state_extension_t    x;
 	// DO NOT MODIFY ANYTHING ABOVE THIS, THE SERVER
 	// EXPECTS THE FIELDS IN THAT ORDER!
 
@@ -2521,3 +2531,16 @@ extern Message *timedMessages;
 
 void addTimedMessage(int teamNum, edict_t *ent, int seconds, char *msg);
 void FireTimedMessages(void);
+
+/*
+=====================================================================
+  CONFIG STRING REMAPPING
+=====================================================================
+*/
+
+#if USE_PROTOCOL_EXTENSIONS
+
+extern const cs_remap_t     cs_remap_old;
+extern const cs_remap_t     cs_remap_new;
+
+#endif
