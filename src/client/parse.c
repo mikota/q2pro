@@ -656,31 +656,34 @@ static void CL_ParseServerData(void)
 		Com_DPrintf("AQTION server state %d\n", i);
 		cl.serverstate = i;
 
-		i = MSG_ReadByte();
-		if (i) {
-			Com_DPrintf("AQTION strafejump hack enabled\n");
-			cl.pmp.strafehack = true;
-		}
-		i = MSG_ReadByte(); //atu QWMod
-		if (i) {
-			Com_DPrintf("AQTION QW mode enabled\n");
-			PmoveEnableQW(&cl.pmp);
-		}
-		cl.esFlags |= MSG_ES_UMASK;
-		cl.esFlags |= MSG_ES_LONGSOLID;
-		cl.esFlags |= MSG_ES_BEAMORIGIN;
-		cl.esFlags |= MSG_ES_SHORTANGLES;
+		i = MSG_ReadWord();
+            if (i & Q2PRO_PF_STRAFEJUMP_HACK) {
+                Com_DPrintf("Q2PRO strafejump hack enabled\n");
+                cl.pmp.strafehack = true;
+            }
+            if (i & Q2PRO_PF_QW_MODE) {
+                Com_DPrintf("Q2PRO QW mode enabled\n");
+                PmoveEnableQW(&cl.pmp);
+            }
+            if (i & Q2PRO_PF_WATERJUMP_HACK) {
+                Com_DPrintf("Q2PRO waterjump hack enabled\n");
+                cl.pmp.waterhack = true;
+            }
+            if (i & Q2PRO_PF_EXTENSIONS) {
+                Com_DPrintf("Q2PRO protocol extensions enabled\n");
+                cl.csr = cs_remap_new;
+            }
 
-		// waterjump hack
-		i = MSG_ReadByte();
-		if (i) {
-			Com_DPrintf("AQTION waterjump hack enabled\n");
-			cl.pmp.waterhack = true;
-		}
-
-		cl.pmp.speedmult = 2;
-		cl.pmp.flyhack = true; // fly hack is unconditionally enabled
-		cl.pmp.flyfriction = 4;
+		cl.esFlags |= MSG_ES_UMASK | MSG_ES_LONGSOLID;
+        if (cls.protocolVersion >= PROTOCOL_VERSION_Q2PRO_BEAM_ORIGIN) {
+            cl.esFlags |= MSG_ES_BEAMORIGIN;
+        }
+        if (cls.protocolVersion >= PROTOCOL_VERSION_Q2PRO_SHORT_ANGLES) {
+            cl.esFlags |= MSG_ES_SHORTANGLES;
+        }
+        cl.pmp.speedmult = 2;
+        cl.pmp.flyhack = true; // fly hack is unconditionally enabled
+        cl.pmp.flyfriction = 4;
     } else if (cls.serverProtocol == PROTOCOL_VERSION_Q2PRO) {
         i = MSG_ReadWord();
         if (!Q2PRO_SUPPORTED(i)) {

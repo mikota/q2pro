@@ -669,11 +669,11 @@ void InitGame( void )
 	globals.num_edicts = game.maxclients + 1;
 
 	// initialize all entities for this game
-	game.maxentities = maxentities->value;
-	clamp(game.maxentities, globals.num_edicts, game.csr.max_edicts);
-	g_edicts = gi.TagMalloc( game.maxentities * sizeof(g_edicts[0]), TAG_GAME );
-	globals.edicts = g_edicts;
-	globals.max_edicts = game.maxentities;
+    game.maxentities = maxentities->value;
+    clamp(game.maxentities, (int)maxclients->value + 1, game.csr.max_edicts);
+    g_edicts = gi.TagMalloc(game.maxentities * sizeof(g_edicts[0]), TAG_GAME);
+    globals.edicts = g_edicts;
+    globals.max_edicts = game.maxentities;
 
 	CTFInit();
 

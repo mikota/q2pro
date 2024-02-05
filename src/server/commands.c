@@ -1741,7 +1741,9 @@ void SV_ListSounds_f(void)
     Com_Printf("-- List of Loaded Sounds:\n");
     for (i = 1; i < MAX_SOUNDS; i++) {
         string = sv.configstrings[CS_SOUNDS + i];
-        Com_Printf("%i: %s\n", i, string);
+        if (string && string[0] != '\0') { // Check if string is not null and not empty
+            Com_Printf("%i: %s\n", i, string);
+        }
     }
 }
 

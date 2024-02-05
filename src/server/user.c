@@ -420,10 +420,17 @@ void SV_New_f(void)
         break;
 	case PROTOCOL_VERSION_AQTION:
 		MSG_WriteShort(sv_client->version);
-		MSG_WriteByte(sv.state);
-		MSG_WriteByte(sv_client->pmp.strafehack);
-		MSG_WriteByte(sv_client->pmp.qwmode);
-		MSG_WriteByte(sv_client->pmp.waterhack);
+        if (sv.state == ss_cinematic && sv_client->version < PROTOCOL_VERSION_Q2PRO_CINEMATICS)
+            MSG_WriteByte(ss_pic);
+        else
+            MSG_WriteByte(sv.state);
+        if (sv_client->version >= PROTOCOL_VERSION_Q2PRO_EXTENDED_LIMITS) {
+            MSG_WriteShort(q2pro_protocol_flags());
+        } else {
+            MSG_WriteByte(sv_client->pmp.strafehack);
+            MSG_WriteByte(sv_client->pmp.qwmode);
+            MSG_WriteByte(sv_client->pmp.waterhack);
+        }
 		break;
     }
 

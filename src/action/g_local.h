@@ -2531,16 +2531,3 @@ extern Message *timedMessages;
 
 void addTimedMessage(int teamNum, edict_t *ent, int seconds, char *msg);
 void FireTimedMessages(void);
-
-/*
-=====================================================================
-  CONFIG STRING REMAPPING
-=====================================================================
-*/
-
-#if USE_PROTOCOL_EXTENSIONS
-
-extern const cs_remap_t     cs_remap_old;
-extern const cs_remap_t     cs_remap_new;
-
-#endif
