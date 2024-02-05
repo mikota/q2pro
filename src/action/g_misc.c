@@ -730,7 +730,7 @@ one small chunk per 25 of mass (up to 16).  So 800 gives the most.
 */
 void
 func_explosive_explode (edict_t * self, edict_t * inflictor,
-			edict_t * attacker, int damage, const vec3_t point)
+			edict_t * attacker, int damage, vec3_t point)
 {
   vec3_t origin;
   vec3_t chunkorigin;
@@ -799,7 +799,10 @@ func_explosive_explode (edict_t * self, edict_t * inflictor,
 void
 func_explosive_use (edict_t * self, edict_t * other, edict_t * activator)
 {
-  func_explosive_explode (self, self, other, self->health, vec3_origin);
+  vec3_t origin;
+  VectorCopy(vec3_origin, origin);
+  // This needs to be non-const
+  func_explosive_explode (self, self, other, self->health, origin);
 }
 
 void

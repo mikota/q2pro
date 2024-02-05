@@ -53,7 +53,7 @@ void(*engine_CvarSync_Set)(int index, const char *name, const char *val);
 //
 // optional new entrypoints the engine may want to call
 edict_t *xerp_ent;
-trace_t q_gameabi XERP_trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end)
+trace_t q_gameabi XERP_trace(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end)
 {
 	return gi.trace(start, mins, maxs, end, xerp_ent, MASK_PLAYERSOLID);
 }

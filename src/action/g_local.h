@@ -2392,7 +2392,7 @@ void A_ScoreboardMessage( edict_t * ent, edict_t * killer );
 //local to g_combat but needed in p_view
 void SpawnDamage (int type, const vec3_t origin, const vec3_t normal, int damage);
 void Killed (edict_t * targ, edict_t * inflictor, edict_t * attacker,
-	     int damage, const vec3_t point);
+	     int damage, vec3_t point);
 
 void Add_Frag(edict_t * ent, int mod);
 void Subtract_Frag (edict_t * ent);

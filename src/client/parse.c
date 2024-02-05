@@ -566,7 +566,7 @@ static void CL_ParseServerData(void)
                       cls.serverProtocol, protocol);
         }
         // BIG HACK to let demos from release work with the 3.0x patch!!!
-        if (protocol == PROTOCOL_VERSION_EXTENDED) {
+        if (protocol == PROTOCOL_VERSION_EXTENDED || protocol == PROTOCOL_VERSION_AQTION) {
             cl.csr = cs_remap_new;
             protocol = PROTOCOL_VERSION_DEFAULT;
         } else if (protocol < PROTOCOL_VERSION_OLD || protocol > PROTOCOL_VERSION_AQTION) {

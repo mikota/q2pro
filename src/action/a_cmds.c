@@ -850,7 +850,9 @@ void Cmd_Bandage_f(edict_t *ent)
 		if(ent->client->quad_framenum > level.framenum)
 			damage *= 1.5f;
 
-		fire_grenade2(ent, ent->s.origin, vec3_origin, damage, 0, 2 * HZ, damage * 2, false);
+		vec3_t non_const_origin; // Convert to non-const
+      	VectorCopy(vec3_origin, non_const_origin);
+		fire_grenade2(ent, ent->s.origin, non_const_origin, damage, 0, 2 * HZ, damage * 2, false);
 
 		INV_AMMO(ent, GRENADE_NUM)--;
 		if (INV_AMMO(ent, GRENADE_NUM) <= 0) {

@@ -691,7 +691,9 @@ void ACESP_RemoveBot(char *name)
 			if( bot->is_bot && (remove_all || !strlen(name) || Q_stricmp(bot->client->pers.netname,name)==0 || (find_team && bot->client->resp.team==find_team)) )
 			{
 				bot->health = 0;
-				player_die (bot, bot, bot, 100000, vec3_origin);
+				vec3_t non_const_origin; // Convert to non-const
+				VectorCopy(vec3_origin, non_const_origin);
+				player_die (bot, bot, bot, 100000, non_const_origin);
 				// don't even bother waiting for death frames
 //				bot->deadflag = DEAD_DEAD;
 //				bot->inuse = false;

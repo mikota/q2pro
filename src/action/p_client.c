@@ -1561,7 +1561,9 @@ void player_die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
 		// Reset Grenade Damage to 1.52 when requested:
 		int damrad = use_classic->value ? GRENADE_DAMRAD_CLASSIC : GRENADE_DAMRAD;
 		self->client->ps.gunframe = 0;
-		fire_grenade2( self, self->s.origin, vec3_origin, damrad, 0, 2 * HZ, damrad * 2, false );
+		vec3_t non_const_origin; // Convert to non-const
+      	VectorCopy(vec3_origin, non_const_origin);
+		fire_grenade2( self, self->s.origin, non_const_origin, damrad, 0, 2 * HZ, damrad * 2, false );
 	}
 
 	mod = meansOfDeath & ~MOD_FRIENDLY_FIRE;

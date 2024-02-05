@@ -202,8 +202,7 @@ qboolean CanDamage (edict_t * targ, edict_t * inflictor)
   Killed
   ============
 */
-void Killed (edict_t * targ, edict_t * inflictor, edict_t * attacker, int damage,
-	const vec3_t point)
+void Killed (edict_t * targ, edict_t * inflictor, edict_t * attacker, int damage, vec3_t point)
 {
 	if (targ->health < -999)
 		targ->health = -999;
@@ -507,8 +506,12 @@ void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const ve
 
 			if (from_top < 2 * HEAD_HEIGHT)
 			{
-				vec3_t new_point;
-				VerifyHeadShot(point, dir, HEAD_HEIGHT, new_point);
+				vec3_t new_point, deconst_point, deconst_dir;
+
+				//De-constify the point and dir
+				VectorCopy(point, deconst_point);
+				VectorCopy(dir, deconst_dir);
+				VerifyHeadShot(deconst_point, deconst_dir, HEAD_HEIGHT, new_point);
 				VectorSubtract(new_point, targ->s.origin, new_point);
 				//gi.cprintf(attacker, PRINT_HIGH, "z: %d y: %d x: %d\n", (int)(targ_maxs2 - new_point[2]),(int)(new_point[1]) , (int)(new_point[0]) );
 
@@ -843,7 +846,9 @@ void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const ve
 
 			if ((targ->svflags & SVF_MONSTER) || client)
 				targ->flags |= FL_NO_KNOCKBACK;
-			Killed(targ, inflictor, attacker, take, point);
+			vec3_t non_const_origin; // Convert to non-const
+			VectorCopy(vec3_origin, non_const_origin);
+			Killed(targ, inflictor, attacker, take, non_const_origin);
 			return;
 		}
 	}

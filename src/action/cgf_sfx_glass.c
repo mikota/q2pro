@@ -279,8 +279,10 @@ CGF_SFX_ShootBreakableGlass (edict_t * aGlassPane, edict_t * anAttacker,
   if (destruct)
     {
       // break glass (and hurt if doing kick)
+      vec3_t non_const_origin; // Convert to non-const
+      VectorCopy(vec3_origin, non_const_origin);
       CGF_SFX_BreakGlass (aGlassPane, anAttacker, 0, aGlassPane->health,
-			  vec3_origin, FRAMETIME);
+			  non_const_origin, FRAMETIME);
       if (mod == MOD_KICK)
 	{
 	  vec3_t bloodorigin;
@@ -421,7 +423,9 @@ CGF_SFX_TouchGlass (edict_t * self, edict_t * other, cplane_t * plane,
     goto knife_and_grenade_handling;
 
   // break glass
-  CGF_SFX_BreakGlass (glass, other, other, glass->health, vec3_origin,
+  vec3_t non_const_origin; // Convert to non-const
+	VectorCopy(vec3_origin, non_const_origin);
+  CGF_SFX_BreakGlass (glass, other, other, glass->health, non_const_origin,
 		      3.0f * FRAMETIME);
   // glass can take care of itself, but the trigger isn't needed anymore
   G_FreeEdict (self);

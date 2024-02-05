@@ -1208,7 +1208,10 @@ void killPlayer( edict_t *ent, qboolean suicidePunish )
 	ent->flags &= ~FL_GODMODE;
 	ent->health = 0;
 	meansOfDeath = MOD_SUICIDE;
-	player_die(ent, ent, ent, damage, vec3_origin);
+
+	vec3_t non_const_origin; // Convert to non-const
+	VectorCopy(vec3_origin, non_const_origin);
+	player_die(ent, ent, ent, damage, non_const_origin);
 	ent->deadflag = DEAD_DEAD;
 }
 

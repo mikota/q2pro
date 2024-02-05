@@ -913,7 +913,7 @@ Creates a server's entity / program execution context by
 parsing textual entity definitions out of an ent file.
 ==============
 */
-void SpawnEntities (char *mapname, const char *entities, const char *spawnpoint)
+void SpawnEntities (const char *mapname, const char *entities, const char *spawnpoint)
 {
 	edict_t *ent = NULL;
 	gclient_t   *client;
