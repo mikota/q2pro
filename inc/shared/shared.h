@@ -1335,7 +1335,8 @@ enum {
 #define DF_WEAPON_RESPAWN   BIT(16)
 
 // RAFAEL
-//#define DF_QUADFIRE_DROP    BIT(16)
+// Note: DF_QUADFIRE_DROP shares the same bit as DF_WEAPON_RESPAWN, never use simultaneously
+#define DF_QUADFIRE_DROP    DF_WEAPON_RESPAWN
 
 //ROGUE
 #define DF_NO_MINES         BIT(17)
@@ -1353,16 +1354,16 @@ enum {
 #define UF_PLAYERFOV        BIT(6)
 
 // PaTMaN - Flags for ToGgle
-#define	TG_LASER			BIT(0)
-#define	TG_SLIPPERS			BIT(1)
-#define	TG_SILENCER			BIT(2)
-#define	TG_VEST				BIT(3)
-#define	TG_KICKABLE			BIT(4)
+#define	TG_LASER            BIT(0)
+#define	TG_SLIPPERS         BIT(1)
+#define	TG_SILENCER         BIT(2)
+#define	TG_VEST             BIT(3)
+#define	TG_KICKABLE         BIT(4)
 #define TG_HELMET           BIT(5)
 
-#define	TG_HUD_RANGE		BIT(7)
+#define	TG_HUD_RANGE        BIT(7)
 
-#define	TG_IR				BIT(13)
+#define	TG_IR               BIT(13)
 // Why the gaps, I do not know?
 
 /*

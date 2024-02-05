@@ -230,8 +230,6 @@ void CTFSetTeamSpawns(int team, char *str)
 	if(team == TEAM2)
 		team_spawn_name = "info_player_team2";
 
-
-
 	/* find and remove all team spawns for this team */
 	while ((spawn = G_Find(spawn, FOFS(classname), team_spawn_name)) != NULL) {
 		G_FreeEdict (spawn);
@@ -1271,7 +1269,6 @@ void CTFCapReward(edict_t * ent)
 
 	band = ent->client->resp.ctf_capstreak;
 	client = ent->client;
-
 
 	// give initial knife if none
 	if (WPF_ALLOWED(KNIFE_NUM) && ent->client->inventory[ITEM_INDEX(GET_ITEM(KNIFE_NUM))] == 0)
