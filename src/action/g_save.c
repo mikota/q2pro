@@ -663,17 +663,16 @@ void InitGame( void )
 	// items
 	InitItems();
 
-	// initialize all clients for this game
-	game.maxclients = (int)maxclients->value;
-	game.clients = gi.TagMalloc( game.maxclients * sizeof(game.clients[0]), TAG_GAME );
-	globals.num_edicts = game.maxclients + 1;
-
-	// initialize all entities for this game
-    game.maxentities = maxentities->value;
-    clamp(game.maxentities, (int)maxclients->value + 1, game.csr.max_edicts);
+    // initialize all entities for this game
+    game.maxentities = Q_clip(maxentities->value, (int)maxclients->value + 1, game.csr.max_edicts);
     g_edicts = gi.TagMalloc(game.maxentities * sizeof(g_edicts[0]), TAG_GAME);
     globals.edicts = g_edicts;
     globals.max_edicts = game.maxentities;
+
+	// initialize all clients for this game
+    game.maxclients = maxclients->value;
+    game.clients = gi.TagMalloc(game.maxclients * sizeof(game.clients[0]), TAG_GAME);
+    globals.num_edicts = game.maxclients + 1;
 
 	CTFInit();
 
@@ -712,7 +711,7 @@ void InitGame( void )
 		{
 			int framediv = (int) cv->value / BASE_FRAMERATE;
 			
-			clamp(framediv, 1, MAX_FRAMEDIV);
+			Q_clip(framediv, 1, MAX_FRAMEDIV);
 			
 			game.framerate = framediv * BASE_FRAMERATE;
 			game.frametime = BASE_FRAMETIME_1000 / framediv;

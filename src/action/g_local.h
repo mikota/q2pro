@@ -727,6 +727,10 @@ typedef struct gitem_s
 }
 gitem_t;
 
+typedef struct precache_s {
+    struct precache_s   *next;
+    void                (*func)(void);
+} precache_t;
 
 //
 // this structure is left intact through an entire game
@@ -755,9 +759,6 @@ typedef struct
 
   // items
   int num_items;
-
-  //q2pro protocol extensions
-  cs_remap_t  csr;
 	
   // stats
   char matchid[MAX_QPATH];
@@ -766,6 +767,10 @@ typedef struct
   int roundNum;
   qboolean ai_ent_found;
   int bot_count;
+
+  //q2pro protocol extensions
+  cs_remap_t  csr;
+  precache_t  *precaches;
 }
 game_locals_t;
 

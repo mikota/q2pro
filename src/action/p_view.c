@@ -370,9 +370,9 @@ void SV_CalcViewOffset (edict_t * ent)
 
 	// absolutely bound offsets
 	// so the view can never be outside the player box
-	clamp(v[0], -14, 14);
-	clamp(v[1], -14, 14);
-	clamp(v[2], -22, 30);
+	ent->client->ps.viewoffset[0] = Q_clipf(v[0], -14, 14);
+    ent->client->ps.viewoffset[1] = Q_clipf(v[1], -14, 14);
+    ent->client->ps.viewoffset[2] = Q_clipf(v[2], -22, 30);
 
 	VectorCopy (v, ent->client->ps.viewoffset);
 }
