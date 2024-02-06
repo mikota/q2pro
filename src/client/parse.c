@@ -329,7 +329,7 @@ static void CL_ParseFrame(int extrabits)
         frame.areabytes = 0;
     }
 
-    if (cls.serverProtocol <= PROTOCOL_VERSION_DEFAULT || cls.serverProtocol == PROTOCOL_VERSION_AQTION) {
+    if (cls.serverProtocol <= PROTOCOL_VERSION_DEFAULT || cls.serverProtocol > PROTOCOL_VERSION_AQTION) {
         if (MSG_ReadByte() != svc_playerinfo) {
             Com_Error(ERR_DROP, "%s: not playerinfo", __func__);
         }
@@ -393,7 +393,7 @@ static void CL_ParseFrame(int extrabits)
     }
 
     // parse packetentities
-    if (cls.serverProtocol <= PROTOCOL_VERSION_DEFAULT || cls.serverProtocol == PROTOCOL_VERSION_AQTION) {
+    if (cls.serverProtocol <= PROTOCOL_VERSION_DEFAULT || cls.serverProtocol > PROTOCOL_VERSION_AQTION) {
         if (MSG_ReadByte() != svc_packetentities) {
             Com_Error(ERR_DROP, "%s: not packetentities", __func__);
         }

@@ -1211,8 +1211,7 @@ int MSG_WriteDeltaPlayerstate_Aqtion(const player_packed_t    *from,
 	int     pflags, eflags, aqtflags;
 	int     statbits;
 
-	if (!to)
-		Com_Error(ERR_DROP, "%s: NULL", __func__);
+	Q_assert(to);
 
 	if (!from)
 		from = &nullPlayerState;
@@ -1250,8 +1249,7 @@ int MSG_WriteDeltaPlayerstate_Aqtion(const player_packed_t    *from,
 
 		if (to->pmove.gravity != from->pmove.gravity)
 			pflags |= PS_M_GRAVITY;
-	}
-	else {
+	} else {
 		// save previous state
 		VectorCopy(from->pmove.velocity, to->pmove.velocity);
 		to->pmove.pm_time = from->pmove.pm_time;
@@ -1262,8 +1260,7 @@ int MSG_WriteDeltaPlayerstate_Aqtion(const player_packed_t    *from,
 	if (!(flags & MSG_PS_IGNORE_DELTAANGLES)) {
 		if (!VectorCompare(from->pmove.delta_angles, to->pmove.delta_angles))
 			pflags |= PS_M_DELTA_ANGLES;
-	}
-	else {
+	} else {
 		// save previous state
 		VectorCopy(from->pmove.delta_angles, to->pmove.delta_angles);
 	}
@@ -1305,8 +1302,7 @@ int MSG_WriteDeltaPlayerstate_Aqtion(const player_packed_t    *from,
 	if (!(flags & MSG_PS_IGNORE_GUNINDEX)) {
 		if (to->gunindex != from->gunindex)
 			pflags |= PS_WEAPONINDEX;
-	}
-	else {
+	} else {
 		// save previous state
 		to->gunindex = from->gunindex;
 	}
@@ -1320,8 +1316,7 @@ int MSG_WriteDeltaPlayerstate_Aqtion(const player_packed_t    *from,
 
 		if (!VectorCompare(from->gunangles, to->gunangles))
 			eflags |= EPS_GUNANGLES;
-	}
-	else {
+	} else {
 		// save previous state
 		to->gunframe = from->gunframe;
 		VectorCopy(from->gunoffset, to->gunoffset);
@@ -1432,8 +1427,12 @@ int MSG_WriteDeltaPlayerstate_Aqtion(const player_packed_t    *from,
 		MSG_WriteChar(to->kick_angles[2]);
 	}
 
-	if (pflags & PS_WEAPONINDEX)
-		MSG_WriteByte(to->gunindex);
+	if (pflags & PS_WEAPONINDEX) {
+        if (flags & MSG_PS_EXTENSIONS)
+            MSG_WriteShort(to->gunindex);
+        else
+            MSG_WriteByte(to->gunindex);
+    }
 
 	if (pflags & PS_WEAPONFRAME)
 		MSG_WriteByte(to->gunframe);
@@ -2614,15 +2613,12 @@ void MSG_ParseDeltaPlayerstate_Aqtion(const player_state_t    *from,
 	int         statbits;
 	int			aqtflags;
 
-	if (!to) {
-		Com_Error(ERR_DROP, "%s: NULL", __func__);
-	}
+	Q_assert(to);
 
 	// clear to old value before delta parsing
 	if (!from) {
 		memset(to, 0, sizeof(*to));
-	}
-	else if (to != from) {
+	} else if (to != from) {
 		memcpy(to, from, sizeof(*to));
 	}
 
@@ -2668,7 +2664,6 @@ void MSG_ParseDeltaPlayerstate_Aqtion(const player_state_t    *from,
 		to->pmove.delta_angles[1] = MSG_ReadShort();
 		to->pmove.delta_angles[2] = MSG_ReadShort();
 	}
-
 
 	//
 	// parse the aqtion extensions
@@ -2724,8 +2719,11 @@ void MSG_ParseDeltaPlayerstate_Aqtion(const player_state_t    *from,
 	}
 
 	if (flags & PS_WEAPONINDEX) {
-		to->gunindex = MSG_ReadByte();
-	}
+        if (psflags & MSG_PS_EXTENSIONS)
+            to->gunindex = MSG_ReadWord();
+        else
+            to->gunindex = MSG_ReadByte();
+    }
 
 	if (flags & PS_WEAPONFRAME) {
 		to->gunframe = MSG_ReadByte();

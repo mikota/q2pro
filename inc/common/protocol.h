@@ -271,9 +271,9 @@ typedef enum {
 #define EPS_CLIENTNUM       BIT(6)
 
 // aqtion protocol specific flags
-#define AQPS_PMFLAGS		(1<<0)
-#define AQPS_TIMESTAMP		(1<<1)
-#define AQPS_LEGHITS		(1<<2)
+#define AQPS_PMFLAGS		BIT(0)
+#define AQPS_TIMESTAMP		BIT(1)
+#define AQPS_LEGHITS		BIT(2)
 
 
 //==============================================

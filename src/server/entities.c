@@ -393,8 +393,7 @@ void SV_WriteFrameToClient_Aqtion(client_t *client)
 	if (oldframe) {
 		oldstate = &oldframe->ps;
 		delta = client->framenum - client->lastframe;
-	}
-	else {
+	} else {
 		oldstate = NULL;
 		delta = 31;
 	}
@@ -435,26 +434,35 @@ void SV_WriteFrameToClient_Aqtion(client_t *client)
 	}
 
 	clientEntityNum = 0;
-	if (frame->ps.pmove.pm_type < PM_DEAD && !client->settings[CLS_RECORDING]) {
-		clientEntityNum = frame->clientNum + 1;
-	}
-	if (client->settings[CLS_NOPREDICT]) {
-		psFlags |= MSG_PS_IGNORE_PREDICTION;
-	}
-	suppressed = client->frameflags;
+    if (client->protocol == PROTOCOL_VERSION_AQTION) {
+        if (frame->ps.pmove.pm_type < PM_DEAD && !client->settings[CLS_RECORDING]) {
+            clientEntityNum = frame->clientNum + 1;
+        }
+        if (client->settings[CLS_NOPREDICT]) {
+            psFlags |= MSG_PS_IGNORE_PREDICTION;
+        }
+        suppressed = client->frameflags;
+    } else {
+        suppressed = client->suppress_count;
+    }
+    if (client->csr->extended) {
+        psFlags |= MSG_PS_EXTENSIONS;
+    }
 
-
-	// delta encode the playerstate
-	MSG_WriteByte(svc_playerinfo);
+    // delta encode the playerstate
 	extraflags = MSG_WriteDeltaPlayerstate_Aqtion(oldstate, &frame->ps, psFlags);
 
-
-	// delta encode the clientNum
-	int clientNum = oldframe ? oldframe->clientNum : 0;
-	if (clientNum != frame->clientNum) {
-		extraflags |= EPS_CLIENTNUM;
-		MSG_WriteByte(frame->clientNum);
-	}
+	if (client->protocol == PROTOCOL_VERSION_AQTION) {
+        // delta encode the clientNum
+        if ((oldframe ? oldframe->clientNum : 0) != frame->clientNum) {
+            extraflags |= EPS_CLIENTNUM;
+            if (client->version < PROTOCOL_VERSION_Q2PRO_CLIENTNUM_SHORT) {
+                MSG_WriteByte(frame->clientNum);
+            } else {
+                MSG_WriteShort(frame->clientNum);
+            }
+        }
+    }
 
 	// save 3 high bits of extraflags
 	*b1 = svc_frame | (((extraflags & 0x70) << 1));
@@ -467,7 +475,6 @@ void SV_WriteFrameToClient_Aqtion(client_t *client)
 	client->frameflags = 0;
 
 	// delta encode the entities
-	MSG_WriteByte(svc_packetentities);
 	SV_EmitPacketEntities(client, oldframe, frame, clientEntityNum);
 
 #ifdef AQTION_EXTENSION
