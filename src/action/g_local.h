@@ -299,19 +299,7 @@
 #define		getEnt(entnum)	(edict_t *)((char *)globals.edicts + (globals.edict_size * entnum))	//AQ:TNG Slicer - This was missing
 #define		GAMEVERSION			"action"	// the "gameversion" client command will print this plus compile date
 
-#ifndef NO_FPS
-#define G_GMF_VARIABLE_FPS GMF_VARIABLE_FPS
-#else
-#define G_GMF_VARIABLE_FPS 0
-#endif
-
-#if USE_PROTOCOL_EXTENSIONS
-#define G_GMF_PROTOCOL_EXTENSIONS GMF_PROTOCOL_EXTENSIONS
-#else
-#define G_GMF_PROTOCOL_EXTENSIONS 0
-#endif
-
-#define G_FEATURES (GMF_CLIENTNUM | GMF_PROPERINUSE | GMF_MVDSPEC | GMF_WANT_ALL_DISCONNECTS | G_GMF_VARIABLE_FPS | G_GMF_PROTOCOL_EXTENSIONS)
+#define G_FEATURES (GMF_CLIENTNUM | GMF_PROPERINUSE | GMF_MVDSPEC | GMF_WANT_ALL_DISCONNECTS | GMF_VARIABLE_FPS)
 
 // protocol bytes that can be directly added to messages
 #define svc_muzzleflash         1
@@ -1637,7 +1625,7 @@ void ProduceShotgunDamageReport(edict_t*);
 
 //tng_stats.c
 void StatBotCheck(void);
-#if USE_AQTION
+#ifdef USE_AQTION
 void LogKill(edict_t *self, edict_t *inflictor, edict_t *attacker);
 void LogWorldKill(edict_t *self);
 void LogCapture(edict_t *capturer);
@@ -1739,7 +1727,7 @@ typedef struct
 	ignorelist_t ignorelist;
 	gitem_t *chosenItem2;		// Support for item kit mode
 
-	#if USE_AQTION
+	#ifdef USE_AQTION
 	char steamid[24];
 	char discordid[24];
 	#endif
@@ -2331,7 +2319,7 @@ typedef struct
 	gitem_t *weapon;
 	gitem_t *item;
 	// Extended stats
-	#if USE_AQTION
+	#ifdef USE_AQTION
 	char steamid[24];
 	char discordid[24];
 	#endif

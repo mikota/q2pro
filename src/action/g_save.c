@@ -554,13 +554,20 @@ void InitGame( void )
 
 		if (game.serverfeatures & GMF_PROTOCOL_EXTENSIONS && (int)g_protocol_extensions->value) {
 			features |= GMF_PROTOCOL_EXTENSIONS;
-			gi.dprintf( "...server supports GMF_PROTOCOL_EXTENSIONS\n" );
+			gi.dprintf("...server supports GMF_PROTOCOL_EXTENSIONS\n ...and protocol extensions are enabled\n");
 			game.csr = cs_remap_new;
 		} else {
+			if (game.serverfeatures & GMF_PROTOCOL_EXTENSIONS) {
+				gi.dprintf("...server supports GMF_PROTOCOL_EXTENSIONS\n ...but protocol extensions are disabled\n");
+			} else {
+				gi.dprintf("...server does not support GMF_PROTOCOL_EXTENSIONS\n");
+			}
+			if ((int)g_protocol_extensions->value) {
+				gi.dprintf("...g_protocol_extensions is enabled\n ...but server does not support GMF_PROTOCOL_EXTENSIONS\n");
+			}
 			game.csr = cs_remap_old;
 		}
 	}
-
 	jump = gi.cvar ("jump", "0", /*CVAR_SERVERINFO|*/ CVAR_LATCH); // jumping mod -- removed from serverinfo 2022
 
 	warmup = gi.cvar( "warmup", "0", CVAR_LATCH );
@@ -678,17 +685,6 @@ void InitGame( void )
 
 	//PG BUND - must be at end of gameinit:
 	vInitGame();
-
-	gi.dprintf( "Reading extra server features\n" );
-	cv = gi.cvar( "sv_features", NULL, 0 );
-	if (cv) {
-		game.serverfeatures = (int)cv->value;
-
-		if (game.serverfeatures & GMF_CLIENTNUM) {
-			gi.dprintf( "...server supports GMF_CLIENTNUM\n" );
-		}
-	}
-
 	// setup framerate parameters
 
 	game.framerate = BASE_FRAMERATE;

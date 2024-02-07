@@ -331,7 +331,7 @@ static void CL_ParseFrame(int extrabits)
 
     if (cls.serverProtocol <= PROTOCOL_VERSION_DEFAULT || cls.serverProtocol > PROTOCOL_VERSION_AQTION) {
         if (MSG_ReadByte() != svc_playerinfo) {
-            Com_Error(ERR_DROP, "%s: not playerinfo", __func__);
+            Com_Error(ERR_DROP, "%s: not playerinfo, value: %i", __func__, MSG_ReadByte());
         }
     }
 
