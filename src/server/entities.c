@@ -456,7 +456,7 @@ void SV_WriteFrameToClient_Aqtion(client_t *client)
         // delta encode the clientNum
         if ((oldframe ? oldframe->clientNum : 0) != frame->clientNum) {
             extraflags |= EPS_CLIENTNUM;
-            if (client->version < PROTOCOL_VERSION_Q2PRO_CLIENTNUM_SHORT) {
+            if (client->version < PROTOCOL_VERSION_AQTION_CLIENTNUM_SHORT) {
                 MSG_WriteByte(frame->clientNum);
             } else {
                 MSG_WriteShort(frame->clientNum);

@@ -420,11 +420,11 @@ void SV_New_f(void)
         break;
 	case PROTOCOL_VERSION_AQTION:
 		MSG_WriteShort(sv_client->version);
-        if (sv.state == ss_cinematic && sv_client->version < PROTOCOL_VERSION_Q2PRO_CINEMATICS)
+        if (sv.state == ss_cinematic && sv_client->version < PROTOCOL_VERSION_AQTION_CINEMATICS)
             MSG_WriteByte(ss_pic);
         else
             MSG_WriteByte(sv.state);
-        if (sv_client->version >= PROTOCOL_VERSION_Q2PRO_EXTENDED_LIMITS) {
+        if (sv_client->version >= PROTOCOL_VERSION_AQTION_EXTENDED_LIMITS) {
             MSG_WriteShort(q2pro_protocol_flags());
         } else {
             MSG_WriteByte(sv_client->pmp.strafehack);
@@ -482,7 +482,8 @@ void SV_New_f(void)
     if (sv_client->netchan.type == NETCHAN_OLD) {
         write_configstrings();
         write_baselines();
-    } else if (sv_client->version >= PROTOCOL_VERSION_Q2PRO_EXTENDED_LIMITS) {
+    } else if ((sv_client->protocol == PROTOCOL_VERSION_Q2PRO && sv_client->version >= PROTOCOL_VERSION_Q2PRO_EXTENDED_LIMITS) ||
+                (sv_client->protocol == PROTOCOL_VERSION_AQTION && sv_client->version >= PROTOCOL_VERSION_AQTION_EXTENDED_LIMITS)) {
         write_configstring_stream();
         write_baseline_stream();
     } else {
