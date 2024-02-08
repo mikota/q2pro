@@ -318,18 +318,13 @@ void Cmd_Stats_f (edict_t *targetent, char *arg)
 void A_ScoreboardEndLevel (edict_t * ent, edict_t * killer)
 {
 	char string[2048];
-	gclient_t *cl;
-	gclient_t **sortedClients = malloc(game.csr.maxclients * sizeof(gclient_t*));
+	gclient_t *sortedClients[MAX_CLIENTS], *cl;
 	int maxsize = 1000, i, line_y;
 	int totalClients, secs, shots;
 	double accuracy, fpm;
 	int totalplayers[TEAM_TOP] = {0};
 	int totalscore[TEAM_TOP] = {0};
 	int name_pos[TEAM_TOP] = {0};
-
-	if (sortedClients == NULL) {
-		gi.dprintf("%s: Couldn't allocate memory for sortedClients\n", __func__);
-	}
 
 	totalClients = G_SortedClients(sortedClients);
 
@@ -464,7 +459,6 @@ void A_ScoreboardEndLevel (edict_t * ent, edict_t * killer)
 
 	gi.WriteByte(svc_layout);
 	gi.WriteString(string);
-	free(sortedClients);
 }
 
 void Cmd_Statmode_f(edict_t* ent)
@@ -1142,19 +1136,13 @@ LogEndMatchStats
 void LogEndMatchStats(void)
 {
 	int i;
-	gclient_t *cl;
-	gclient_t **sortedClients = malloc(game.csr.maxclients * sizeof(gclient_t*));
+	gclient_t *sortedClients[MAX_CLIENTS], *cl;
 	int totalClients;
-
-	if (sortedClients == NULL) {
-		gi.dprintf("%s: Couldn't allocate memory for sortedClients\n", __FUNCTION__);
-	}
 
 	totalClients = G_SortedClients(sortedClients);
 
 	// Check if there's an AI bot in the game, if so, do nothing
 	if (game.ai_ent_found) {
-		free(sortedClients);
 		return;
 	}
 
@@ -1219,7 +1207,6 @@ void LogEndMatchStats(void)
 		num_ghost_players = 0;
 		// Be free, little dummy entity
 		G_FreeEdict(ent);
-		free(sortedClients);
 	}
 }
 #endif

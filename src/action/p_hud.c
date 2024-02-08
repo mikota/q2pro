@@ -290,19 +290,14 @@ void DeathmatchScoreboardMessage (edict_t * ent, edict_t * killer)
 	char string[1024];
 	int stringlength;
 	int i, j, totalClients;
+	gclient_t *sortedClients[MAX_CLIENTS];
 	int x, y;
 	gclient_t *cl;
 	edict_t *cl_ent;
 	char *tag;
-	gclient_t **sortedClients = malloc(game.csr.maxclients * sizeof(gclient_t*));
-	if (sortedClients == NULL) {
-		gi.dprintf("%s: Could not allocate memory for sortedClients\n", __func__);
-		return;
-	}
 
 #ifndef NO_BOTS
 	if (ent->is_bot)
-		free(sortedClients);
 		return;
 #endif
 
@@ -371,7 +366,6 @@ void DeathmatchScoreboardMessage (edict_t * ent, edict_t * killer)
 
 	gi.WriteByte (svc_layout);
 	gi.WriteString (string);
-	free(sortedClients);
 }
 
 
@@ -405,7 +399,6 @@ void Cmd_Score_f(edict_t *ent)
 {
 	ent->client->showinventory = false;
 	
-	gi.dprintf("-#-# Layout: %d\n", ent->client->layout);
 	if (ent->client->layout == LAYOUT_MENU)
 		PMenu_Close(ent);
 	
@@ -903,10 +896,7 @@ void HUD_SpectatorUpdate(edict_t *clent)
 
 		gclient_t *team1_players[6];
 		gclient_t *team2_players[6];
-		gclient_t **sortedClients = malloc(game.csr.maxclients * sizeof(gclient_t*));
-		if (sortedClients == NULL) {
-			gi.dprintf("%s: Could not allocate memory for sortedClients\n", __func__);
-		}
+		gclient_t *sortedClients[MAX_CLIENTS];
 
 		int totalClients, team1Clients, team2Clients;
 
@@ -946,7 +936,6 @@ void HUD_SpectatorUpdate(edict_t *clent)
 				continue;
 			}
 		}
-		free(sortedClients);
 
 		// team 1 (red team)
 		Ghud_SetFlags(clent, hud[h_team_l], 0);

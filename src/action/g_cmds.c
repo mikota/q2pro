@@ -1187,13 +1187,7 @@ static void Cmd_Players_f (edict_t * ent)
 	int count = 0;
 	char small[64];
 	char large[1024];
-	gclient_t **sortedClients = malloc(game.csr.maxclients * sizeof(gclient_t*));
-	gclient_t *cl;
-
-	if (sortedClients == NULL) {
-		gi.dprintf("%s: malloc failed for sortedClients\n", __func__);
-		return;
-	}
+	gclient_t *sortedClients[MAX_CLIENTS], *cl;
 
 
 	if (!teamplay->value || !noscore->value)
@@ -1224,7 +1218,6 @@ static void Cmd_Players_f (edict_t * ent)
 	}
 
 	gi.cprintf(ent, PRINT_HIGH, "%s\n%i players\n", large, count);
-	free(sortedClients);
 }
 
 /*

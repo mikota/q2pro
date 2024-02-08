@@ -1311,20 +1311,14 @@ edict_t *ChooseRandomPlayer(int teamNum, qboolean allowBot)
 	int i, j;
 	edict_t *ent;
 	int pcount = 0;
-	edict_t **plist = malloc(game.csr.maxclients * sizeof(edict_t*));
-	if (plist == NULL) {
-		gi.dprintf("%s\n", "Error: Unable to allocate memory for ChooseRandomPlayer plist\n");
-		return NULL;
-	}
+	edict_t *plist[ MAX_CLIENTS ] = {NULL};
 
 	// Supplied paramter must be a valid team number
 	if (teamNum < TEAM1 && teamNum > TEAM3)
-		free(plist);
 		return 0;
 	if (teamCount == 2 && teamNum == 3) {
 		// Somehow passing team 3 in a 2-team match?
 		gi.dprintf("Warning: Unable to ChooseRandomPlayer for a team that doesn't exist\n");
-		free(plist);
 		return 0;
 	}
 
@@ -1345,6 +1339,5 @@ edict_t *ChooseRandomPlayer(int teamNum, qboolean allowBot)
 
 	ent = plist[j];
 	// Returns a random player
-	free(plist);
 	return ent;
 }
