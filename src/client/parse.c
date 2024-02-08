@@ -566,7 +566,7 @@ static void CL_ParseServerData(void)
                       cls.serverProtocol, protocol);
         }
         // BIG HACK to let demos from release work with the 3.0x patch!!!
-        if (protocol == PROTOCOL_VERSION_EXTENDED || protocol == PROTOCOL_VERSION_AQTION) {
+        if (protocol == PROTOCOL_VERSION_EXTENDED) {
             cl.csr = cs_remap_new;
             protocol = PROTOCOL_VERSION_DEFAULT;
         } else if (protocol < PROTOCOL_VERSION_OLD || protocol > PROTOCOL_VERSION_AQTION) {
@@ -651,12 +651,15 @@ static void CL_ParseServerData(void)
 				"Current client version is %d.", i, PROTOCOL_VERSION_AQTION_CURRENT);
 		}
 		Com_DPrintf("Using minor AQTION protocol version %d\n", i);
-		cls.protocolVersion = i;
-		i = MSG_ReadByte();
-		Com_DPrintf("AQTION server state %d\n", i);
-		cl.serverstate = i;
-
-		i = MSG_ReadWord();
+        cls.protocolVersion = i;
+        i = MSG_ReadByte();
+        if (1) {// this is always true, since AQtion is a superset of PROTOCOL_VERSION_Q2PRO_CLIENTNUM_SHORT //(cls.protocolVersion >= PROTOCOL_VERSION_Q2PRO_SERVER_STATE) {
+            Com_DPrintf("Q2PRO server state %d\n", i);
+            cl.serverstate = i;
+            cinematic = i == ss_pic || i == ss_cinematic;
+        }
+        if (cls.protocolVersion >= PROTOCOL_VERSION_AQTION_EXTENDED_LIMITS) {
+            i = MSG_ReadWord();
             if (i & Q2PRO_PF_STRAFEJUMP_HACK) {
                 Com_DPrintf("Q2PRO strafejump hack enabled\n");
                 cl.pmp.strafehack = true;
@@ -673,6 +676,20 @@ static void CL_ParseServerData(void)
                 Com_DPrintf("Q2PRO protocol extensions enabled\n");
                 cl.csr = cs_remap_new;
             }
+        } else {
+            if (MSG_ReadByte()) {
+                Com_DPrintf("Q2PRO strafejump hack enabled\n");
+                cl.pmp.strafehack = true;
+            }
+            if (MSG_ReadByte()) {
+                Com_DPrintf("Q2PRO QW mode enabled\n");
+                PmoveEnableQW(&cl.pmp);
+            }
+            if (MSG_ReadByte()) {
+                Com_DPrintf("Q2PRO waterjump hack enabled\n");
+                cl.pmp.waterhack = true;
+            }
+        }
 
 		cl.esFlags |= MSG_ES_UMASK | MSG_ES_LONGSOLID;
         if (cls.protocolVersion >= PROTOCOL_VERSION_Q2PRO_BEAM_ORIGIN) {

@@ -416,13 +416,8 @@ static void CL_Record_f(void)
 
     // send the serverdata
     MSG_WriteByte(svc_serverdata);
-    #if USE_AQTION
-    if (cl.csr.extended)
-        MSG_WriteLong(PROTOCOL_VERSION_AQTION);
-    #else
     if (cl.csr.extended)
         MSG_WriteLong(PROTOCOL_VERSION_EXTENDED);
-    #endif
     else
         MSG_WriteLong(min(cls.serverProtocol, PROTOCOL_VERSION_DEFAULT));
     MSG_WriteLong(cl.servercount);
@@ -1186,13 +1181,8 @@ demoInfo_t *CL_GetDemoInfo(const char *path, demoInfo_t *info)
             goto fail;
         }
         c = MSG_ReadLong();
-        #if USE_AQTION
-        if (c == PROTOCOL_VERSION_AQTION) {
-            csr = &cs_remap_new;
-        #else
         if (c == PROTOCOL_VERSION_EXTENDED) {
             csr = &cs_remap_new;
-        #endif
         } else if (c < PROTOCOL_VERSION_OLD || c > PROTOCOL_VERSION_DEFAULT) {
             goto fail;
         }
