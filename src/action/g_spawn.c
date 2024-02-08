@@ -1689,7 +1689,7 @@ void SP_worldspawn (edict_t * ent)
 	gi.configstring(CS_SKYROTATE, va("%f", st.skyrotate));
 	gi.configstring(CS_SKYAXIS, va("%f %f %f", st.skyaxis[0], st.skyaxis[1], st.skyaxis[2]));
 	gi.configstring(CS_CDTRACK, va("%i", ent->sounds));
-	gi.configstring(CS_MAXCLIENTS, va("%i", game.maxclients));
+	gi.configstring(game.csr.maxclients, va("%i", game.maxclients));
 
 	G_SetupStatusbar();
 	gi.configstring(CS_STATUSBAR, level.statusbar);

@@ -2331,7 +2331,7 @@ typedef struct
 }
 gghost_t;
 
-#define MAX_GHOSTS 64 //MAX_CLIENTS
+#define MAX_GHOSTS 64 // If we need more ghosts than this, let's cross that bridge
 extern gghost_t ghost_players[MAX_GHOSTS];
 extern int num_ghost_players;
 

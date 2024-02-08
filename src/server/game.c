@@ -1138,6 +1138,7 @@ void SV_InitGameProgs(void)
         Com_Printf("Game supports Q2PRO protocol extensions.\n");
         svs.csr = cs_remap_new;
     }
+    Com_Printf("Extended protocol: %s\n", svs.csr.extended ? "enabled" : "disabled");
 
     // sanitize edict_size
     unsigned min_size = svs.csr.extended ? sizeof(edict_t) : q_offsetof(edict_t, x);

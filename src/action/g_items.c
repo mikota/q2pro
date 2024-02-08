@@ -861,7 +861,7 @@ void Touch_Item (edict_t * ent, edict_t * other, cplane_t * plane,
 		else
 			other->client->ps.stats[STAT_PICKUP_ICON] = gi.imageindex(ent->item->icon);
 
-		other->client->ps.stats[STAT_PICKUP_STRING] = CS_ITEMS + ITEM_INDEX (ent->item);
+		other->client->ps.stats[STAT_PICKUP_STRING] = game.csr.items + ITEM_INDEX (ent->item);
 		other->client->pickup_msg_framenum = level.realFramenum + 3 * HZ;
 
 		// change selected item
@@ -1998,6 +1998,6 @@ void SetItemNames (void)
 	for (i = 0; i < game.num_items; i++)
 	{
 		it = &itemlist[i];
-		gi.configstring (CS_ITEMS + i, it->pickup_name);
+		gi.configstring (game.csr.items + i, it->pickup_name);
 	}
 }

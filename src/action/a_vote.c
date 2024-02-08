@@ -2016,7 +2016,12 @@ cvar_t *_InitScrambleVote (ini_t * ini)
 qboolean ScrambleTeams(void)
 {
 	int i, j, numplayers, newteam;
-	edict_t *ent, *players[MAX_CLIENTS], *oldCaptains[TEAM_TOP] = {NULL}, *oldLeaders[TEAM_TOP] = {NULL};
+	edict_t *ent, *oldCaptains[TEAM_TOP] = {NULL}, *oldLeaders[TEAM_TOP] = {NULL};
+	edict_t **players = malloc(game.csr.maxclients * sizeof(edict_t*));
+		if (players == NULL) {
+			gi.dprintf("%s: Could not allocate memory for players\n", __FUNCTION__);
+			return false;
+		}
 
 	numplayers = 0;
 	for (i = 0, ent = &g_edicts[1]; i < game.maxclients; i++, ent++)
@@ -2028,6 +2033,7 @@ qboolean ScrambleTeams(void)
 	}
 
 	if (numplayers <= teamCount)
+		free(players);
 		return false;
 
 	for (i = numplayers - 1; i > 0; i--) {
@@ -2080,6 +2086,7 @@ qboolean ScrambleTeams(void)
 
 		ent->client->resp.scramblevote = 0;
 	}
+	free(players);
 	return true;
 }
 

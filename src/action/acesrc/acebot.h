@@ -203,7 +203,7 @@ extern edict_t *players[MAX_CLIENTS];		// pointers to all players in the game
 
 // extern decs
 extern node_t nodes[MAX_NODES]; 
-extern item_table_t item_table[MAX_EDICTS];
+extern item_table_t item_table[MAX_EDICTS_OLD];
 extern qboolean debug_mode;
 extern qboolean shownodes_mode;	// RiEvEr - for the new command "sv shownodes on/off"
 extern int numnodes;

@@ -1626,7 +1626,12 @@ and there are no active volunteers for that team
 qboolean EspChooseRandomLeader(int teamNum)
 {
 	int players[TEAM_TOP] = { 0 }, i, numPlayers = 0;
-    edict_t *ent, *playerList[MAX_CLIENTS];
+    edict_t *ent;
+	edict_t **playerList = malloc(game.csr.maxclients * sizeof(edict_t*));
+		if (playerList == NULL) {
+			gi.dprintf("%s: Could not allocate memory for playerList\n", __FUNCTION__);
+			return false;
+		}
 
 	if (team_round_going) {
 		if (esp_debug->value)
@@ -1664,6 +1669,7 @@ qboolean EspChooseRandomLeader(int teamNum)
 		EspSetLeader(teamNum, ent);
 		return true;
 	} // If we get this far, that the only players here are bots and non-volunteers.  Halt the game
+	free(playerList);
 	return false;
 }
 

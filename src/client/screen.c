@@ -2133,7 +2133,7 @@ static xhair_weapon_cfg_t xhair_weapon_cfgs[9] = {
     {"models/weapons/v_handgr/tris.md2", XHAIR_MAX_GAP, 1, 1, -1, -1, 1}
 };
 static int XHAIR_GetWeaponIndex(void) {
-    char* wepname = cl.configstrings[CS_MODELS + cl.frame.ps.gunindex];
+    char* wepname = cl.configstrings[cl.csr.models + cl.frame.ps.gunindex];
     for(int i=0; i<9; i++) {
         if (Q_stricmp(wepname, xhair_weapon_cfgs[i].wepname) == 0) {
             return i;
