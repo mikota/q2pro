@@ -313,6 +313,7 @@
 
 // These are mapped to the enum svc_ops_t in protocol.h q2pro
 // If these need adjusted in q2pro, adjust them here too
+// Warning: this breaks backwards compatbility with earlier versions of AQtion if you change it
 #define svc_extend				30
 #define svc_userstatistic		31
 
@@ -330,33 +331,33 @@
 
 // edict->spawnflags
 // these are set with checkboxes on each entity in the map editor
-#define SPAWNFLAG_NOT_EASY              0x00000100
-#define SPAWNFLAG_NOT_MEDIUM            0x00000200
-#define SPAWNFLAG_NOT_HARD              0x00000400
-#define SPAWNFLAG_NOT_DEATHMATCH        0x00000800
-#define SPAWNFLAG_NOT_COOP              0x00001000
+#define SPAWNFLAG_NOT_EASY              BIT(8)
+#define SPAWNFLAG_NOT_MEDIUM            BIT(9)
+#define SPAWNFLAG_NOT_HARD              BIT(10)
+#define SPAWNFLAG_NOT_DEATHMATCH        BIT(11)
+#define SPAWNFLAG_NOT_COOP              BIT(12)
 
 // edict->flags
-#define FL_FLY                          0x00000001
-#define FL_SWIM                         0x00000002	// implied immunity to drowining
-#define FL_IMMUNE_LASER                 0x00000004
-#define FL_INWATER                      0x00000008
-#define FL_GODMODE                      0x00000010
-#define FL_NOTARGET                     0x00000020
-#define FL_IMMUNE_SLIME                 0x00000040
-#define FL_IMMUNE_LAVA                  0x00000080
-#define FL_PARTIALGROUND                0x00000100	// not all corners are valid
-#define FL_WATERJUMP                    0x00000200	// player jumping out of water
-#define FL_TEAMSLAVE                    0x00000400	// not the first on the team
-#define FL_NO_KNOCKBACK                 0x00000800
-#define FL_POWER_ARMOR                  0x00001000	// power armor (if any) is active
-#define FL_ACCELERATE					0x20000000  // accelerative movement
-#define FL_RESPAWN                      0x80000000	// used for item respawning
+#define FL_FLY                  BIT(0)
+#define FL_SWIM                 BIT(1)      // implied immunity to drowining
+#define FL_IMMUNE_LASER         BIT(2)
+#define FL_INWATER              BIT(3)
+#define FL_GODMODE              BIT(4)
+#define FL_NOTARGET             BIT(5)
+#define FL_IMMUNE_SLIME         BIT(6)
+#define FL_IMMUNE_LAVA          BIT(7)
+#define FL_PARTIALGROUND        BIT(8)      // not all corners are valid
+#define FL_WATERJUMP            BIT(9)      // player jumping out of water
+#define FL_TEAMSLAVE            BIT(10)     // not the first on the team
+#define FL_NO_KNOCKBACK         BIT(11)
+#define FL_POWER_ARMOR          BIT(12)     // power armor (if any) is active
+#define FL_ACCELERATE			BIT(29)  // accelerative movement
+#define FL_RESPAWN              BIT(31)     // used for item respawning
 
 // edict->client->pers.spec_flags
-#define SPECFL_KILLFEED					0x00000001
-#define SPECFL_SPECHUD					0x00000002
-#define SPECFL_SPECHUD_NEW				0x00000004
+#define SPECFL_KILLFEED					BIT(0)
+#define SPECFL_SPECHUD					BIT(1)
+#define SPECFL_SPECHUD_NEW				BIT(2)
 
 // variable server FPS
 #ifndef NO_FPS
@@ -440,21 +441,21 @@ ammo_t;
 #define GIB_METALLIC                    1
 
 //monster ai flags
-#define AI_STAND_GROUND                 0x00000001
-#define AI_TEMP_STAND_GROUND            0x00000002
-#define AI_SOUND_TARGET                 0x00000004
-#define AI_LOST_SIGHT                   0x00000008
-#define AI_PURSUIT_LAST_SEEN            0x00000010
-#define AI_PURSUE_NEXT                  0x00000020
-#define AI_PURSUE_TEMP                  0x00000040
-#define AI_HOLD_FRAME                   0x00000080
-#define AI_GOOD_GUY                     0x00000100
-#define AI_BRUTAL                       0x00000200
-#define AI_NOSTEP                       0x00000400
-#define AI_DUCKED                       0x00000800
-#define AI_COMBAT_POINT                 0x00001000
-#define AI_MEDIC                        0x00002000
-#define AI_RESURRECTING                 0x00004000
+#define AI_STAND_GROUND         BIT(0)
+#define AI_TEMP_STAND_GROUND    BIT(1)
+#define AI_SOUND_TARGET         BIT(2)
+#define AI_LOST_SIGHT           BIT(3)
+#define AI_PURSUIT_LAST_SEEN    BIT(4)
+#define AI_PURSUE_NEXT          BIT(5)
+#define AI_PURSUE_TEMP          BIT(6)
+#define AI_HOLD_FRAME           BIT(7)
+#define AI_GOOD_GUY             BIT(8)
+#define AI_BRUTAL               BIT(9)
+#define AI_NOSTEP               BIT(10)
+#define AI_DUCKED               BIT(11)
+#define AI_COMBAT_POINT         BIT(12)
+#define AI_MEDIC                BIT(13)
+#define AI_RESURRECTING         BIT(14)
 
 //monster attack state
 #define AS_STRAIGHT                     1
@@ -481,15 +482,15 @@ ammo_t;
 
 
 // game.serverflags values
-#define SFL_CROSS_TRIGGER_1             0x00000001
-#define SFL_CROSS_TRIGGER_2             0x00000002
-#define SFL_CROSS_TRIGGER_3             0x00000004
-#define SFL_CROSS_TRIGGER_4             0x00000008
-#define SFL_CROSS_TRIGGER_5             0x00000010
-#define SFL_CROSS_TRIGGER_6             0x00000020
-#define SFL_CROSS_TRIGGER_7             0x00000040
-#define SFL_CROSS_TRIGGER_8             0x00000080
-#define SFL_CROSS_TRIGGER_MASK          0x000000ff
+#define SFL_CROSS_TRIGGER_1     BIT(0)
+#define SFL_CROSS_TRIGGER_2     BIT(1)
+#define SFL_CROSS_TRIGGER_3     BIT(2)
+#define SFL_CROSS_TRIGGER_4     BIT(3)
+#define SFL_CROSS_TRIGGER_5     BIT(4)
+#define SFL_CROSS_TRIGGER_6     BIT(5)
+#define SFL_CROSS_TRIGGER_7     BIT(6)
+#define SFL_CROSS_TRIGGER_8     BIT(7)
+#define SFL_CROSS_TRIGGER_MASK  (BIT(8) - 1)
 
 
 // noise types for PlayerNoise
@@ -819,7 +820,7 @@ typedef struct
 
   int model_null;
   int model_lsight;
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
   int model_arrow;
 #endif
 
@@ -1257,7 +1258,7 @@ extern cvar_t *timedmsgs;
 extern cvar_t *mm_captain_teamname;
 extern cvar_t *sv_killgib;
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 extern int (*engine_Client_GetVersion)(edict_t *ent);
 extern int (*engine_Client_GetProtocol)(edict_t *ent);
 
@@ -1309,7 +1310,7 @@ extern cvar_t *gm; // Gamemode
 extern cvar_t *gmf; // Gamemodeflags
 extern cvar_t *sv_idleremove; // Remove idlers
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 extern cvar_t *use_newirvision;		// enable new irvision (only highlight baddies)
 extern cvar_t *use_indicators;		// enable/allow indicators
 extern cvar_t *use_xerp;			// allow clients to use cl_xerp
@@ -1513,7 +1514,7 @@ void ClientBeginServerFrame (edict_t * ent);
 //
 // g_ext.c
 //
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 void G_InitExtEntrypoints(void);
 void* G_FetchGameExtension(char *name);
 #endif
@@ -1593,7 +1594,7 @@ void G_UpdateSpectatorStatusbar( void );
 void G_UpdatePlayerStatusbar( edict_t *ent, int force );
 int Gamemodeflag(void);
 int Gamemode(void);
-#ifdef USE_AQTION
+#if USE_AQTION
 void generate_uuid(void);
 #endif
 //
@@ -1625,7 +1626,7 @@ void ProduceShotgunDamageReport(edict_t*);
 
 //tng_stats.c
 void StatBotCheck(void);
-#ifdef USE_AQTION
+#if USE_AQTION
 void LogKill(edict_t *self, edict_t *inflictor, edict_t *attacker);
 void LogWorldKill(edict_t *self);
 void LogCapture(edict_t *capturer);
@@ -1710,7 +1711,7 @@ typedef struct
 	int limp_nopred;
 	int spec_flags;
 	qboolean antilag_optout;
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 	int cl_xerp;
 	int cl_indicators;
 #endif
@@ -1727,7 +1728,7 @@ typedef struct
 	ignorelist_t ignorelist;
 	gitem_t *chosenItem2;		// Support for item kit mode
 
-	#ifdef USE_AQTION
+	#if USE_AQTION
 	char steamid[24];
 	char discordid[24];
 	#endif
@@ -1822,7 +1823,7 @@ typedef struct
   vec3_t jmp_teleport_v_angle;
   qboolean jmp_teleport_ducked;
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
   int	hud_items[128];
   int	hud_type;
 #endif
@@ -1870,7 +1871,7 @@ struct gclient_s
 	int				clientNum;
 
 	// Reki: cvar sync
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 	cvarsyncvalue_t cl_cvar[CVARSYNC_MAX];
 #endif
 
@@ -2054,7 +2055,7 @@ struct gclient_s
 	int			ctf_grapplestate;		// true if pulling
 	int			ctf_grapplereleaseframe;	// frame of grapple release
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 	//AQTION - Reki: Teammate indicators
 	edict_t		*arrow;
 #endif
@@ -2292,7 +2293,7 @@ struct edict_s
 	vec3_t	lastPosition;
 	qboolean	nameused[NUMNAMES][NUMNAMES];
 	qboolean	newnameused[AQ2WTEAMSIZE];
-	#ifdef AQTION_EXTENSION
+	#if AQTION_EXTENSION
 	//AQTION - Reki: Entity indicators
 	edict_t		*obj_arrow;
 	#endif
@@ -2319,7 +2320,7 @@ typedef struct
 	gitem_t *weapon;
 	gitem_t *item;
 	// Extended stats
-	#ifdef USE_AQTION
+	#if USE_AQTION
 	char steamid[24];
 	char discordid[24];
 	#endif
@@ -2446,6 +2447,13 @@ typedef struct team_s
 	char leader_name[MAX_SKINLEN];
 	char leader_skin[MAX_QPATH];
 	char leader_skin_index[MAX_QPATH];
+#if AQTION_EXTENSION
+#if AQTION_HUD
+	int	 ghud_resettime;
+	byte ghud_icon;
+	byte ghud_num;
+#endif
+#endif
 }team_t;
 
 extern team_t teams[TEAM_TOP];
@@ -2464,7 +2472,7 @@ extern int gameSettings;
 #include "a_dom.h"
 #include "a_esp.h"
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 #define HAS_CVARSYNC(ent) (Client_GetProtocol(ent) == 38 && Client_GetVersion(ent) >= 3013)
 
 // hud (through ghud extension)
@@ -2494,19 +2502,19 @@ typedef enum {
 } clcvar_t;
 
 // UI flags from q2pro
-#define UI_LEFT             0x00000001
-#define UI_RIGHT            0x00000002
+#define UI_LEFT             BIT(0)
+#define UI_RIGHT            BIT(1)
 #define UI_CENTER           (UI_LEFT | UI_RIGHT)
-#define UI_BOTTOM           0x00000004
-#define UI_TOP              0x00000008
+#define UI_BOTTOM           BIT(2)
+#define UI_TOP              BIT(3)
 #define UI_MIDDLE           (UI_BOTTOM | UI_TOP)
-#define UI_DROPSHADOW       0x00000010
-#define UI_ALTCOLOR         0x00000020
-#define UI_IGNORECOLOR      0x00000040
-#define UI_XORCOLOR         0x00000080
-#define UI_AUTOWRAP         0x00000100
-#define UI_MULTILINE        0x00000200
-#define UI_DRAWCURSOR       0x00000400
+#define UI_DROPSHADOW       BIT(4)
+#define UI_ALTCOLOR         BIT(5)
+#define UI_IGNORECOLOR      BIT(6)
+#define UI_XORCOLOR         BIT(7)
+#define UI_AUTOWRAP         BIT(8)
+#define UI_MULTILINE        BIT(9)
+#define UI_DRAWCURSOR       BIT(10)
 #endif
 
 #ifndef NO_BOTS

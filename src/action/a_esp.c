@@ -490,7 +490,7 @@ void EspMakeCapturePoint(edict_t *flag)
 	/* Indicator arrow
     	This appears regardless of indicator settings
 	*/
-	#ifdef AQTION_EXTENSION
+	#if AQTION_EXTENSION
     if (!flag->obj_arrow){
 		flag->obj_arrow = G_Spawn();
 		flag->obj_arrow->solid = SOLID_NOT;

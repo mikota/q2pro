@@ -866,7 +866,7 @@ void Qcommon_Init(int argc, char **argv)
     Key_Init();
     Prompt_Init();
     Con_Init();
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 	G_InitializeExtensions();
 #endif
 

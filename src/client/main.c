@@ -1581,7 +1581,7 @@ void CL_CheckForResend(void)
         cls.serverProtocol = cl_protocol->integer;
         if (cls.serverProtocol < PROTOCOL_VERSION_DEFAULT ||
             cls.serverProtocol > PROTOCOL_VERSION_AQTION) {
-			#ifdef AQTION_EXTENSION
+			#if AQTION_EXTENSION
             cls.serverProtocol = PROTOCOL_VERSION_AQTION;
 			#else
 			cls.serverProtocol = PROTOCOL_VERSION_Q2PRO;
@@ -1867,7 +1867,7 @@ void CL_ClearState(void)
     SCR_ClearCenterPrints();
     CL_ClearEffects();
     CL_ClearTEnts();
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 	CL_Clear3DGhudQueue();
 #endif
     LOC_FreeLocations();

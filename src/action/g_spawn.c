@@ -1236,7 +1236,7 @@ void SpawnEntities (const char *mapname, const char *entities, const char *spawn
 	// Set serverinfo correctly for gamemodeflags
 	Gamemodeflag();
 
-	#ifdef USE_AQTION
+	#if USE_AQTION
 	generate_uuid();  // Run this once every time a map loads to generate a unique id for stats (game.matchid)
 	#endif
 
@@ -1870,7 +1870,7 @@ void SP_worldspawn (edict_t * ent)
 
 	level.model_null = gi.modelindex("sprites/null.sp2");      // null sprite
 	level.model_lsight = gi.modelindex("sprites/lsight.sp2");  // laser sight dot sprite
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 	level.model_arrow = gi.modelindex("models/indicator/arrow_red.md2");
 	gi.modelindex("models/indicator/arrow_blue.md2");
 	gi.modelindex("models/indicator/arrow_green.md2");

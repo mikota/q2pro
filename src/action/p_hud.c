@@ -132,7 +132,7 @@ void BeginIntermission(edict_t *targ)
 	} else if (teamplay->value) {
 		TallyEndOfLevelTeamScores();
 	}
-	#ifdef USE_AQTION
+	#if USE_AQTION
 	// Generates stats for non-CTF, Teamplay or Matchmode
 	else if (stat_logs->value && !matchmode->value) {
 		LogMatch();
@@ -405,6 +405,7 @@ void Cmd_Score_f(edict_t *ent)
 {
 	ent->client->showinventory = false;
 	
+	gi.dprintf("-#-# Layout: %d\n", ent->client->layout);
 	if (ent->client->layout == LAYOUT_MENU)
 		PMenu_Close(ent);
 	
@@ -752,7 +753,7 @@ void G_SetStats (edict_t * ent)
 }
 
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 
 void HUD_SetType(edict_t *clent, int type)
 {

@@ -904,7 +904,7 @@ void SV_ShutdownGameProgs(void)
     Cvar_Set("g_view_predict", "0");
     Z_LeakTest(TAG_FREE);
 	
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 	GE_customizeentityforclient = NULL;
 	GE_CvarSync_Updated = NULL;
 #endif
@@ -944,7 +944,7 @@ static void *SV_LoadGameLibrary(const char *libdir, const char *gamedir)
 }
 
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 typedef struct extension_func_s
 {
 	char		name[MAX_QPATH];
@@ -1080,7 +1080,7 @@ void SV_InitGameProgs(void)
     // unload anything we have now
     SV_ShutdownGameProgs();
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 	SV_Ghud_Clear();
 	SV_CvarSync_Clear();
 #endif
@@ -1112,7 +1112,7 @@ void SV_InitGameProgs(void)
     // load a new game dll
     import = game_import;
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 	import.CheckForExtension = G_CheckForExtension;
 #endif
 
@@ -1153,7 +1153,7 @@ void SV_InitGameProgs(void)
         Com_Error(ERR_DROP, "Game library returned bad number of max_edicts");
     }
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 	GE_customizeentityforclient = ge->FetchGameExtension("customizeentityforclient");
 	GE_CvarSync_Updated = ge->FetchGameExtension("CvarSync_Updated");
 #endif

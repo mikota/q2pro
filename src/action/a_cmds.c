@@ -133,7 +133,7 @@
 
 #include "g_local.h"
 #include <time.h>
-#ifdef USE_AQTION
+#if USE_AQTION
 #ifdef _WIN32
 #if _MSC_VER && !__INTEL_COMPILER
 #pragma comment(lib, "rpcrt4.lib")
@@ -1315,7 +1315,7 @@ void Cmd_Ghost_f(edict_t * ent)
 }
 
 
-#ifdef USE_AQTION
+#if USE_AQTION
 void generate_uuid(void)
 {
 #ifdef _WIN32

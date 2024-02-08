@@ -527,7 +527,7 @@ cvar_t *timedmsgs; // Toggles timed messages
 cvar_t *mm_captain_teamname; // Toggles if we want to use the captain's name for the team in matchmode
 cvar_t *sv_killgib; // Gibs on 'kill' command
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 cvar_t *use_newirvision;
 cvar_t *use_indicators;
 cvar_t *use_xerp;
@@ -627,7 +627,7 @@ q_exported game_export_t *GetGameAPI(game_import_t *import)
 	globals.edict_size = sizeof (edict_t);
 
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 	G_InitExtEntrypoints();
 	globals.FetchGameExtension = G_FetchGameExtension;
 

@@ -314,7 +314,7 @@ void SV_WriteFrameToClient_Enhanced(client_t *client)
 	SV_EmitPacketEntities(client, oldframe, frame, clientEntityNum);
 }
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 static void SV_Ghud_SendUpdateToClient(client_t *client, client_frame_t *oldframe, client_frame_t *frame)
 {
 	if (client->protocol == PROTOCOL_VERSION_AQTION && client->version >= PROTOCOL_VERSION_AQTION_GHUD)
@@ -477,7 +477,7 @@ void SV_WriteFrameToClient_Aqtion(client_t *client)
 	// delta encode the entities
 	SV_EmitPacketEntities(client, oldframe, frame, clientEntityNum);
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 	if (oldframe)
 		SV_Ghud_SendUpdateToClient(client, oldframe, frame);
 #endif
@@ -711,7 +711,7 @@ void SV_BuildClientFrame(client_t *client)
 
 		entity_state_t ent_state;
 		ent_state = ent->s;
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 		if (GE_customizeentityforclient)
 			if (!GE_customizeentityforclient(client->edict, ent, &ent_state))
 				continue;

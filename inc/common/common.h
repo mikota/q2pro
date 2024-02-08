@@ -113,7 +113,7 @@ void        Com_AddConfigFile(const char *name, unsigned flags);
 #define COM_DEDICATED   1
 #endif
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 void G_InitializeExtensions(void);
 #endif
 

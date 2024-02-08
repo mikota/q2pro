@@ -106,7 +106,7 @@ typedef enum {
     PRINT_NOTICE        // print in cyan color
 } print_type_t;
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 #include "shared/ghud.h"
 #endif
 
@@ -847,7 +847,7 @@ typedef struct cvar_s {
 
 // ------ new stuff ------
 #if USE_CLIENT || USE_SERVER
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 	int			sync_index;
 #endif
     int         integer;
@@ -1002,7 +1002,7 @@ typedef enum {
 //KEX
 
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 // pmove->pm_aq2_flags
 #define PMF_AQ2_LIMP		0x01 // used to predict limping
 #endif
@@ -1022,7 +1022,7 @@ typedef struct {
     short       gravity;
     short       delta_angles[3];    // add to command angles to get view direction
                                     // changed by spawns, rotating objects, and teleporters
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 	short       pm_aq2_flags;   // limping, bandaging, etc
 	unsigned short pm_timestamp; // timestamp, resets every 60 seconds
 	byte		pm_aq2_leghits;		 // number of leg hits

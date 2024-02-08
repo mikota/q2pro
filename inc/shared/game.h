@@ -24,7 +24,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // game.h -- game dll information visible to server
 //
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 #define GAME_API_VERSION        4
 #else
 #define GAME_API_VERSION        3
@@ -100,7 +100,7 @@ struct gclient_s {
     // the game dll can add anything it wants after
     // this point in the structure
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 	cvarsyncvalue_t cl_cvar[CVARSYNC_MAX];
 #endif
 };
@@ -224,7 +224,7 @@ typedef struct {
 
     void (*DebugGraph)(float value, int color);
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 	void *(*CheckForExtension)(char *text);
 #endif
 } game_import_t;
@@ -271,7 +271,7 @@ typedef struct {
     // of the parameters
     void (*ServerCommand)(void);
 
-#ifdef AQTION_EXTENSION
+#if AQTION_EXTENSION
 	void* (*FetchGameExtension)(char *name);
 #endif
 
