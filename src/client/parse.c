@@ -347,13 +347,19 @@ static void CL_ParseFrame(int extrabits)
 			Com_LPrintf(PRINT_DEVELOPER, "\n");
 		}
 #endif
-		// parse clientNum
-		if (extraflags & EPS_CLIENTNUM) {
-			frame.clientNum = MSG_ReadByte();
-		}
-		else if (oldframe) {
-			frame.clientNum = oldframe->clientNum;
-		}
+        // parse clientNum
+        if (extraflags & EPS_CLIENTNUM) {
+            if (cls.protocolVersion < PROTOCOL_VERSION_AQTION_CLIENTNUM_SHORT) {
+                frame.clientNum = MSG_ReadByte();
+            } else {
+                frame.clientNum = MSG_ReadShort();
+            }
+            if (!VALIDATE_CLIENTNUM(&cl.csr, frame.clientNum)) {
+                Com_Error(ERR_DROP, "%s: bad clientNum", __func__);
+            }
+        } else if (oldframe) {
+            frame.clientNum = oldframe->clientNum;
+        }
 	} else if (cls.serverProtocol > PROTOCOL_VERSION_DEFAULT) {
         MSG_ParseDeltaPlayerstate_Enhanced(from, &frame.ps, bits, extraflags, cl.psFlags);
 #if USE_DEBUG
