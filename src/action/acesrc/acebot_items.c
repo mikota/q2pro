@@ -56,7 +56,7 @@
 
 int	num_players = 0;
 int num_items = 0;
-item_table_t item_table[MAX_EDICTS_OLD];
+item_table_t item_table[MAX_EDICTS];
 edict_t *players[MAX_CLIENTS];		// pointers to all players in the game
 
 ///////////////////////////////////////////////////////////////////////

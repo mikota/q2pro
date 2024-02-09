@@ -543,8 +543,6 @@ executable('q2proded', common_src, server_src,
   install:               system_wide,
 )
 
-## Disabling building gamelib for now, no need
-
 shared_library('game' + cpu, action_src,
   name_prefix:           '',
   dependencies:          game_deps,

@@ -312,7 +312,6 @@ void DeathmatchScoreboardMessage (edict_t * ent, edict_t * killer)
 		}
 		else
 			A_ScoreboardMessage(ent, killer);
-		free(sortedClients);
 		return;
 	}
 

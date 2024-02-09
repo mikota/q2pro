@@ -1374,7 +1374,7 @@ void ACEND_LoadNodes(void)
 		fclose(pIn);
 
 		// Raptor007: Do not trust saved pointers!
-		for(i=0;i<MAX_EDICTS_OLD;i++)
+		for(i=0;i<MAX_EDICTS;i++)
 			item_table[i].ent = NULL;
 	}
 	else
