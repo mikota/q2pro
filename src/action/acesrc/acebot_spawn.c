@@ -856,16 +856,24 @@ char	*aq2names[] = {
 
 // END AQ2World Staff Names //
 
+edict_t ltknames;
 // New AQ2World team bot names (am_newnames 1)
 void LTKsetBotNameNew(char *bot_name)
 {
-	edict_t ltknames;
 	int randomname = 0;
-	// /* TODO: Free up previously used names to be reused.
-	//    This may cause duplicates in-game though.
-	//    Fix this at some point.  Otherwise the game
-	//    runs out of valid values and will softlock
-	//    when generating LTK bots.
+	// Check if all names have been used
+    bool allNamesUsed = true;
+    for (int i = 0; i < AQ2WTEAMSIZE; i++) {
+        if (!ltknames.newnameused[i]) {
+            allNamesUsed = false;
+            break;
+        }
+    }
+
+    // If all names have been used, reset the newnameused array
+    if (allNamesUsed) {
+        LTKClearBotNames();
+    }
 
 	do
     {

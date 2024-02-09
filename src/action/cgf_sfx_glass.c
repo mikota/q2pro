@@ -115,7 +115,7 @@ extern "C"
 
 
 void
-CGF_SFX_InstallGlassSupport ()
+CGF_SFX_InstallGlassSupport (void)
 {
   breakableglass = gi.cvar ("breakableglass", "0", 0);
   glassfragmentlimit = gi.cvar ("glassfragmentlimit", "30", 0);
@@ -123,7 +123,7 @@ CGF_SFX_InstallGlassSupport ()
 
 
 int
-CGF_SFX_IsBreakableGlassEnabled ()
+CGF_SFX_IsBreakableGlassEnabled (void)
 {
   // returns whether breakable glass is enabled (cvar) and allowed (dm mode)
   return breakableglass->value;
@@ -635,7 +635,7 @@ CGF_SFX_AttachDecalToGlass (edict_t * aGlassPane, edict_t * aDecal)
 
 
 void
-CGF_SFX_RebuildAllBrokenGlass ()
+CGF_SFX_RebuildAllBrokenGlass (void)
 {
   // iterate over all func_explosives
   edict_t *glass;

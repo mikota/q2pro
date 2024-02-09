@@ -88,7 +88,7 @@ int motd_num_lines;
  * the "###" designator at end of sections.
  * -Fireblade
  */
-void ReadConfigFile()
+void ReadConfigFile(void)
 {
 	FILE *config_file;
 	char buf[MAX_STR_LEN], reading_section[MAX_STR_LEN], inipath[MAX_STR_LEN];
@@ -174,7 +174,7 @@ void ReadConfigFile()
 	fclose(config_file);
 }
 
-void ReadMOTDFile()
+void ReadMOTDFile(void)
 {
 	FILE *motd_file;
 	char buf[1000];

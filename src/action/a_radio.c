@@ -122,7 +122,7 @@ radio_msg_t globalRadio[] = {
 	{"radio/female/rdeath.wav", 30, 0}
 };
 
-void PrecacheRadioSounds ()
+void PrecacheRadioSounds (void)
 {
 	int i;
 	char path[MAX_QPATH];
