@@ -1387,6 +1387,9 @@ void SpawnEntities (const char *mapname, const char *entities, const char *spawn
 		attract_mode_bot_check();
 	}
 
+	// Clear LTK bot names
+	LTKClearBotNames();
+
 #endif
 }
 
