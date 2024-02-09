@@ -527,6 +527,9 @@ cvar_t *timedmsgs; // Toggles timed messages
 cvar_t *mm_captain_teamname; // Toggles if we want to use the captain's name for the team in matchmode
 cvar_t *sv_killgib; // Gibs on 'kill' command
 
+// 2024
+cvar_t *warmup_unready; // Toggles warmup if captains unready
+
 #if AQTION_EXTENSION
 cvar_t *use_newirvision;
 cvar_t *use_indicators;

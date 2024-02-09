@@ -641,6 +641,9 @@ void InitGame( void )
 	mm_captain_teamname = gi.cvar("mm_captain_teamname", "0", 0);
 	sv_killgib = gi.cvar("sv_killgib", "0", 0);
 
+	// 2024
+	warmup_unready = gi.cvar("warmup_unready", "0", 0);
+
 	// new AQtion Extension cvars
 #if AQTION_EXTENSION
 	use_newirvision = gi.cvar("use_newirvision", "1", 0);

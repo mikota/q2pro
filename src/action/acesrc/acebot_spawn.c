@@ -847,8 +847,8 @@ char	*aq2names[] = {
 	"Igor[ROCK].bot", "Suislide.bot", "Bartender.bot",
 	"Fex.bot", "Shagg.bot", "Black Angel.bot", "Rookie.bot",
 
-	"Fireblade>beep", "Cail>beep", "Gooseman>beep", "Ace12GA>beep",
-	"BlackMonk>beep", "hal9k>beep", "Fool Killer>beep", "Inghaw>beep",
+	"Fireblade<<", "Cail<<", "Gooseman<<", "Ace12GA<<",
+	"BlackMonk<<", "hal9k<<", "Fool Killer<<", "Inghaw<<",
 
 	"_NME_GreyDeath", "_NME_Ellusion", "_NME_Deathwatch", 
 	"_NME_Freud", "_NME_slicer", "_NME_JBravo", "_NME_Elviz"
@@ -861,8 +861,9 @@ edict_t ltknames;
 void LTKsetBotNameNew(char *bot_name)
 {
 	int randomname = 0;
+
 	// Check if all names have been used
-    bool allNamesUsed = true;
+    qboolean allNamesUsed = true;
     for (int i = 0; i < AQ2WTEAMSIZE; i++) {
         if (!ltknames.newnameused[i]) {
             allNamesUsed = false;
@@ -923,6 +924,10 @@ void	LTKsetBotName( char	*bot_name )
 	}
 }
 
+
+//====================================
+// LTKCLearBotNames -- Reset the bot name array
+//====================================
 void LTKClearBotNames(void) {
 	edict_t ltknames;
 	int i, j;

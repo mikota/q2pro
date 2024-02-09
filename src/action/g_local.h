@@ -1258,6 +1258,9 @@ extern cvar_t *timedmsgs;
 extern cvar_t *mm_captain_teamname;
 extern cvar_t *sv_killgib;
 
+// 2024
+extern cvar_t *warmup_unready;
+
 #if AQTION_EXTENSION
 extern int (*engine_Client_GetVersion)(edict_t *ent);
 extern int (*engine_Client_GetProtocol)(edict_t *ent);

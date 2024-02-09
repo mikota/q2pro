@@ -1736,15 +1736,21 @@ Lists all loaded sounds, good for debugging PF_SoundIndex overflows
 void SV_ListSounds_f(void)
 {
     int i;
+    int count = 0;
     char *string;
 
     Com_Printf("-- List of Loaded Sounds:\n");
-    for (i = 1; i < MAX_SOUNDS; i++) {
-        string = sv.configstrings[CS_SOUNDS + i];
+    for (i = 1; i < svs.csr.max_sounds; i++) {
+        if (svs.csr.extended)
+            string = sv.configstrings[CS_SOUNDS + i];
+        else
+            string = sv.configstrings[CS_SOUNDS_OLD + i];
         if (string && string[0] != '\0') { // Check if string is not null and not empty
             Com_Printf("%i: %s\n", i, string);
+            count++;
         }
     }
+    Com_Printf("-- Total Used Sound Indexes: %i\n-- Total Available Sound Indexes: %i\n", count, svs.csr.max_sounds);
 }
 
 //===========================================================

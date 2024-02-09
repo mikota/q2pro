@@ -2287,7 +2287,11 @@ void RunWarmup (void)
 	int i, dead;
 	edict_t *ent;
 
-	if (!warmup->value || (matchmode->value && level.matchTime > 0) || team_round_going || lights_camera_action || (team_round_countdown > 0 && team_round_countdown <= 101))
+	if (!warmup->value || team_round_going || lights_camera_action || (team_round_countdown > 0 && team_round_countdown <= 101))
+		return;
+
+	// Allows re-warmup if teams unready during matchmode
+	if (!warmup_unready->value && (matchmode->value && level.matchTime > 0))
 		return;
 
 	if (!in_warmup)
@@ -2313,7 +2317,10 @@ void RunWarmup (void)
 			ent->client->latched_buttons = 0;
 			PutClientInServer(ent);
 			AddToTransparentList(ent);
-			gi.centerprintf(ent, "WARMUP");
+			if (matchmode->value && level.matchTime > 0)
+				gi.centerprintf(ent, "TEAMS NOT READY: RETURNING TO WARMUP");
+			else
+				gi.centerprintf(ent, "WARMUP");
 		}
 	}
 	#if USE_AQTION
@@ -2789,6 +2796,8 @@ int CheckTeamRules (void)
 				}
 				team_round_going = team_round_countdown = team_game_going = 0;
 				MakeAllLivePlayersObservers ();
+				if (matchmode->value && warmup_unready->value)
+					RunWarmup();
 			}
 		}
 		else if(use_tourney->value)
@@ -2975,6 +2984,8 @@ int CheckTeamRules (void)
 
 				team_round_going = team_round_countdown = team_game_going = 0;
 				MakeAllLivePlayersObservers();
+				if (matchmode->value && warmup_unready->value)
+					RunWarmup();
 
 				/* try to restart the game */
 				while (CheckForUnevenTeams( NULL ));
