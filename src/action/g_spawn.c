@@ -1215,8 +1215,9 @@ void SpawnEntities (const char *mapname, const char *entities, const char *spawn
 	if (matchmode->value)
 	{
 		gameSettings |= GS_MATCHMODE;
-		gi.dprintf ("Matchmode Enabled - Forcing g_spawn_items off\n");
-		gi.cvar_forceset(g_spawn_items->name, "0"); // Turn off spawning of items for matchmode games
+		if (g_spawn_items->value)
+			gi.dprintf ("Matchmode Enabled - Forcing g_spawn_items off\n");
+			gi.cvar_forceset(g_spawn_items->name, "0"); // Turn off spawning of items for matchmode games
 	}
 	if (use_3teams->value)
 	{
