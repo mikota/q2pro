@@ -625,7 +625,7 @@ void InitGame( void )
 
 	// 2023
 	use_killcounts = gi.cvar("use_killcounts", "0", 0);
-	am = gi.cvar("am", "0", CVAR_SERVERINFO);
+	am = gi.cvar("am", "0", CVAR_LATCH | CVAR_SERVERINFO);
 	am_newnames = gi.cvar("am_newnames", "1", 0);
 	am_botcount = gi.cvar("am_botcount", "6", CVAR_SERVERINFO);
 	if (am_botcount->value < 0){

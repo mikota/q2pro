@@ -1081,22 +1081,22 @@ extern cvar_t *use_buggy_bandolier;
 extern cvar_t *uvtime;
 extern cvar_t *use_mapvote;	// enable map voting
 extern cvar_t *use_scramblevote;
-extern cvar_t *sv_gib;
+extern cvar_t *sv_gib;  // Enables or disables gibs
 extern cvar_t *sv_crlf;
 extern cvar_t *vrot;
 extern cvar_t *rrot;
 extern cvar_t *empty_rotate;
 extern cvar_t *empty_exec;
 extern cvar_t *strtwpn;
-extern cvar_t *llsound;
+extern cvar_t *llsound; // Enable or disable the lowlag sounds (needed for selectable gun sounds)
 extern cvar_t *loud_guns;
 extern cvar_t *sync_guns;
 extern cvar_t *silentwalk;
 extern cvar_t *slopefix;
 extern cvar_t *use_cvote;
-extern cvar_t *new_irvision;
-extern cvar_t *use_rewards;
-extern cvar_t *use_warnings;
+extern cvar_t *new_irvision; // Enables or disables the new infra-red vision
+extern cvar_t *use_rewards; // Enables or disables the rewards system (Accuracy, Impressive, Excellent, etc)
+extern cvar_t *use_warnings; // Enables or disables the warnings system (One minute left...etc)
 extern cvar_t *video_check;	//AQ2:TNG - Slicer: For Video Checking
 extern cvar_t *video_checktime;	//interval between cheat checks
 extern cvar_t *video_max_3dfx;
@@ -1106,14 +1106,14 @@ extern cvar_t *video_check_lockpvs;
 extern cvar_t *video_check_glclear;
 extern cvar_t *video_force_restart;
 extern cvar_t *check_time;
-extern cvar_t *matchmode;
-extern cvar_t *darkmatch;
+extern cvar_t *matchmode; // Enables or disables matchmode
+extern cvar_t *darkmatch; // Enables or disables darkmatch
 extern cvar_t *day_cycle;	// If darkmatch is on, this value is the nr of seconds between each interval (day, dusk, night, dawn)
 extern cvar_t *use_flashlight;  // Allow flashlight when not darkmatch?
 
 extern cvar_t *hearall;		// used in match mode
-extern cvar_t *deadtalk;
-extern cvar_t *force_skin;
+extern cvar_t *deadtalk;	// Allow dead players to be heard by live players (chat)
+extern cvar_t *force_skin;  // Forces model/skin on all players
 extern cvar_t *mm_forceteamtalk;
 extern cvar_t *mm_adminpwd;
 extern cvar_t *mm_allowlock;
@@ -1124,17 +1124,17 @@ extern cvar_t *teamdm;
 extern cvar_t *teamdm_respawn;
 extern cvar_t *respawn_effect;
 
-extern cvar_t *item_respawnmode;
+extern cvar_t *item_respawnmode;  // 0 sets items to respawn in the classic way (info_player_deathmatch), 1 spawns them at specific locations
 
 extern cvar_t *use_mvd2;	// JBravo: activate mvd2 recording on servers running q2pro
 
-extern cvar_t *item_respawn;
-extern cvar_t *weapon_respawn;
-extern cvar_t *ammo_respawn;
+extern cvar_t *item_respawn;	// Timer: Interval between item respawns
+extern cvar_t *weapon_respawn;  // Timer: Interval between weapon respawns
+extern cvar_t *ammo_respawn;    // Timer: Interval between ammo respawns
 
-extern cvar_t *wave_time;
+extern cvar_t *wave_time;  // How often a player can use the 'wave' commands in seconds
 
-extern cvar_t *use_punch;
+extern cvar_t *use_punch;  // Enable or disable the punch command
 
 extern cvar_t *radio_max;
 extern cvar_t *radio_time;
@@ -1143,15 +1143,15 @@ extern cvar_t *radio_repeat;
 //SLIC2
 extern cvar_t *radio_repeat_time;
 
-extern cvar_t *hc_single;
-extern cvar_t *wp_flags;
-extern cvar_t *itm_flags;
+extern cvar_t *hc_single;  // Enable or disable the single shot handcannon
+extern cvar_t *wp_flags;   // Weapon flags (bans)
+extern cvar_t *itm_flags;  // Item flags (bans)
 extern cvar_t *use_classic;	// Use_classic resets weapon balance to 1.52
 
-extern cvar_t *warmup;
-extern cvar_t *warmup_bots;
-extern cvar_t *round_begin;
-extern cvar_t *spectator_hud;
+extern cvar_t *warmup;    // Enables warmup (value in seconds)
+extern cvar_t *warmup_bots;  // Enables bots to spawn during warmup (value in number of bots)
+extern cvar_t *round_begin;  // Enables round_begin (value in seconds)
+extern cvar_t *spectator_hud; // Enables or disables the fancy spectator hud
 
 extern cvar_t *fraglimit;
 extern cvar_t *timelimit;
@@ -1159,7 +1159,7 @@ extern cvar_t *maptime;
 extern cvar_t *capturelimit;
 extern cvar_t *password;
 extern cvar_t *g_select_empty;
-extern cvar_t *g_protocol_extensions;
+extern cvar_t *g_protocol_extensions;  // Enable or disable protocol extensions.  For legacy compatibility, set this to "0"
 extern cvar_t *dedicated;
 extern cvar_t *steamid;
 
@@ -1183,14 +1183,14 @@ extern cvar_t *bob_roll;
 extern cvar_t *sv_cheats;
 extern cvar_t *maxclients;
 
-extern cvar_t *unique_weapons;
-extern cvar_t *unique_items;
+extern cvar_t *unique_weapons; // Max number of unique weapons a player can carry
+extern cvar_t *unique_items;  // Max number of unique items a player can carry
 extern cvar_t *ir;		//toggles if bandolier works as infra-red sensor
 
-extern cvar_t *knifelimit;
-extern cvar_t *tgren;
-extern cvar_t *allweapon;
-extern cvar_t *allitem;
+extern cvar_t *knifelimit; // Maximum number of knives a player can carry
+extern cvar_t *tgren; // Maximum number of grenades players start with (with bandolier)
+extern cvar_t *allweapon; // Enable or disable all weapons on spawn
+extern cvar_t *allitem; // Enable or disable all items on spawn
 extern cvar_t *allow_hoarding; // Allow carrying multiple of the same special item or unique weapon.
 
 extern cvar_t *stats_endmap; // If on (1), show the accuracy/etc stats at the end of a map
@@ -1200,24 +1200,24 @@ extern cvar_t *auto_join;	// Automaticly join clients to teams they were on in l
 extern cvar_t *auto_equip;	// Remember weapons and items for players between maps.
 extern cvar_t *auto_menu;	// Automatically show the join menu
 
-extern cvar_t *dm_choose;
-extern cvar_t *dm_shield;
+extern cvar_t *dm_choose;  // Enables or disables DM mode weapon/item choosing
+extern cvar_t *dm_shield;  // Enables or disables DM shield
 
 extern cvar_t *tourney_lca; // Enables or disabled lights camera action for tourney mode
 
 // TNG:Freud - new spawning system
-extern cvar_t *use_oldspawns;
+extern cvar_t *use_oldspawns; // Legacy old spawn system
 // TNG:Freud - ghosts
-extern cvar_t *use_ghosts;
+extern cvar_t *use_ghosts;   // Enable or disable ghosts (stats)
 
 // zucc from action
-extern cvar_t *sv_shelloff;
-extern cvar_t *shelllimit;
-extern cvar_t *shelllife;
-extern cvar_t *splatlimit;
-extern cvar_t *bholelimit;
-extern cvar_t *splatlife;
-extern cvar_t *bholelife;
+extern cvar_t *sv_shelloff; // Enable or disable shell ejection
+extern cvar_t *shelllimit;  // Maximum number of shells on the ground
+extern cvar_t *shelllife;   // Time before shells disappear
+extern cvar_t *splatlimit;  // Maximum number of blood splat decals
+extern cvar_t *bholelimit;  // Maximum number of bullet hole decals
+extern cvar_t *splatlife;   // Time before blood splats disappear
+extern cvar_t *bholelife;   // Time before bullet holes disappear
 
 extern cvar_t *medkit_drop;
 extern cvar_t *medkit_time;
@@ -1226,37 +1226,37 @@ extern cvar_t *medkit_max;
 extern cvar_t *medkit_value;
 
 // BEGIN AQ2 ETE
-extern cvar_t *esp;
-extern cvar_t *atl;
-extern cvar_t *etv;
-extern cvar_t *esp_atl;
-extern cvar_t *esp_punish;
-extern cvar_t *esp_etv_halftime;
-extern cvar_t *esp_showleader;
-extern cvar_t *esp_showtarget;
-extern cvar_t *esp_leaderequip;
-extern cvar_t *esp_leaderenhance;
-extern cvar_t *esp_enhancedslippers;
-extern cvar_t *esp_matchmode;
-extern cvar_t *esp_respawn_uvtime;
-extern cvar_t *esp_debug;
+extern cvar_t *esp;  // Enable or disable Espionage mode
+extern cvar_t *atl;  // Enable or disable Assassinate the Leader mode (do not set this manually)
+extern cvar_t *etv;	 // Enable or disable Escort the VIP mode (do not set this manually)
+extern cvar_t *esp_atl;  // Prefer ATL mode even if ETV mode is available
+extern cvar_t *esp_punish;  // Enable or disable punishment for losing the around
+extern cvar_t *esp_etv_halftime;  // Enable or disable halftime in ETV mode
+extern cvar_t *esp_showleader;  // Enable or disable showing the leader (not implemented)
+extern cvar_t *esp_showtarget;  // Enable or disable showing the target (not implemented)
+extern cvar_t *esp_leaderequip; // Enable or disable leader equipment enhancements
+extern cvar_t *esp_leaderenhance; // Enable or disable leader enhancements (fast bandage, medkits)
+extern cvar_t *esp_enhancedslippers; // Enable or disable enhanced slippers (does not require Espionage)
+extern cvar_t *esp_matchmode; // Enable or disable matchmode in Espionage mode
+extern cvar_t *esp_respawn_uvtime; // Enable or disable respawn time in UV mode in seconds
+extern cvar_t *esp_debug; // Enable or disable debug mode (very spammy)
 
 // END AQ2 ETE
 
 // 2023
-extern cvar_t *use_killcounts;
-extern cvar_t *am;
-extern cvar_t *am_newnames;
-extern cvar_t *am_botcount;
-extern cvar_t *am_delay;
-extern cvar_t *am_team;
-extern cvar_t *zoom_comp;
-extern cvar_t *item_kit_mode;
-extern cvar_t *gun_dualmk23_enhance;
-extern cvar_t *printrules;
-extern cvar_t *timedmsgs;
-extern cvar_t *mm_captain_teamname;
-extern cvar_t *sv_killgib;
+extern cvar_t *use_killcounts;  // Adjust how kill streaks are counted
+extern cvar_t *am; // Enable or disable Attract Mode (ltk bots)
+extern cvar_t *am_newnames; // Enable or disable new names for Attract Mode (ltk bots)
+extern cvar_t *am_botcount; // Number of bots in Attract Mode
+extern cvar_t *am_delay; // Delay between bot spawns after players leave in Attract Mode (not implemented)
+extern cvar_t *am_team; // Set which team the bots will join in Attract Mode
+extern cvar_t *zoom_comp;  // Enable or disable zoom compensation
+extern cvar_t *item_kit_mode;  // Enable or disable item kit mode
+extern cvar_t *gun_dualmk23_enhance; // Enable or disable enhanced dual mk23s (laser + silencer)
+extern cvar_t *printrules; // Enable or disable printing of rules
+extern cvar_t *timedmsgs;  // Enable or disable timed messages
+extern cvar_t *mm_captain_teamname; // Set the team name to the captain's name in matchmode
+extern cvar_t *sv_killgib; // Enable or disable gibbing on kill command
 
 // 2024
 extern cvar_t *warmup_unready;
