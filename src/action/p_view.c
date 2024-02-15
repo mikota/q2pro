@@ -595,6 +595,11 @@ qboolean OnLadder( edict_t *ent )
 /*
 =================
 P_FallingDamage
+
+With esp_enhancedslippers, the player will take less damage from falls:
+0 = no change
+1 = 50% less damage
+2 = 25% increased fall height before damage
 =================
 */
 void P_FallingDamage (edict_t * ent)
@@ -602,6 +607,7 @@ void P_FallingDamage (edict_t * ent)
 	float delta;
 	int damage;
 	vec3_t dir, oldvelocity;
+	int fallheight = 30;  // Minimum height to fall to take damage, in quake units?
 
 	//if (!FRAMESYNC)
 	//	return;
@@ -640,6 +646,11 @@ void P_FallingDamage (edict_t * ent)
 	}
 
 	delta = delta * delta * 0.0001;
+
+	// If slippers are equipped and the cvar is set to 2, increase height before fall damage occurs
+	if (esp_enhancedslippers->value == 2 && INV_AMMO(ent, SLIP_NUM)) {
+        delta *= 0.75;
+	}
 
 	// never take damage if just release grapple or on grapple
 	if (level.framenum - ent->client->ctf_grapplereleaseframe <= 2*FRAMEDIV ||
@@ -692,13 +703,14 @@ void P_FallingDamage (edict_t * ent)
 		return;
 	}
 
-
+	// Play falling/landing sound
 	if (ent->health > 0)
 	{
 		if (delta >= 55)
 			ent->s.event = EV_FALLFAR;
-		else			// all falls are far
+		else
 			ent->s.event = EV_FALLFAR;
+		// Play different sound if wearing slippers
 		if (esp_enhancedslippers->value && INV_AMMO(ent, SLIP_NUM))
 			ent->s.event = EV_FALL;
 	}
@@ -707,14 +719,14 @@ void P_FallingDamage (edict_t * ent)
 
 	if (!DMFLAGS(DF_NO_FALLING))
 	{
-		damage = (int) (((delta - 30) / 2));
+		damage = (int) (((delta - fallheight) / 2));
 		if (damage < 1)
 			damage = 1;
 		// zucc scale this up
 		damage *= 10;
 
-		// darksaint - reduce damage if esp_enhancedslippers are on and equipped
-		if (esp_enhancedslippers->value && INV_AMMO(ent, SLIP_NUM))
+		// darksaint - reduce damage if esp_enhancedslippers are 1 and equipped
+		if (esp_enhancedslippers->value == 1 && INV_AMMO(ent, SLIP_NUM))
 			damage /= 2;
 
 		VectorSet (dir, 0, 0, 1);
