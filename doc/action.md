@@ -657,7 +657,7 @@ See included Espionage.md file for details. Taken from AQ2:ETE, these additions 
 - `esp_etv_halftime [0/1]` - Sets halftime rule of swapping teams in an ETV scenario after half of the timelimit has passed
 - `esp_showleader [0/1]` - GHUD setting, enabling this will show a marker over your team's leader at all times so that you can find him
 - `esp_showtarget [0/1]` - GHUD setting, enabling this will show a marker over your escort target, where the leader needs to reach to win the round
-- `esp_leaderequip [0/1/2/3]` - Adjusts the loadout of all leaders, see Espionage.md for details
+- `esp_leaderequip [0/1/2/3]` - Adjusts the loadout of all leaders, see [espionage.md](./espionage.md) for details
 - `esp_enhancedslippers [0|1|2]`: default `0`
   -  If enabled, this removes all limping, and:
     -  `1`: 50% damage reduction on falls
