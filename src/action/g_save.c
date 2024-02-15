@@ -586,7 +586,7 @@ void InitGame( void )
 	esp_atl = gi.cvar( "esp_atl", "0", 0 ); // This forces ATL mode even if ETV mode is set in the .esp file
 	esp_punish = gi.cvar("esp_punish", "0", 0);
 	esp_etv_halftime = gi.cvar("esp_etv_halftime", "0", CVAR_LATCH);
-	if (esp_etv_halftime->value && roundlimit->value < 4) {
+	if (esp->value && esp_etv_halftime->value && roundlimit->value < 4) {
 		// Disabling halftime because roundlimit is not set
 		disablecvar(esp_etv_halftime, "Roundlimit set too low for halftime, minimum is 4 rounds");
 	}
@@ -625,7 +625,7 @@ void InitGame( void )
 
 	// 2023
 	use_killcounts = gi.cvar("use_killcounts", "0", 0);
-	am = gi.cvar("am", "0", CVAR_SERVERINFO);
+	am = gi.cvar("am", "0", CVAR_LATCH | CVAR_SERVERINFO);
 	am_newnames = gi.cvar("am_newnames", "1", 0);
 	am_botcount = gi.cvar("am_botcount", "6", CVAR_SERVERINFO);
 	if (am_botcount->value < 0){
