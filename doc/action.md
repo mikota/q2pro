@@ -495,7 +495,7 @@ Antilag allows server operator to enable lag-compensation for aiming with hitsca
 `limp_nopred [0/1]` - client cvar, clients can set this to force on or off movement prediction when taking leg damage. Set to "0" for classic behavior, set to "1" to fix the jitter
 
 ### Force Spawn items
-`g_spawn_items [0/1]` - server cvar, set to "1" to allow for item/ammo/weapon spawns in games that you choose your starting weapon, for example, dm_choose, teamplay, etc. Forced set to "0" for matchmode. Set "0" for normal play.
+`g_spawn_items [0/1]` - server cvar, set to "1" to allow for item/ammo/weapon spawns in games that you choose your starting weapon, for example, dm_choose, teamplay, etc. Forced set to "0" for matchmode. Set "0" for classic play.
 
 ### Attract Mode
 `am` - server cvar, this will set the server up in 'attract mode', where bots spawn in but are replaced by humans, and vice versa. This is meant to keep a server 'populated' without being overrun by bots, when humans can take their place. It depends on several other cvars for proper operation.
@@ -519,9 +519,9 @@ Antilag allows server operator to enable lag-compensation for aiming with hitsca
 
 ### Item Kit Mode
 `item_kit_mode [0/1]` - server cvar, default 0. Works in any mode where you choose a weapon (GS_WEAPONCHOOSE), it combines items into kits:
-- Commando Kit: Bandolier + Kevlar Helm
-- Stealth Kit: Slippers + Silencer
-- Assassin Kit: Laser Sight + Silencer
+- Commando Kit: `Bandolier + Kevlar Helm`
+- Stealth Kit: `Slippers + Silencer`
+- Assassin Kit: `Laser Sight + Silencer`
 Players may drop the items anytime (using `drop item`) but you can only pick one up at a time, assuming the server doesn't allow for more. On player entity death, both items will drop. LTK bots do not use kits, they will retain their normal behavior. esp_enhancedslippers settings are honored, boosting the effectiveness of the Stealth Kit even more.
 
 ### Print rules
@@ -537,7 +537,10 @@ See included Espionage.md file for details. Taken from AQ2:ETE, these additions 
 - `esp_showleader [0/1]` - GHUD setting, enabling this will show a marker over your team's leader at all times so that you can find him
 - `esp_showtarget [0/1]` - GHUD setting, enabling this will show a marker over your escort target, where the leader needs to reach to win the round
 - `esp_leaderequip [0/1/2/3]` - Adjusts the loadout of all leaders, see Espionage.md for details
-- `esp_enhancedslippers [0|1]` (default: "0") to remove limping from leg damage (falling and shooting), and 50% damage reduction when falling long distances
+- `esp_enhancedslippers [0|1|2]`: default `0`
+  -  If enabled, this removes all limping, and:
+    -  `1`: 50% damage reduction on falls
+    -  `2`: 25% increased fall height before falling damage is taken
 
 ## Contact Information
 If you wish to contact the TNG team, to report a bug, suggest a new feature, or offer JBravo your sister, you can find us on IRC on QuakeNet (irc.quakenet.org) in #action.dev
@@ -546,7 +549,7 @@ Send your bug reports to tng-bugs@ra.is and for normal inquiries, email tng@ra.i
 
 > (NOTE: I doubt any of the above is still accurate, but I'm leaving it here to honor the original devs.)
 
-Bug reports are now handled on GitHub: [https://github.com/Raptor007/aq2-tng/issues](https://github.com/Raptor007/aq2-tng/issues)
+Bug reports are now handled on GitHub: [https://github.com/actionquake/q2pro/issues](https://github.com/actionquake/q2pro/issues)
 
 ## Credits
 Thanks go to the following people who have helped us make AQ2:The Next Generation in one way or another.
