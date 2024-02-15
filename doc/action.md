@@ -664,13 +664,20 @@ See included Espionage.md file for details. Taken from AQ2:ETE, these additions 
     -  `2`: 25% increased fall height before falling damage is taken
 
 ## Contact Information
+Contacting the AQ2World Team is easy, join our Discord or visit our forums, or leave a Github Issue.  We are always looking for feedback and suggestions.
+- Discord Server: [https://discord.aq2world.com](https://discord.aq2world.com)
+- Forums: [https://forums.aq2world.com](https://forums.aq2world.com)
+
+Bug reports are now handled on GitHub: [https://github.com/actionquake/q2pro/issues](https://github.com/actionquake/q2pro/issues)
+
+---
+
+*Legacy contact information for the original TNG team:*
 If you wish to contact the TNG team, to report a bug, suggest a new feature, or offer JBravo your sister, you can find us on IRC on QuakeNet (irc.quakenet.org) in #action.dev
 
 Send your bug reports to tng-bugs@ra.is and for normal inquiries, email tng@ra.is.
 
 > (NOTE: I doubt any of the above is still accurate, but I'm leaving it here to honor the original devs.)
-
-Bug reports are now handled on GitHub: [https://github.com/actionquake/q2pro/issues](https://github.com/actionquake/q2pro/issues)
 
 ## Credits
 Thanks go to the following people who have helped us make AQ2:The Next Generation in one way or another.
