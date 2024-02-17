@@ -222,7 +222,7 @@ jobs:
 
       - name: Build
         run: |
-          meson setup ${{ env.MESON_ARGS }} ${{ env.MESON_ARGS_LINUX }} builddir
+          meson setup ${{ env.MESON_ARGS }} ${{ env.MESON_ARGS_LINUX_X11 }} builddir
           meson compile -vC builddir
         env:
           CC: ${{ matrix.cc }}

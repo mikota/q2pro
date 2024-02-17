@@ -16,6 +16,7 @@ Additions and enhancements by darksaint, Reki, Rektek and the AQ2World team
     - [Configvoting](#configvoting)
         - [Commands](#commands-2)
 5. [Teamplay](#teamplay)
+    - [Commands](#commands-3)
 6. [Tourney](#tourney)
     - [Commands](#commands-3)
 7. [3 Teams Teamplay](#3-teams-teamplay)
@@ -181,6 +182,8 @@ Configvoting allows clients to vote for a certain configuration, predefined by t
 
 ### Teamplay
 Enables standard 2-team round-based teamplay.  Kill everyone on the other team to win a round.
+
+#### Commands
 - `teamplay [0/1]` (default: "0") - setting to 1 enables teamplay, requires new map or server restart
 - `sv t[i]name <string>` - Where i is 1, 2 or 3, sets a team name in the absence of action.ini.  Will take effect immediately.  Example: sv t1name "Robbers"
 - `sv t[i]skin <string>` - Where i is 1, 2 or 3, sets a team skin in the absence of action.ini.  Will take effect on a new round of teamplay or a new map.  Example: sv t2skin "male/ctf_b"
@@ -339,7 +342,7 @@ The lens command is in TNG and offers increased control over the zooming of the 
 ### New Say Variables
 TNG offers several new variables clients can use in their text:
 - `%K` - shows the nickname of the person you killed last. 
-- `%P` - shows the nickname of the person you damanged last.
+- `%P` - shows the nickname of the person you damaged last.
 - `%D` - shows the location where you hit your enemy last. This can either be head, chest, stomach, legs, kevlar vest or kevlar helmet.
 - `%L` - shows the location where you are at that moment. (if the map has a location file)
 - `%S` - shows the location where you are looking at. (if the map has a location file)
@@ -533,12 +536,13 @@ To see how well players are doing, we have implemented statistics into TNG. This
 - `stats [#]` - this will display the stats for the player with the id given. (client side)
 - `stats_mode [0/1/2]` - when set to 1, it will automatically display the stats of the player at the end of each round. When set to 2, it will automatically display the stats of the player at the end of the map. By default this is set to 0 (off). (client side)
 
-### Automatic Joining/Equipping
-For the lazy players under us, we have created two new client commands to make things easier.
+### Automatic Joining/Equipping/Menu
+For the lazy players under us, we have created three new commands to make things easier.
 
 **Commands:**
 - `auto_join [0/1/2]` - when on (1), the players will automatically join the team he was in during the last map. If set to 2, it will automatically join the team with the least players, or randomly if equal.
 - `auto_equip [0/1]` - when on (1), the players will automatically be given the equipment he had during the last map.
+- `auto_menu [0/1]` - when on (1), the menu will automatically open when you join the server.
 
 ### Automatic Demo Recording
 To ease the recording of demos by a client over several maps, we have implemented a feature which will let the client automatically record a demo on each new map. When enabled, the server will keep track of the recording of the client, and will create a demo of the map with the following name: date_time-map.dm2 In matchmode, the demo's name will be: date_time-team1_vs_team2-map.dm2
@@ -649,7 +653,7 @@ Players may drop the items anytime (using `drop item`) but you can only pick one
 - `printrules [0/1]` - server cvar, default 0.  If enabled, a printout of the rules will display once the countdown begins in Teamplay modes.
 
 ### Espionage
-See included Espionage.md file for details. Taken from AQ2:ETE, these additions are optional server vars to create a larger variety of gameplay. Review the document called Espionage.md to understand how to run a server and how to create and edit scene files.
+Inspired by AQ2:ETE, these additions are optional server vars to create a different variety of gameplay. Review the document called Espionage.md to understand how to run a server and how to create and edit scene files.
 - `esp [0/1]` - Activates Espionage mode.  Default 0
 - `atl [0/1]` - Sets Assassinate the Leader mode, if esp is enabled.
 - `etv [0/1]` - Sets Escort the VIP mode, will default to Assassinate the Leader if the map configuration is missing or malformed
@@ -662,6 +666,7 @@ See included Espionage.md file for details. Taken from AQ2:ETE, these additions 
   -  If enabled, this removes all limping, and:
     -  `1`: 50% damage reduction on falls
     -  `2`: 25% increased fall height before falling damage is taken
+  - You do not need to have Espionage mode enabled to use this feature.
 
 ## Contact Information
 Contacting the AQ2World Team is easy, join our Discord or visit our forums, or leave a Github Issue.  We are always looking for feedback and suggestions.
