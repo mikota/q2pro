@@ -412,7 +412,7 @@ void VerifyHeadShot(vec3_t point, vec3_t dir, float height, vec3_t newpoint)
 
 #define HEAD_HEIGHT 12.0f
 
-qboolean check_head_success(vec3_t point, vec3_t dir, vec3_t targ_origin, float targ_maxs2) {
+qboolean check_head_success(const vec3_t point, const vec3_t dir, vec3_t targ_origin, float targ_maxs2) {
     vec3_t new_point, deconst_point, deconst_dir;
 
     // De-constify the point and dir
@@ -596,7 +596,7 @@ void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const ve
 						}
 					}
 					if (mod == MOD_GRENADE_IMPACT)
-						gi.sound(targ, CHAN_VOICE, level.snd_grenhelm, 1, ATTN_NORM, 0);
+						gi.sound(targ, CHAN_ITEM, level.snd_grenhelm, 1, ATTN_NORM, 0);
 					else
 						gi.sound(targ, CHAN_ITEM, level.snd_vesthit, 1, ATTN_NORM, 0);
 					damage = (int)(damage / 2);
@@ -682,7 +682,7 @@ void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const ve
 							attacker->client->pers.netname);
 					}
 					if (mod == MOD_GRENADE_IMPACT)
-						gi.sound(targ, CHAN_VOICE, level.snd_grenbody, 1, ATTN_NORM, 0);
+						gi.sound(targ, CHAN_ITEM, level.snd_grenbody, 1, ATTN_NORM, 0);
 					else
 						gi.sound(targ, CHAN_ITEM, level.snd_vesthit, 1, ATTN_NORM, 0);
 					damage = (int)(damage / 10);
