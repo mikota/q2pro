@@ -403,6 +403,8 @@ if not win32
 endif
 
 if host_machine.system() == 'darwin'
+  # Darwin is warning-spamming because of its SDL_config defines
+  add_project_arguments('-Wno-macro-redefined', language : 'c')
   opengl = dependency('opengl',
     allow_fallback:  win32,
     default_options: fallback_opt,
