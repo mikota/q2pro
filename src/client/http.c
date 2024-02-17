@@ -805,6 +805,19 @@ static void process_downloads(void)
                 goto fail1;
             }
 
+            //404 is non-fatal unless accessing default repository
+            if (response == 404) {
+                if (!download_default_repo || !dl->path[0]) {
+                    level = PRINT_ALL;
+                    goto fail1;
+                } else {
+                    // Try the fallback server
+                    snprintf(fallback_url, sizeof(fallback_url), "%s%s", DOWNLOADSERVER, dl->path);
+                    start_download(dl, fallback_url);
+                    return;
+                }
+            }
+
             //every other code is treated as fatal
             //not marking download as done since
             //we are falling back to UDP
