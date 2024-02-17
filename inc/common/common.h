@@ -49,6 +49,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define COM_HISTORYFILE_NAME    ".conhistory"
 #define COM_DEMOCACHE_NAME      ".democache"
 
+#if USE_AQTION
+#define DOWNLOADSERVER "http://gameassets.aqtiongame.com/"
+#endif
+
 #define MAXPRINTMSG     4096
 #define MAXERRORMSG     1024
 
