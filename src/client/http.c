@@ -503,17 +503,9 @@ void HTTP_SetServer(const char *url)
     if (!url) {
         url = cl_http_default_url->string;
         download_default_repo = true;
-    } 
-    #if USE_AQTION
-    else {
-        url = DOWNLOADSERVER;
-        download_default_repo = true;
-    }
-    #else
-    else {
+    } else {
         download_default_repo = false;
     }
-    #endif
 
     if (!*url)
         return;
@@ -803,19 +795,6 @@ static void process_downloads(void)
             if (response == 404 && (!download_default_repo || !dl->path[0])) {
                 level = PRINT_ALL;
                 goto fail1;
-            }
-
-            //404 is non-fatal unless accessing default repository
-            if (response == 404) {
-                if (!download_default_repo || !dl->path[0]) {
-                    level = PRINT_ALL;
-                    goto fail1;
-                } else {
-                    // Try the fallback server
-                    snprintf(fallback_url, sizeof(fallback_url), "%s%s", DOWNLOADSERVER, dl->path);
-                    start_download(dl, fallback_url);
-                    return;
-                }
             }
 
             //every other code is treated as fatal
