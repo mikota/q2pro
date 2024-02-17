@@ -1228,6 +1228,10 @@ void ClientObituary(edict_t * self, edict_t * inflictor, edict_t * attacker)
 			message = " was caught by";
 			message2 = "'s grapple";
 			break;
+		case MOD_GRENADE_IMPACT:
+			message = " was deeply impacted by";
+			message2 = "'s grenade";
+			break;
 		}	//end of case (mod)
 
 		if (message)

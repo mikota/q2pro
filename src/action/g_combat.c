@@ -412,6 +412,24 @@ void VerifyHeadShot(vec3_t point, vec3_t dir, float height, vec3_t newpoint)
 
 #define HEAD_HEIGHT 12.0f
 
+qboolean check_head_success(vec3_t point, vec3_t dir, vec3_t targ_origin, float targ_maxs2) {
+    vec3_t new_point, deconst_point, deconst_dir;
+
+    // De-constify the point and dir
+    VectorCopy(point, deconst_point);
+    VectorCopy(dir, deconst_dir);
+    VerifyHeadShot(deconst_point, deconst_dir, HEAD_HEIGHT, new_point);
+    VectorSubtract(new_point, targ_origin, new_point);
+
+    if ((targ_maxs2 - new_point[2]) < HEAD_HEIGHT
+        && (fabsf(new_point[1])) < HEAD_HEIGHT * .8
+        && (fabsf(new_point[0])) < HEAD_HEIGHT * .8)
+    {
+        return true;
+    }
+    return false;
+}
+
 void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const vec3_t dir,
 	  const vec3_t point, const vec3_t normal, int damage, int knockback, int dflags,
 	  int mod)
@@ -496,6 +514,7 @@ void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const ve
 		case MOD_SNIPER:
 		case MOD_KNIFE:
 		case MOD_KNIFE_THROWN:
+		case MOD_GRENADE_IMPACT:
 
 			z_rel = point[2] - targ->s.origin[2];
 			from_top = targ_maxs2 - z_rel;
@@ -504,23 +523,8 @@ void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const ve
 			bleeding = 1;
 			instant_dam = 0;
 
-			if (from_top < 2 * HEAD_HEIGHT)
-			{
-				vec3_t new_point, deconst_point, deconst_dir;
-
-				//De-constify the point and dir
-				VectorCopy(point, deconst_point);
-				VectorCopy(dir, deconst_dir);
-				VerifyHeadShot(deconst_point, deconst_dir, HEAD_HEIGHT, new_point);
-				VectorSubtract(new_point, targ->s.origin, new_point);
-				//gi.cprintf(attacker, PRINT_HIGH, "z: %d y: %d x: %d\n", (int)(targ_maxs2 - new_point[2]),(int)(new_point[1]) , (int)(new_point[0]) );
-
-				if ((targ_maxs2 - new_point[2]) < HEAD_HEIGHT
-					&& (abs (new_point[1])) < HEAD_HEIGHT * .8
-					&& (abs (new_point[0])) < HEAD_HEIGHT * .8)
-				{
-					head_success = 1;
-				}
+			if (from_top < 2 * HEAD_HEIGHT) {
+				head_success = check_head_success(point, dir, targ->s.origin, targ_maxs2);
 			}
 
 			if (head_success)
@@ -557,8 +561,11 @@ void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const ve
 					if (attacker->client)
 						gi.cprintf(attacker, PRINT_HIGH, "You hit %s in the head\n", client->pers.netname);
 
-					if (mod != MOD_KNIFE && mod != MOD_KNIFE_THROWN)
+					if (mod == MOD_GRENADE_IMPACT)
+						gi.sound(targ, CHAN_VOICE, level.snd_grenhead, 1, ATTN_NORM, 0);
+					else if (mod != MOD_KNIFE && mod != MOD_KNIFE_THROWN)
 						gi.sound(targ, CHAN_VOICE, level.snd_headshot, 1, ATTN_NORM, 0);
+
 				}
 				else if (mod == MOD_SNIPER)
 				{
@@ -580,10 +587,18 @@ void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const ve
 					{
 						gi.cprintf( attacker, PRINT_HIGH, "%s has a Kevlar Helmet - AIM FOR THE BODY!\n",
 							client->pers.netname );
-						gi.cprintf( targ, PRINT_HIGH, "Kevlar Helmet absorbed a part of %s's shot\n",
-							attacker->client->pers.netname );
+						if (mod == MOD_GRENADE_IMPACT) {
+							gi.cprintf( targ, PRINT_HIGH, "Kevlar Helmet absorbed a part of %s's grenade\n",
+								attacker->client->pers.netname );
+						} else {
+							gi.cprintf( targ, PRINT_HIGH, "Kevlar Helmet absorbed a part of %s's shot\n",
+								attacker->client->pers.netname );
+						}
 					}
-					gi.sound(targ, CHAN_ITEM, level.snd_vesthit, 1, ATTN_NORM, 0);
+					if (mod == MOD_GRENADE_IMPACT)
+						gi.sound(targ, CHAN_VOICE, level.snd_grenhelm, 1, ATTN_NORM, 0);
+					else
+						gi.sound(targ, CHAN_ITEM, level.snd_vesthit, 1, ATTN_NORM, 0);
 					damage = (int)(damage / 2);
 					bleeding = 0;
 					instant_dam = 1;
@@ -666,7 +681,10 @@ void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const ve
 						gi.cprintf(targ, PRINT_HIGH, "Kevlar Vest absorbed most of %s's shot\n",
 							attacker->client->pers.netname);
 					}
-					gi.sound(targ, CHAN_ITEM, level.snd_vesthit, 1, ATTN_NORM, 0);
+					if (mod == MOD_GRENADE_IMPACT)
+						gi.sound(targ, CHAN_VOICE, level.snd_grenbody, 1, ATTN_NORM, 0);
+					else
+						gi.sound(targ, CHAN_ITEM, level.snd_vesthit, 1, ATTN_NORM, 0);
 					damage = (int)(damage / 10);
 					bleeding = 0;
 					instant_dam = 1;

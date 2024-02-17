@@ -1781,11 +1781,14 @@ void SP_worldspawn (edict_t * ent)
 	}
 
 	level.snd_silencer = gi.soundindex("misc/silencer.wav");	// all silencer weapons
-	level.snd_headshot = gi.soundindex("misc/headshot.wav");	// headshot sound
-	level.snd_vesthit = gi.soundindex("misc/vest.wav");		// kevlar hit
+	level.snd_headshot = gi.soundindex("misc/headshot.wav");	// the glorious headshot sound
+	level.snd_vesthit = gi.soundindex("misc/vest.wav");		// kevlar hit (pew pew)
 	level.snd_knifethrow = gi.soundindex("misc/flyloop.wav");	// throwing knife
 	level.snd_kick = gi.soundindex("weapons/kick.wav");	// not loaded by any item, kick sound
-	level.snd_noammo = gi.soundindex("weapons/noammo.wav");
+	level.snd_noammo = gi.soundindex("weapons/noammo.wav");  // click!
+	level.snd_grenhead = gi.soundindex("weapons/grenhead.wav");  // grenade impact to head
+	level.snd_grenhelm = gi.soundindex("weapons/grenhelm.wav");  // grenade impact to helmet
+	level.snd_grenbody = gi.soundindex("weapons/grenbody.wav");  //	grenade impact to body
 
 	gi.soundindex("tng/1_minute.wav");
 	gi.soundindex("tng/3_minutes.wav");

@@ -817,6 +817,9 @@ typedef struct
   int snd_knifethrow;
   int snd_kick;
   int snd_noammo;
+  int snd_grenhead;
+  int snd_grenhelm;
+  int snd_grenbody;
 
   int model_null;
   int model_lsight;
@@ -956,6 +959,7 @@ typedef enum {
     MOD_BLEEDING,
     MOD_KICK,
     MOD_GRAPPLE,
+	MOD_GRENADE_IMPACT,
     MOD_TOTAL,
     MOD_FRIENDLY_FIRE = 0x8000000
 } ModTable;
