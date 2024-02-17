@@ -62,7 +62,11 @@ There are some settings you need to setup to enable it:
 * **esp_leaderenhance** [0/1] - This enhances the leader in that:
     * The leader's bandage time is halved
     * The leader receives periodic medkits, if medkit_max is > 0, to be used when they bandage
-* **esp_enhancedslippers** [0/1] - to remove limping from leg damage (falling and shooting), and 50% damage reduction when falling long distances.  This used to be called `e_enhancedSlippers` from the original ETE, but was renamed to keep in with the naming convention of Espionage options
+* **esp_enhancedslippers** [0/1/2] - This enhances the Stealth Slippers:
+    * 0 means the Stealth Slippers are not enhanced in any way (classic)
+    * 1 removes limping from all leg damage and 50% damage reduction when falling long distances
+    * 2 removes limping from all leg damage and increase the height before fall damage occurs by 25%. 
+    This used to be called `e_enhancedSlippers` from the original ETE, but was renamed to keep in with the naming convention of the new Espionage options.  *This option does not require Espionage to be enabled, it can be used in any game mode.*
 * **esp_atl** [0/1] - default `0`, this forces ATL mode if `1`, even if the scenario loaded for the map is for ETV mode.  Has no effect on any map that is specifically setup for ATL mode or maps that load safe defaults, which are always ATL mode.
 
 * **ETV-Specific Cvars**:

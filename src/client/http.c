@@ -503,9 +503,17 @@ void HTTP_SetServer(const char *url)
     if (!url) {
         url = cl_http_default_url->string;
         download_default_repo = true;
-    } else {
+    } 
+    #if USE_AQTION
+    else {
+        url = DOWNLOADSERVER;
+        download_default_repo = true;
+    }
+    #else
+    else {
         download_default_repo = false;
     }
+    #endif
 
     if (!*url)
         return;

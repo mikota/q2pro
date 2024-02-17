@@ -1082,6 +1082,12 @@ static void send_connect_packet(client_t *newcl, int nctype)
         dlstring1 = " dlserver=";
         dlstring2 = sv_downloadserver->string;
     }
+    #if USE_AQTION
+    else {
+        dlstring1 = " dlserver=";
+        dlstring2 = DOWNLOADSERVER;
+    }
+    #endif
 
     Netchan_OutOfBand(NS_SERVER, &net_from, "client_connect%s%s%s%s map=%s",
                       ncstring, acstring, dlstring1, dlstring2, newcl->mapname);

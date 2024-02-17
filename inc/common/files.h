@@ -125,3 +125,7 @@ FILE *Q_fopen(const char *path, const char *mode);
 extern cvar_t   *fs_game;
 
 extern char     fs_gamedir[];
+
+#if USE_AQTION
+#define DOWNLOADSERVER "http://gameassets.aqtiongame.com/"
+#endif

@@ -147,47 +147,52 @@ Unpack the quake2/action directory and edit the ini files in the action/config d
 TNG offers mapvoting so that clients can change the map by voting for one. This is useful for those servers that wish to offer the maps the people want to play on. There is a 40 second voting block to prevent players with fast connections to join and vote for a map before others got a chance to join/vote.
 
 #### Commands
-
-- <a name="use_mapvote"></a>`use_mapvote [0/1]` - toggle to turn mapvoting on (1) or off (0).
-- <a name="mapvote_pass"></a>`mapvote_pass [0..100]` - Percentage of votes a single map needs before the vote passes.
-- <a name="mapvote_need"></a>`mapvote_need [0..100]` - Percentage of players that has to vote before any vote may pass.
-- <a name="mapvote_min"></a>`mapvote_min [#]` - Minimum number of players that need to vote for a single map. 0 to ignore that.
-- <a name="mapvote_waittime"></a>`mapvote_waittime [#]` - Number of seconds people can't vote for a new map when they enter a map.
-- <a name="maplistname"></a>`maplistname "maplist.ini"` - filename/location of the file containing all the maps people can vote for.
-- <a name="mv_public"></a>`mv_public [0/1]` - When on (1), it will show what maps someone votes for.
+- Server settings:
+  - <a name="use_mapvote"></a>`use_mapvote [0/1]` - toggle to turn mapvoting on (1) or off (0).
+  - <a name="mapvote_pass"></a>`mapvote_pass [0..100]` - Percentage of votes a single map needs before the vote passes.
+  - <a name="mapvote_need"></a>`mapvote_need [0..100]` - Percentage of players that has to vote before any vote may pass.
+  - <a name="mapvote_min"></a>`mapvote_min [#]` - Minimum number of players that need to vote for a single map. 0 to ignore that.
+  - <a name="mapvote_waittime"></a>`mapvote_waittime [#]` - Number of seconds people can't vote for a new map when they enter a map.
+  - <a name="maplistname"></a>`maplistname "maplist.ini"` - filename/location of the file containing all the maps people can vote for.
+  - <a name="mv_public"></a>`mv_public [0/1]` - When on (1), it will show what maps someone votes for.
 
 ### Kickvoting
 This offers clients to kick those unwanted players from the server when no admin is about.  
 
 #### Commands
-- `use_kickvote [0/1]` - toggle to turn kickvoting on (1) or off (0).
-- `kickvote_pass [0..100]` - Percentage of votes a single player needs before the vote passes.
-- `kickvote_need [0..100]` - Percentage of players that has to vote before any vote may pass.
-- `kickvote_min [#]` - Minimum number of players that need to vote for a single player. 0 to ignore that.
-- `kickvote_tempban [0/1]` - When set to 1, it will ban the kicked person until the map changes
-- `vk_public [0/1]` - When on (1), it will show who votes for who.
-- `kicklist` - this will display a list of all players with their id number. (client side)
-- `votekick "player"` - this will cast your votekick vote for player "player". (client side)
-- `votekicknum [#]` - this will cast your votekick vote for the player with id number #. (client side)
+- Server settings:
+  - `use_kickvote [0/1]` - toggle to turn kickvoting on (1) or off (0).
+  - `kickvote_pass [0..100]` - Percentage of votes a single player needs before the vote passes.
+  - `kickvote_need [0..100]` - Percentage of players that has to vote before any vote may pass.
+  - `kickvote_min [#]` - Minimum number of players that need to vote for a single player. 0 to ignore that.
+  - `kickvote_tempban [0/1]` - When set to 1, it will ban the kicked person until the map changes
+  - `vk_public [0/1]` - When on (1), it will show who votes for who.
+- Client settings:
+  - `kicklist` - this will display a list of all players with their id number
+  - `votekick "player"` - this will cast your votekick vote for player "player"
+  - `votekicknum [#]` - this will cast your votekick vote for the player with id number #
+
 
 ### Configvoting
 Configvoting allows clients to vote for a certain configuration, predefined by the server admin, to be put on the server, in the same way as mapvoting. To vote for a config, open up the menu ('menu' in the console) and select Configvoting from the list.
 
 #### Commands
-- `use_cvote [0/1]` - toggle to turn configvoting on (1) or off (0).
-- `cvote_pass [0..100]` - Percentage of votes a single config needs before the vote passes.
-- `cvote_need [0..100]` - Percentage of players that has to vote before any vote may pass.
-- `cvote_min [#]` - Minimum number of players that need to vote for a single config. 0 to ignore that.
-- `configlistname "configlist.ini"` - filename/location of the file containing all the configs people can vote for.
+- Server settings:
+  - `use_cvote [0/1]` - toggle to turn configvoting on (1) or off (0).
+  - `cvote_pass [0..100]` - Percentage of votes a single config needs before the vote passes.
+  - `cvote_need [0..100]` - Percentage of players that has to vote before any vote may pass.
+  - `cvote_min [#]` - Minimum number of players that need to vote for a single config. 0 to ignore that.
+  - `configlistname "configlist.ini"` - filename/location of the file containing all the configs people can vote for.
 
 ### Teamplay
 Enables standard 2-team round-based teamplay.  Kill everyone on the other team to win a round.
 
 #### Commands
-- `teamplay [0/1]` (default: "0") - setting to 1 enables teamplay, requires new map or server restart
-- `sv t[i]name <string>` - Where i is 1, 2 or 3, sets a team name in the absence of action.ini.  Will take effect immediately.  Example: sv t1name "Robbers"
-- `sv t[i]skin <string>` - Where i is 1, 2 or 3, sets a team skin in the absence of action.ini.  Will take effect on a new round of teamplay or a new map.  Example: sv t2skin "male/ctf_b"
-- `sv t[i]skin_index <string>` - Where i is 1, 2 or 3, sets a team skin index in the absence of action.ini.  Will take effect on a new map or server restart.  Example: sv t3skin_index "siris_i"
+- Server settings:
+  - `teamplay [0/1]` (default: "0") - setting to 1 enables teamplay, requires new map or server restart
+  - `sv t[i]name <string>` - Where i is 1, 2 or 3, sets a team name in the absence of action.ini.  Will take effect immediately.  Example: sv t1name "Robbers"
+  - `sv t[i]skin <string>` - Where i is 1, 2 or 3, sets a team skin in the absence of action.ini.  Will take effect on a new round of teamplay or a new map.  Example: sv t2skin "male/ctf_b"
+  - `sv t[i]skin_index <string>` - Where i is 1, 2 or 3, sets a team skin index in the absence of action.ini.  Will take effect on a new map or server restart.  Example: sv t3skin_index "siris_i"
 
 ### Tourney
 For those who want to offer a Rocket Arena style one on one server, this mode is ideal. It will let two players spawn and face each other. The winner will stay for the next round and the loser will go back to the queue. The winner then takes up the next player in the queue.
@@ -195,14 +200,16 @@ For those who want to offer a Rocket Arena style one on one server, this mode is
 Example: There are 4 players on a server, A, B, C and Z. Both A and B play each other, C and Z are in the queue. B wins and A gets put back in the queue (which then is C, Z and A). Then, B plays the next in the queue, namely C. If B would win, he'd face Z and C would get put back in the queue. If C would win, he would play Z next and B would be put back in the queue.
 
 #### Commands
-- `use_tourney [0/1]` - This will turn tourney mode on (1) or off (0). To use it, teamplay needs to be on. (1)
-- `tourney_lca [0/1]` - Set to 1 to enable "Lights Camera Action" for tourney mode, set to 0 for classic silence
+- Server settings:
+  - `use_tourney [0/1]` - This will turn tourney mode on (1) or off (0). To use it, teamplay needs to be on. (1)
+  - `tourney_lca [0/1]` - Set to 1 to enable "Lights Camera Action" for tourney mode, set to 0 for classic silence
 
 ### 3 Teams Teamplay
 For more exciting teamplay games, TNG offers a 3 Teams mode of play. This variant of Teamplay will put three teams against each other.
 
 #### Commands
-- `use_3teams [0/1]` - This will turn 3 Teams on (1) or off (0). To use it, teamplay needs to be on. (1)
+- Server settings:
+  - `use_3teams [0/1]` - This will turn 3 Teams on (1) or off (0). To use it, teamplay needs to be on. (1)
 
 ### Capture the Flag
 The popular gameplay mode from many games and mods is available in TNG as well. In this mode, there are two teams, Red and Blue. Both have a flag on the map, and they need to take the enemy flag and bring it to their own to score a point. (Capture the Flag, or cap for short) The other team will attempt the same of course.
@@ -212,12 +219,14 @@ To prevent spawn camping, there is an invulnerability/shield mode to give some p
 Flag locations and CTF player spawns should be specified in tng/mapname.ctf files.
 
 #### Commands
-- `ctf [0/1]` - This will turn CTF on (1) or off (0). It will automatically turn Teamplay on (1).
-- `capturelimit [#]` - The maximum number of captures before a map will change. Set to 0 to ignore that.
-- `ctf_respawn [#]` - The time in seconds before a player will respawn after having died.
-- `ctf_dropflag [0/1]` - Allow clients to drop the flag or not.
-- `drop flag` - Drop the flag if you're holding it. (client side)
-- `uvtime [#]` - The number of seconds *10 of the duration of the 'shield' effect. (for example 40 is 4 secs)
+- Server settings:
+  - `ctf [0/1]` - This will turn CTF on (1) or off (0). It will automatically turn Teamplay on (1).
+  - `capturelimit [#]` - The maximum number of captures before a map will change. Set to 0 to ignore that.
+  - `ctf_respawn [#]` - The time in seconds before a player will respawn after having died.
+  - `ctf_dropflag [0/1]` - Allow clients to drop the flag or not.
+  - `uvtime [#]` - The number of seconds *10 of the duration of the 'shield' effect. (for example 40 is 4 secs)
+- Client settings:
+  - `drop flag` - Drop the flag if you're holding it
 
 ### Domination
 This is most closely related to Unreal Tournament's domination mode, but is also similar to king of the hill and conquest modes in general. There are fixed flags (typically 3) scattered around the map, and touching a flag will claim it for your team. Keep control of flags to score points; your team gains 1 point per flag controlled every second. The score limit is 200 per flag in 2-team mode, or 150 per flag in 3-team mode, which means a typical 2-team game with 3 flags has a score limit of 600.
@@ -225,9 +234,10 @@ This is most closely related to Unreal Tournament's domination mode, but is also
 Flag locations can be specified in tng/mapname.dom files. If not found, the server will attempt to generate them automatically from player spawn locations.
 
 #### Commands
-- `dom [0/1]` - This will turn Domination mode on (1) or off (0), and also turns Teamplay on (1).
-- `use_3teams [0/1]` - This will turn 3 Teams on (1) or off (0).
-- `uvtime [#]` - The number of seconds * 10 of the duration of the 'shield' effect (ex: 40 = 4 secs).
+- Server settings:
+  - `dom [0/1]` - This will turn Domination mode on (1) or off (0), and also turns Teamplay on (1).
+  - `use_3teams [0/1]` - This will turn 3 Teams on (1) or off (0).
+  - `uvtime [#]` - The number of seconds * 10 of the duration of the 'shield' effect (ex: 40 = 4 secs).
 
 ### Matchmode
 Matchmode is a special form of Teamplay, made for clanmatches. It has several features which can be useful during matches and league games. It makes sure the whole timelimit is played.
@@ -235,31 +245,35 @@ Matchmode is a special form of Teamplay, made for clanmatches. It has several fe
 Clients will have a few more things to do during matchmode: they have to have a captain and substitutes. Everybody in a team will only be able to talk to his/her own team, with the exception of the captain (see below). Subs are players who are part of the team but aren't playing at the moment. With limchasecam enabled, they will be limited to viewing their own team.
 
 #### Commands
-- `matchmode [0/1]` - Turns Matchmode on (1) or off (0). Turning Matchmode on will turn Teamplay on too.
-- `captain` - Become the team's captain if not captain exists yet. A captain can ready/unready his team and speak to the other team. (client side)
-- `sub` - this will make you a sub for the team or remove you from the subs and back in the team. (client side)
-- `ready` - this will ready/unready the team. A new round won't start if a team isn't read. (client side)
-- `teamname "name"` - allows the captain to set the name of his/her team. (client side)
-- `teamskin "male/resdog"` - allows the captain to set the name of his/her team. (client side) 
-- `mm_forceteamtalk [0/1/2]` - this will change the way people can talk on the server. When set to 0, it will be the same as with normal teamplay. When set to 1, the teams will not be able to talk with each other, except for the admin and the captains. When set to 2, teams can talk with each other until the match starts and when the match is paused or over.
-- `mm_adminpwd <pass>` - this will set the password for match admins.
-- `matchadmin <pass>` - this will allow a player to get admin status. (client side)
-- `mm_allowlock [0/1]` - when on (1), this will allow captains to lock/unlock their teams.
-- `lock` - allows a captain to lock his team. When a team is locked, no one can join it. Locks are removed on a new map. (client side)
-- `unlock` - allows a captain to unlock his team. (client side)
-- `mm_captain_teamname - [0/1]` - default 0, if enabled (1) then the team name will change to the name of the captain, prepended with the string "Team", for example, "Team Suislide" if Suislide is the captain of that team.
+- Server settings:
+  - `matchmode [0/1]` - Turns Matchmode on (1) or off (0). Turning Matchmode on will turn Teamplay on too.
+  - `mm_forceteamtalk [0/1/2]` - this will change the way people can talk on the server. When set to 0, it will be the same as with normal teamplay. When set to 1, the teams will not be able to talk with each other, except for the admin and the captains. When set to 2, teams can talk with each other until the match starts and when the match is paused or over.
+  - `mm_adminpwd <pass>` - this will set the password for match admins.
+  - `mm_allowlock [0/1]` - when on (1), this will allow captains to lock/unlock their teams.
+  - `mm_captain_teamname - [0/1]` - default 0, if enabled (1) then the team name will change to the name of the captain, prepended with the string "Team", for example, "Team Suislide" if Suislide is the captain of that team.
+- Client settings:
+  - `captain` - Become the team's captain if not captain exists yet. A captain can ready/unready his team and speak to the other team
+  - `sub` - this will make you a sub for the team or remove you from the subs and back in the team
+  - `ready` - this will ready/unready the team. A new round won't start if a team isn't read
+  - `teamname "name"` - allows the captain to set the name of his/her team
+  - `teamskin "male/resdog"` - allows the captain to set the name of his/her team 
+  - `matchadmin <pass>` - this will allow a player to get admin status
+  - `lock` - allows a captain to lock his team. When a team is locked, no one can join it. Locks are removed on a new map
+  - `unlock` - allows a captain to unlock his team
 
 ### Voice Command
 The voice command allows clients to play taunts for other players to hear. (as long as they have the sound file)
 
 #### Commands
-- `use_voice [0/1]` - When on (1), it will allow the use of voice commands.
-- `voice "sound.wav"` - this will play sound.wav for all players to hear. (as long as the others have sound.wav) This command requires the .wav extension. (client side)
+- Server settings:
+  - `use_voice [0/1]` - When on (1), it will allow the use of voice commands.
+- Client settings:
+  - `voice "sound.wav"` - this will play sound.wav for all players to hear. (as long as the others have sound.wav) This command requires the .wav extension. (client side)
 
 ### Low Lag Sounds
 To reduce the number of packets being sent by AQ2 during big firefights, TNG has included the option to turn Low Lag Sounds on. This will use a different set of sounds for each weapon, ones that reduce the number of packets being sent.
 
-When you use this, the sounds of the weapons will change to those of Quake 2 weapons. You can update your sounds with the following:
+In AQtion, there are already gun sounds installed that you can select from.  If using non-AQtion clients, when you use this, the sounds of the weapons will change to those of Quake 2 weapons. You can update your sounds with the following:
 
 - MK23 Pistol: `sound/weapons/mk23fire.wav`
 - Handcannon: `sound/weapons/cannon_fire.wav`
@@ -269,21 +283,24 @@ When you use this, the sounds of the weapons will change to those of Quake 2 wea
 - M3 Super Shotgun: `sound/weapons/shotgf1b.wav`
 
 #### Commands
-- `llsound [0/1]` - When on (1), Low Lag Sounds will be used.
-- `cl_mk23_sound`
-- `cl_mp5_sound`
-- `cl_m4_sound`
-- `cl_m3_sound`
-- `cl_hc_sound`
-- `cl_ssg_sound`
+- Server setting:
+  - `llsound [0/1]`
+- Client settings:
+  - `cl_mk23_sound`
+  - `cl_mp5_sound`
+  - `cl_m4_sound`
+  - `cl_m3_sound`
+  - `cl_hc_sound`
+  - `cl_ssg_sound`
 
 ### Announcer
 The announcer that says "Lights, Camera, Action!" has his vocabulary increased by several words, announcing when people perform several feats, such as high accuracy ("Accuracy") or make an impressive shot ("Impressive") but also when a team wins ("Team X Wins") or when the fraglimit is about to get hit.
 
 #### Commands
-- `use_warnings [0/1]` - When on (1), it will play all warnings such as "3 minutes left" and "Team X Wins".
-- `use_rewards [0/1]` - When on (1), it will play the sounds on rewards such as "Impressive".
-- `use_killcounts [0/1]` - When on (1), server will announce kill counts.
+- Server settings:
+  - `use_warnings [0/1]` - When on (1), it will play all warnings such as "3 minutes left" and "Team X Wins".
+  - `use_rewards [0/1]` - When on (1), it will play the sounds on rewards such as "Impressive".
+  - `use_killcounts [0/1]` - When on (1), server will announce kill counts.
 
 ### Kevlar Helmet
 A new item, the Kevlar Helmet acts like the Kevlar Vest does, only it protects the head of the player wearing it. To disable it, use item banning.
@@ -327,20 +344,23 @@ To support the %L and %S commands, the server needs to install the location file
 We have added the extra 'punch' attack, which basically is a weaker version of a kick. It is very close range and does up to 20 damage and can punch the weapon of a player out of his hands. When bandaging, shooting, reloading or zoomed with a sniper rifle, you cannot punch.
 
 #### Commands
-- `use_punch [0/1]` - when on (1), it will allow clients to use the punch command
-- `punch` - this will preform a punch. (client side)
+- Server setting:
+    - `use_punch [0/1]` - when on (1), it will allow clients to use the punch command
+- Client setting:
+    - `punch` - this will preform a punch
 
 ### Lens command
 The lens command is in TNG and offers increased control over the zooming of the sniper rifle.
 
 #### Commands
-- `lens` - changes zoom on sniper rifle. (Client side)
-- `lens [#]` - 1,2,4,6 - if you use any other number it'll go to the nearest zoom mode. (Client side)
-- `lens in` - zooms the rifle in to the next zooming level. (client side)
-- `lens out` - zooms the rifle out to the previous zooming level. (client side)
+- Client settings:
+    - `lens` - changes zoom on sniper rifle
+    - `lens [#]` - 1,2,4,6 - if you use any other number it'll go to the nearest zoom mode
+    - `lens in` - zooms the rifle in to the next zooming level
+    - `lens out` - zooms the rifle out to the previous zooming level
 
 ### New Say Variables
-TNG offers several new variables clients can use in their text:
+TNG offers several new variables clients can use in their text (Client settings):
 - `%K` - shows the nickname of the person you killed last. 
 - `%P` - shows the nickname of the person you damaged last.
 - `%D` - shows the location where you hit your enemy last. This can either be head, chest, stomach, legs, kevlar vest or kevlar helmet.
@@ -350,17 +370,14 @@ TNG offers several new variables clients can use in their text:
 - `%F` - shows the weapon the enemy is holding.
 - `%me` - shows your nickname like IRC's /me.
 
-### Roundtimeleft
+### Time and Roundtimeleft
+By typing 'time' in the console, a client can see the remaining time on that map. This doesn't work in matchmode.
 By typing 'roundtimeleft' in the console during a round, it will give a general indication of the amount of time left that round. This only works when there is a roundtimelimit.
 
 #### Commands
-- `roundtimeleft` - displays remaining roundtime. (client side)
-
-### Time
-By typing 'time' in the console, a client can see the remaining time on that map. This doesn't work in matchmode
-
-#### Commands
-- `time` - display the remaining time (client side)
+- Client settings:
+    - `time` - display the remaining time
+    - `roundtimeleft` - display the remaining roundtime
 
 ### sv stuffcmd
 This feature will allow people who got rcon to send commands to the clients.
@@ -403,8 +420,9 @@ Basically, this is a simplified and immediate form of Vote Rotation. When the cu
 Prevent unpopular maps from keeping your server empty. This feature will rotate the map after the server has been empty for some number of minutes. You can also specify a config file to execute, which can be used to reset the server to default settings after configvote or rotate between multiple mode configs.
 
 #### Commands
-- `empty_rotate [#]` - Number of minutes before rotating empty server. Default 0 disables this feature.
-- `empty_exec "file.cfg"` - Optional config to exec with empty rotate. Default blank disables this.
+- Server settings:
+    - `empty_rotate [#]` - Number of minutes before rotating empty server. Default 0 disables this feature.
+    - `empty_exec "file.cfg"` - Optional config to exec with empty rotate. Default blank disables this.
 
 ### Bandage Text
 When a client starts bandaging, a message ("You've started bandaging") will appear. Also the Health icon will appear on the bottom of the screen.
@@ -413,9 +431,10 @@ When a client starts bandaging, a message ("You've started bandaging") will appe
 A new variable allows the server to give players a starting weapon during deathmatch. When set, the players will get the weapon of that type with full ammo when they spawn.
 
 #### Commands
-- `dmweapon "weaponname"` - Starting weapon for DM mode (dmweapon), default is "MK23 Pistol".
-- `dm_choose [0/1]` - allows players to choose their starting weapon in DM mode, 0 disables/1 enables
-- `dm_shield [#]` - Sets a time value for how long the invulnerability shield in DM mode. Value of 30 = 3 seconds, for example.
+- Server settings:
+    - `dmweapon "weaponname"` - Starting weapon for DM mode (dmweapon), default is "MK23 Pistol".
+    - `dm_choose [0/1]` - allows players to choose their starting weapon in DM mode, 0 disables/1 enables
+    - `dm_shield [#]` - Sets a time value for how long the invulnerability shield in DM mode. Value of 30 = 3 seconds, for example.
 
 ### Control Characters
 Some proxies use control characters to hide the name of the user. However, it is used by several players as well to cause abuse and do spam messages.
