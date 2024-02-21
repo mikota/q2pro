@@ -1314,14 +1314,18 @@ void CL_CalcViewValues(void)
 
     } else {
         int i;
-
         // just use interpolated values
         for (i = 0; i < 3; i++) {
             cl.refdef.vieworg[i] = SHORT2COORD(ops->pmove.origin[i] +
                 lerp * (ps->pmove.origin[i] - ops->pmove.origin[i]));
         }
-
-		LerpVector(ops->viewoffset, ps->viewoffset, lerp, viewoffset);
+#if USE_FPS
+        player_state_t *keyps = &cl.keyframe.ps;
+        player_state_t *keyops = &cl.oldkeyframe.ps;
+	LerpVector(keyops->viewoffset, keyps->viewoffset, cl.keylerpfrac, viewoffset);
+#else
+        LerpVector(ops->viewoffset, ps->viewoffset, lerp, viewoffset);
+#endif
     }
 
     // if not running a demo or on a locked frame, add the local angle movement
