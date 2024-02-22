@@ -1765,7 +1765,6 @@ void SP_worldspawn (edict_t * ent)
 					Q_strncpyz(teams[TEAM1].skin_index, "ctf_r", sizeof(teams[TEAM1].skin_index));
 					Q_strncpyz(teams[TEAM2].skin_index, "ctf_b", sizeof(teams[TEAM2].skin_index));
 					Q_strncpyz(teams[TEAM3].skin_index, "ctf_g", sizeof(teams[TEAM3].skin_index));
-					//exit(1);
 				}
 				level.pic_teamskin[i] = gi.imageindex(teams[i].skin_index);
 			}
@@ -1784,7 +1783,7 @@ void SP_worldspawn (edict_t * ent)
 	level.snd_headshot = gi.soundindex("misc/headshot.wav");	// the glorious headshot sound
 	level.snd_vesthit = gi.soundindex("misc/vest.wav");		// kevlar hit (pew pew)
 	level.snd_knifethrow = gi.soundindex("misc/flyloop.wav");	// throwing knife
-	level.snd_kick = gi.soundindex("weapons/kick.wav");	// not loaded by any item, kick sound
+	level.snd_kick = gi.soundindex("weapons/kick.wav");	// kick and punch sound
 	level.snd_noammo = gi.soundindex("weapons/noammo.wav");  // click!
 	level.snd_grenhead = gi.soundindex("weapons/grenhead.wav");  // grenade impact to head
 	level.snd_grenhelm = gi.soundindex("weapons/grenhelm.wav");  // grenade impact to helmet

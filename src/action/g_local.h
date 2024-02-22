@@ -361,9 +361,9 @@
 
 // variable server FPS
 #ifndef NO_FPS
-#define HZ              game.framerate
+#define HZ              game.framerate // (int)sv_fps->value
 #define FRAMETIME       game.frametime
-#define FRAMEDIV        game.framediv
+#define FRAMEDIV        game.framediv  // (sv_fps / 10)
 #define FRAMESYNC       !(level.framenum % game.framediv)
 #else
 #define HZ              BASE_FRAMERATE
@@ -1460,12 +1460,12 @@ void T_RadiusDamage (edict_t * inflictor, edict_t * attacker, float damage,
 		     edict_t * ignore, float radius, int mod);
 
 // damage flags
-#define DAMAGE_RADIUS                   0x00000001	// damage was indirect
-#define DAMAGE_NO_ARMOR                 0x00000002	// armour does not protect from this damage
-#define DAMAGE_ENERGY                   0x00000004	// damage is from an energy based weapon
-#define DAMAGE_NO_KNOCKBACK             0x00000008	// do not affect velocity, just view angles
-#define DAMAGE_BULLET                   0x00000010	// damage is from a bullet (used for ricochets)
-#define DAMAGE_NO_PROTECTION            0x00000020	// armor, shields, invulnerability, and godmode have no effect
+#define DAMAGE_RADIUS                   BIT(0)	// damage was indirect
+#define DAMAGE_NO_ARMOR                 BIT(1)	// armour does not protect from this damage
+#define DAMAGE_ENERGY                   BIT(2)	// damage is from an energy based weapon
+#define DAMAGE_NO_KNOCKBACK             BIT(3)	// do not affect velocity, just view angles
+#define DAMAGE_BULLET                   BIT(4)	// damage is from a bullet (used for ricochets)
+#define DAMAGE_NO_PROTECTION            BIT(5)	// armor, shields, invulnerability, and godmode have no effect
 
 #define DEFAULT_BULLET_HSPREAD                  300
 #define DEFAULT_BULLET_VSPREAD                  500
