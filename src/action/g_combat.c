@@ -435,7 +435,7 @@ void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const ve
 	  int mod)
 {
 	gclient_t *client;
-	char buf[256];
+	//char buf[256]; // Unused
 	int take, save;
 	int asave, psave;
 	int te_sparks, do_sparks = 0;

@@ -750,7 +750,7 @@ P_WorldEffects
 */
 void P_WorldEffects (void)
 {
-	qboolean breather;
+	//qboolean breather;  // Breather is not used in AQ2
 	qboolean envirosuit;
 	int waterlevel, old_waterlevel;
 
@@ -764,7 +764,7 @@ void P_WorldEffects (void)
 	old_waterlevel = current_client->old_waterlevel;
 	current_client->old_waterlevel = waterlevel;
 
-	breather = current_client->breather_framenum > level.framenum;
+	//breather = current_client->breather_framenum > level.framenum;
 	envirosuit = current_client->enviro_framenum > level.framenum;
 
 	//

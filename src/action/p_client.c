@@ -1341,7 +1341,7 @@ void EjectMedKit( edict_t *ent, int medkit )
 void TossItemsOnDeath(edict_t * ent)
 {
 	gitem_t *item;
-	qboolean quad = false;
+	//qboolean quad = false;
 	int i;
 
 	// Don't drop items if leader, this is just a mess
@@ -1385,10 +1385,11 @@ void TossItemsOnDeath(edict_t * ent)
 	}
 // special items
 
-	if (!DMFLAGS(DF_QUAD_DROP))
-		quad = false;
-	else
-		quad = (ent->client->quad_framenum > (level.framenum + HZ));
+	// Quad is unused in AQ2
+	// if (!DMFLAGS(DF_QUAD_DROP))
+	// 	quad = false;
+	// else
+	// 	quad = (ent->client->quad_framenum > (level.framenum + HZ));
 }
 
 void TossClientWeapon(edict_t * self)
