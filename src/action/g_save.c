@@ -644,7 +644,7 @@ void InitGame( void )
 
 	// 2024
 	warmup_unready = gi.cvar("warmup_unready", "0", 0);
-	training_mode = gi.cvar("training_mode", "0", 0);
+	training_mode = gi.cvar("training_mode", "0", CVAR_LATCH);
 	if (training_mode->value){
 		gi.cvar_forceset("item_respawnmode", "1");
 		gi.cvar_forceset("items", "2");
