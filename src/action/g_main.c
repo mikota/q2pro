@@ -531,6 +531,7 @@ cvar_t *sv_killgib; // Gibs on 'kill' command
 
 // 2024
 cvar_t *warmup_unready; // Toggles warmup if captains unready
+cvar_t *training_mode; // Sets training mode vars
 
 #if AQTION_EXTENSION
 cvar_t *use_newirvision;

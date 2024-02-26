@@ -644,6 +644,13 @@ void InitGame( void )
 
 	// 2024
 	warmup_unready = gi.cvar("warmup_unready", "0", 0);
+	training_mode = gi.cvar("training_mode", "0", 0);
+	if (training_mode->value){
+		gi.cvar_forceset("item_respawnmode", "1");
+		gi.cvar_forceset("items", "2");
+		gi.cvar_forceset("dmweapon", "Combat Knife");
+		gi.cvar_forceset("bholelimit", "30");
+	}
 
 	// new AQtion Extension cvars
 #if AQTION_EXTENSION

@@ -1938,7 +1938,6 @@ chosen ones
 void SelectSpawnPoint(edict_t * ent, vec3_t origin, vec3_t angles)
 {
 	edict_t *spot = NULL;
-	//espsettings_t *es = &espsettings;
 
 	//FIREBLADE
 	if (coop->value){
@@ -1946,7 +1945,7 @@ void SelectSpawnPoint(edict_t * ent, vec3_t origin, vec3_t angles)
 	} else if (ctf->value) {
 		spot = SelectCTFSpawnPoint(ent);
 	} else if (esp->value) {
-		// SelectEspSpawnPoint handles respawns as well as initial spawnpoints
+		// SelectEspSpawnPoint handles on-leader respawns as well as initial spawnpoints
 		spot = SelectEspSpawnPoint(ent);
 	} else if (dom->value) {
 		spot = SelectDeathmatchSpawnPoint();

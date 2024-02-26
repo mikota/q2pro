@@ -1266,6 +1266,7 @@ extern cvar_t *sv_killgib; // Enable or disable gibbing on kill command
 
 // 2024
 extern cvar_t *warmup_unready;
+extern cvar_t *training_mode; // Sets training mode vars
 
 #if AQTION_EXTENSION
 extern int (*engine_Client_GetVersion)(edict_t *ent);
