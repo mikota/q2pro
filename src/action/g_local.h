@@ -426,7 +426,7 @@ ammo_t;
 
 //tng_net.c
 typedef enum {
-	NOTIFY_NONE,
+    NOTIFY_NONE,
     SERVER_WARMING_UP,
     NOTIFY_MAX
 } Discord_Notifications;
