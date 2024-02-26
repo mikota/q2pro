@@ -127,3 +127,4 @@ void EspEndOfRoundCleanup(void);
 void EspRespawnLCA(edict_t *ent);
 void EspCleanUp(void);
 void EspDebug(void);
+extern qboolean esp_punishment_phase;

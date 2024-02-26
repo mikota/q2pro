@@ -528,6 +528,7 @@ void InitGame( void )
 	day_cycle = gi.cvar( "day_cycle", "10", 0 ); // Darkmatch cycle time.
 	use_flashlight = gi.cvar( "use_flashlight", "0", 0 );
 	use_classic = gi.cvar( "use_classic", "0", 0 ); // Reset Grenade Strength to 1.52
+	use_gren_bonk = gi.cvar( "use_gren_bonk", "0", 0 ); // Grenade Bonk
 
 	CGF_SFX_InstallGlassSupport();	// william for CGF (glass fx)
 

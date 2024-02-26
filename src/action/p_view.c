@@ -290,61 +290,77 @@ void SV_CalcViewOffset (edict_t * ent)
 	float delta;
 	vec3_t v = {0, 0, 0};
 
-	//if (!FRAMESYNC)
-	//	return;
-
 	// base angles
 	angles = ent->client->ps.kick_angles;
+
+	if (ent->movetype == MOVETYPE_NOCLIP) {
+        // don't add any kicks/bobs for spectators
+        VectorClear(ent->client->ps.kick_angles);
+        VectorSet(ent->client->ps.viewoffset, 0, 0, ent->viewheight);
+        return;
+    }
 
 	// if dead, fix the angle and don't add any kick
 	if (ent->deadflag)
 	{
-		VectorClear (angles);
-
+		VectorClear(angles);
 		ent->client->ps.viewangles[ROLL] = 40;
 		ent->client->ps.viewangles[PITCH] = -15;
 		ent->client->ps.viewangles[YAW] = ent->client->killer_yaw;
 	}
-	else
-	{
+
+	if (!FRAMESYNC)
+		return;
+
+	if (!ent->deadflag) {
 		// add angles based on weapon kick
-		VectorCopy (ent->client->kick_angles, angles);
+		if ((level.framenum % (int)(0.1f * HZ)) == 0) {
+			VectorCopy (ent->client->kick_angles, angles);
 
-		// add angles based on damage kick
-		ratio = (ent->client->v_dmg_time - level.time) / DAMAGE_TIME;
-		if (ratio < 0)
-		{
-			ratio = 0;
-			ent->client->v_dmg_pitch = 0;
-			ent->client->v_dmg_roll = 0;
+			// add angles based on damage kick
+			ratio = (ent->client->v_dmg_time - level.time) / DAMAGE_TIME;
+			// from OpenTDM
+			//ratio = (ent->client->v_dmg_time - level.framenum) / (float)DAMAGE_FRAMES;
+
+			if (ratio < 0)
+			{
+				ratio = 0;
+				ent->client->v_dmg_pitch = 0;
+				ent->client->v_dmg_roll = 0;
+			}
+			angles[PITCH] += ratio * ent->client->v_dmg_pitch;
+			angles[ROLL] += ratio * ent->client->v_dmg_roll;
+
+			// add pitch based on fall kick
+			ratio = (ent->client->fall_time - level.time) / FALL_TIME;
+			// from OpenTDM
+			//ratio = (ent->client->fall_time - level.framenum) / (float)FALL_FRAMES;
+
+			if (ratio < 0)
+				ratio = 0;
+			angles[PITCH] += ratio * ent->client->fall_value;
+
+			// add angles based on velocity
+			delta = DotProduct (ent->velocity, forward);
+			angles[PITCH] += delta * run_pitch->value;
+
+			delta = DotProduct (ent->velocity, right);
+			angles[ROLL] += delta * run_roll->value;
+
+			// add angles based on bob
+			delta = bobfracsin * bob_pitch->value * xyspeed;
+			if (ent->client->ps.pmove.pm_flags & PMF_DUCKED)
+				delta *= 6;		// crouching
+			angles[PITCH] += delta;
+			delta = bobfracsin * bob_roll->value * xyspeed;
+			if (ent->client->ps.pmove.pm_flags & PMF_DUCKED)
+				delta *= 6;		// crouching
+			if (bobcycle & 1)
+				delta = -delta;
+			angles[ROLL] += delta;
+		} else {
+			VectorCopy (ent->client->kick_angles, angles);
 		}
-		angles[PITCH] += ratio * ent->client->v_dmg_pitch;
-		angles[ROLL] += ratio * ent->client->v_dmg_roll;
-
-		// add pitch based on fall kick
-		ratio = (ent->client->fall_time - level.time) / FALL_TIME;
-		if (ratio < 0)
-			ratio = 0;
-		angles[PITCH] += ratio * ent->client->fall_value;
-
-		// add angles based on velocity
-		delta = DotProduct (ent->velocity, forward);
-		angles[PITCH] += delta * run_pitch->value;
-
-		delta = DotProduct (ent->velocity, right);
-		angles[ROLL] += delta * run_roll->value;
-
-		// add angles based on bob
-		delta = bobfracsin * bob_pitch->value * xyspeed;
-		if (ent->client->ps.pmove.pm_flags & PMF_DUCKED)
-			delta *= 6;		// crouching
-		angles[PITCH] += delta;
-		delta = bobfracsin * bob_roll->value * xyspeed;
-		if (ent->client->ps.pmove.pm_flags & PMF_DUCKED)
-			delta *= 6;		// crouching
-		if (bobcycle & 1)
-			delta = -delta;
-		angles[ROLL] += delta;
 	}
 
 	//===================================
@@ -750,7 +766,11 @@ P_WorldEffects
 */
 void P_WorldEffects (void)
 {
+<<<<<<< HEAD
 	//qboolean breather;  // Breather is not used in AQ2
+=======
+	//qboolean breather; // AQ2 doesn't use the breather
+>>>>>>> da16468c12b8f5e0b4fdfa222ecc5d189dd0a390
 	qboolean envirosuit;
 	int waterlevel, old_waterlevel;
 

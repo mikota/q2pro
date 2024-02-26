@@ -3702,7 +3702,7 @@ void ClientThink(edict_t * ent, usercmd_t * ucmd)
 		// stop manipulating doors
 		client->doortoggle = 0;
 
-		if( client->jumping && (ent->solid != SOLID_NOT) && ! lights_camera_action && ! client->uvTime && ! jump->value )
+		if( client->jumping && (ent->solid != SOLID_NOT) && ! lights_camera_action && (!client->uvTime && !esp_punishment_phase) && ! jump->value )
 		{
 			kick_attack( ent );
 			client->punch_desired = false;

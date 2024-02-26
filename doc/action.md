@@ -458,7 +458,8 @@ To help with problem idlers, use this feature to remove them from their teams so
 Gibs are a rewarding sight for successful headshots. TNG offers a variable which can turn gibs on headshots on. Also handcannon shots that do enough damage will gib someone.
 
 #### Commands
-- `sv_gib [0/1]` - when on (1), it will display 
+- `sv_gib [0/1]` - when on (1), it will display gibs
+- `sv_killgib [0/1]` - when on (1), upon using the `kill` command, the player will explode into giblets instead of just dying
 
 ### Automatic Reloading of Pistol
 When someone has akimbo pistols and they are both empty, and got one clip left, to press reload and it will switch back to single pistol and reload that with the clip.
@@ -686,6 +687,10 @@ Inspired by AQ2:ETE, these additions are optional server vars to create a differ
     -  `1`: 50% damage reduction on falls
     -  `2`: 25% increased fall height before falling damage is taken
   - You do not need to have Espionage mode enabled to use this feature.
+
+### Gun mechanics/enhancements
+- `gun_dualmk23_enhance [0/1]` - server cvar, default 0.  If enabled, this allows both the silencer and the laser sight to be used on the Dual MK23 Pistols.
+- `use_gren_bonk [0/1]` - server cvar, default 0.  If enabled, this enables impact damage of the grenade to cause damage on direct contact with a player.  The speed of which the grenade is thrown will determine the damage dealt. Thanks to JukS for the idea and the code.
 
 ## Contact Information
 Contacting the AQ2World Team is easy, join our Discord or visit our forums, or leave a Github Issue.  We are always looking for feedback and suggestions.
