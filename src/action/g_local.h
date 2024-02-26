@@ -1058,6 +1058,7 @@ extern edict_t *g_edicts;
 
 extern cvar_t *maxentities;
 extern cvar_t *deathmatch;
+extern cvar_t *coop;
 extern cvar_t *dmflags;
 extern cvar_t *needpass;
 extern cvar_t *hostname;

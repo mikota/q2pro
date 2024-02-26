@@ -359,11 +359,11 @@ void InitGame( void )
 		gi.dprintf( "Turning deathmatch on.\n" );
 		gi.cvar_forceset( "deathmatch", "1" );
 	}
-	cv = gi.cvar( "coop", "0", CVAR_LATCH );
-	if (cv->value) {
-		gi.dprintf( "Turning coop off.\n" );
-		gi.cvar_forceset( "coop", "0" );
-	}
+	coop = gi.cvar( "coop", "0", CVAR_LATCH );
+	// if (cv->value) {
+	// 	gi.dprintf( "Turning coop off.\n" );
+	// 	gi.cvar_forceset( "coop", "0" );
+	// }
 
 	dmflags = gi.cvar( "dmflags", "0", CVAR_SERVERINFO );
 	fraglimit = gi.cvar( "fraglimit", "0", CVAR_SERVERINFO );
