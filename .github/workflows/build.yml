@@ -209,7 +209,7 @@ jobs:
       matrix:
         cc: [gcc]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       # - name: Install dependencies
       #   run: |
@@ -246,11 +246,13 @@ jobs:
       matrix:
         arch: [x86_64]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install dependencies
         run: |
-          brew install pkg-config meson libpng sdl2 openal-soft zlib curl ffmpeg jpeg-turbo
+          brew install pkg-config meson libpng sdl2 \
+          openal-soft zlib curl ffmpeg jpeg-turbo \
+          ossp-uuid jansson
 
       - name: Build
         run: |

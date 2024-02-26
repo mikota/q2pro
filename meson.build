@@ -205,6 +205,7 @@ action_src = [
   'src/action/tng_flashlight.c',
   'src/action/tng_ini.c',
   'src/action/tng_irc.c',
+  'src/action/tng_net.c',
   'src/action/tng_jump.c',
   'src/action/tng_stats.c',
   'src/shared/shared.c'
@@ -240,6 +241,8 @@ cpuremap = {
   'x86': win32 ? 'x86' : 'i386',
   'aarch64': 'arm64',
 }
+
+inc_dirs = ['inc']
 
 cpu = host_machine.cpu_family()
 if cpu in cpuremap
@@ -364,7 +367,7 @@ endif
 
 common_deps = [zlib]
 client_deps = [png, curl, sdl2]
-server_deps = []
+server_deps = [curl]
 game_deps = [zlib]
 
 jpeg = dependency('libjpeg',
@@ -403,7 +406,23 @@ if not win32
     allow_fallback:  win32,
     default_options: fallback_opt,
   )
-  game_deps += uuid
+  if uuid.found()
+    client_deps += uuid
+    config.set10('USE_UUID', true)
+  endif
+
+  jansson = dependency('jansson',
+    required:        get_option('jansson'),
+    allow_fallback:  win32,
+    default_options: fallback_opt,
+  )
+
+  if jansson.found()
+    client_deps += jansson
+    config.set10('USE_JANSSON', true)
+    dll_link_args += '-L/opt/homebrew/lib'
+    dll_link_args += '-ljansson'
+  endif
 endif
 
 if host_machine.system() == 'darwin'
@@ -414,6 +433,8 @@ if host_machine.system() == 'darwin'
     default_options: fallback_opt,
   )
   client_deps += opengl
+
+  inc_dirs += '/opt/homebrew/include'
 endif
 
 # require FFmpeg >= 5.1.3
@@ -493,7 +514,11 @@ if get_option('aqtion-build')
   # Win32 winsock compat
   if win32
     dll_link_args += '-lws2_32'
+    dll_link_args += '-lcurl'
+    dll_link_args += '-lcrypt32'
+    dll_link_args += '-lwsock32'
   endif
+  dll_link_args += '-lcurl'
 endif
 
 if get_option('discord-sdk')
@@ -533,7 +558,7 @@ endif
 
 executable('q2pro', common_src, client_src, refresh_src,
   dependencies:          common_deps + client_deps,
-  include_directories:   'inc',
+  include_directories:   inc_dirs,
   gnu_symbol_visibility: 'hidden',
   win_subsystem:         'windows,6.0',
   link_args:             exe_link_args,
@@ -543,7 +568,7 @@ executable('q2pro', common_src, client_src, refresh_src,
 
 executable('q2proded', common_src, server_src,
   dependencies:          common_deps + server_deps,
-  include_directories:   'inc',
+  include_directories:   inc_dirs,
   gnu_symbol_visibility: 'hidden',
   win_subsystem:         'console,6.0',
   link_args:             exe_link_args,
@@ -554,7 +579,7 @@ executable('q2proded', common_src, server_src,
 shared_library('game' + cpu, action_src,
   name_prefix:           '',
   dependencies:          game_deps,
-  include_directories:   'inc',
+  include_directories:   inc_dirs,
   gnu_symbol_visibility: 'hidden',
   link_args:             dll_link_args,
   install:               system_wide,

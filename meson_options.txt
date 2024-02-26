@@ -69,6 +69,11 @@ option('icmp-errors',
   value: 'auto',
   description: 'Handle ICMP errors on UDP sockets')
 
+option('jansson',
+  type: 'feature',
+  value: 'auto',
+  description: 'AQtion jansson support')
+
 option('libcurl',
   type: 'feature',
   value: 'auto',

@@ -644,6 +644,17 @@ void InitGame( void )
 
 	// 2024
 	warmup_unready = gi.cvar("warmup_unready", "0", 0);
+	// curl / tng_net.c
+	sv_curl_enable = gi.cvar("sv_curl_enable", "0", 0);
+	sv_discord_announce_enable = gi.cvar("sv_discord_announce_enable", "0", 0);
+	sv_curl_stat_api_url = gi.cvar("sv_curl_stat_api_url", "disabled", 0);
+	sv_curl_discord_chat_url = gi.cvar("sv_curl_discord_chat_url", "disabled", 0);
+	sv_curl_discord_server_url = gi.cvar("sv_curl_discord_server_url", "disabled", 0);
+	server_ip = gi.cvar("server_ip", "", 0); // Never include this in serverinfo!
+	server_port = gi.cvar("server_port", "", 0); // Never include this in serverinfo!
+	sv_last_announce_time = gi.cvar("sv_last_announce_time", "0", 0);
+	sv_last_announce_interval = gi.cvar("sv_last_announce_interval", "1800", 0);
+	server_announce_url = gi.cvar("server_announce_url", "disabled", 0);
 
 	// new AQtion Extension cvars
 #if AQTION_EXTENSION
@@ -670,6 +681,12 @@ void InitGame( void )
 	ltk_loadbots = gi.cvar( "ltk_loadbots", "1", 0);
 	ltk_classic = gi.cvar( "ltk_classic", "1", 0);
 #endif
+
+	// Initialize libcurl capabilities if enabled
+	#ifdef USE_CURL
+	if (sv_curl_enable->value)
+		lc_init_function();
+	#endif
 
 	// items
 	InitItems();

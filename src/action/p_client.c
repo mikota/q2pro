@@ -2899,6 +2899,12 @@ void PutClientInServer(edict_t * ent)
 	// force the current weapon up
 	client->newweapon = client->weapon;
 	ChangeWeapon(ent);
+
+		// Tell the world!
+	#ifdef USE_CURL
+	if (sv_curl_enable->value && sv_discord_announce_enable->value)
+		announce_server_populating();
+	#endif
 }
 
 /*

@@ -530,6 +530,17 @@ cvar_t *sv_killgib; // Gibs on 'kill' command
 
 // 2024
 cvar_t *warmup_unready; // Toggles warmup if captains unready
+// cURL integration / tng_net.c
+cvar_t *sv_curl_enable;
+cvar_t *sv_discord_announce_enable;
+cvar_t *sv_curl_stat_api_url;
+cvar_t *sv_curl_discord_chat_url;
+cvar_t *sv_curl_discord_server_url;
+cvar_t *server_ip;
+cvar_t *server_port;
+cvar_t *sv_last_announce_interval;
+cvar_t *sv_last_announce_time;
+cvar_t *server_announce_url;
 
 #if AQTION_EXTENSION
 cvar_t *use_newirvision;
@@ -1189,6 +1200,12 @@ void G_RunFrame (void)
 		int updateStatMode = (level.framenum % (80 * FRAMEDIV)) ? 0 : 1;
 
 		CycleLights ();
+
+		//Run pending curl requests
+		#ifdef USE_CURL
+		if (sv_curl_enable->value)
+			lc_once_per_gameframe();
+		#endif
 
 		//
 		// treat each object in turn
