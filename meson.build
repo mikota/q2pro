@@ -409,6 +409,7 @@ if not win32
   if uuid.found()
     client_deps += uuid
     config.set10('USE_UUID', true)
+    dll_link_args += '-luuid'
   endif
 
   jansson = dependency('jansson',

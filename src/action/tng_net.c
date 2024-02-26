@@ -90,7 +90,7 @@ void lc_get_player_stats(char* message)
     // Get a new request object
     request = new_request();
     if (request == NULL) {
-        gi.dprintf("Ran out of request slots\n");
+        gi.dprintf("tng_net: request_t ran out of request slots\n");
         return;
     }
 
@@ -406,4 +406,5 @@ qboolean ready_to_announce(void)
 {
     if (level.framenum % 100 == 0 && level.lc_recently_sent)
         return true;
+    return false;
 }

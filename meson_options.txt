@@ -156,9 +156,9 @@ option('tga',
   value: true,
   description: 'TGA images support')
 
-option('uuid', 
-  type: 'feature', 
-  value: 'auto', 
+option('uuid',
+  type: 'boolean',
+  value: 'true', 
   description: 'AQtion uuid support')
 
 option('variable-fps',
