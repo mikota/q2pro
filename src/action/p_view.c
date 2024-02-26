@@ -766,11 +766,7 @@ P_WorldEffects
 */
 void P_WorldEffects (void)
 {
-<<<<<<< HEAD
-	//qboolean breather;  // Breather is not used in AQ2
-=======
 	//qboolean breather; // AQ2 doesn't use the breather
->>>>>>> da16468c12b8f5e0b4fdfa222ecc5d189dd0a390
 	qboolean envirosuit;
 	int waterlevel, old_waterlevel;
 

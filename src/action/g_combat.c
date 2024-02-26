@@ -151,6 +151,14 @@ qboolean CanDamage (edict_t * targ, edict_t * inflictor)
 		return false;
 	}
 
+	// Allows grenades to destroy func_buttons if they have health (city radio room for example)
+    if ((0 == Q_stricmp("func_button", targ->classname)) && 0 == Q_stricmp("hgrenade", inflictor->classname)) {
+        PRETRACE ();
+		trace = gi.trace (inflictor->s.origin, vec3_origin, vec3_origin, targ->s.origin, inflictor, MASK_SOLID);
+		POSTTRACE();
+		return true;
+    }
+
 	PRETRACE ();
 	trace = gi.trace (inflictor->s.origin, vec3_origin, vec3_origin, targ->s.origin, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0) {
@@ -193,6 +201,7 @@ qboolean CanDamage (edict_t * targ, edict_t * inflictor)
 	if (trace.fraction == 1.0)
 		return true;
 
+	//gi.dprintf("CanDamage: %s can't damage %s\n", inflictor->classname, targ->classname);
 	return false;
 }
 
