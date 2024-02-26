@@ -34,6 +34,7 @@ int esp_winner = NOTEAM;
 int esp_flag = 0;
 int esp_leader_pics[ TEAM_TOP ] = {0};
 int esp_last_score = 0;
+qboolean esp_punishment_phase = false;
 
 
 /*
@@ -1854,6 +1855,7 @@ void MakeTeamInvulnerable(int winner, int uvtime)
 
 void EspPunishment(int teamNum)
 {
+	esp_punishment_phase = true;
 	// Only perform team punishments if there's only 2 teams
 	if (esp->value && teamCount == 2){
 		if(esp_punish->value == 1){

@@ -742,18 +742,20 @@ static void Grenade_Touch (edict_t *ent, edict_t *other, cplane_t *plane, csurfa
 	// From JukS mod:
 	// New stuff: Make some damage if grenade hits to someone -JukS-
 	// Grenade velocities by Throw type around: Long(920), Medium(720), Short(400)
-	float grenSpeed = VectorNormalize(ent->velocity);
+	if (use_gren_bonk->value) {
+		float grenSpeed = VectorNormalize(ent->velocity);
 
-	if (grenSpeed > 500) // Don't make damage with slow speeds
-	{
-		trace_t tr;
-		vec3_t end;
-		// Formula to handle damage amount. With /25-20 we'll get 0 dmg at minimum speed (500)
-		int dmgBySpeed = (int)(grenSpeed) / 25 - 20; 
-		PRETRACE();
-		tr = gi.trace(ent->owner->s.origin, NULL, NULL, end, ent->owner, MASK_SHOT);
-		POSTTRACE();
-		T_Damage(other, ent, ent->owner, ent->s.origin, tr.endpos, tr.plane.normal, dmgBySpeed, 0, DAMAGE_NO_ARMOR, MOD_GRENADE_IMPACT);
+		if (grenSpeed > 500) // Don't make damage with slow speeds
+		{
+			trace_t tr;
+			vec3_t end;
+			// Formula to handle damage amount. With /25-20 we'll get 0 dmg at minimum speed (500)
+			int dmgBySpeed = (int)(grenSpeed) / 25 - 20;
+			PRETRACE();
+			tr = gi.trace(ent->owner->s.origin, NULL, NULL, end, ent->owner, MASK_SHOT);
+			POSTTRACE();
+			T_Damage(other, ent, ent->owner, ent->s.origin, tr.endpos, tr.plane.normal, dmgBySpeed, 0, DAMAGE_NO_ARMOR, MOD_GRENADE_IMPACT);
+		}
 	}
 	// zucc not needed since grenades don't blow up on contact
 	//ent->enemy = other;
@@ -855,7 +857,7 @@ void kick_attack (edict_t *ent)
 
 		if (tr.ent->client)
 		{
-			if (tr.ent->client->uvTime)
+			if (tr.ent->client->uvTime && !esp_punishment_phase)
 				return;
 			
 			if (tr.ent != ent && ent->client && OnSameTeam( tr.ent, ent ))
@@ -930,7 +932,7 @@ void punch_attack(edict_t * ent)
 
 			if (tr.ent->client)
 			{
-				if (tr.ent->client->uvTime)
+				if (tr.ent->client->uvTime && !esp_punishment_phase)
 					return;
 
 				if (tr.ent != ent && ent->client && OnSameTeam(tr.ent, ent))

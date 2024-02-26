@@ -2361,6 +2361,7 @@ static void StartLCA(void)
 	SpawnPlayers();
 
 	if (esp->value) {
+		esp_punishment_phase = false;
 		EspResetCapturePoint();
 		EspAnnounceDetails(false);
 	}

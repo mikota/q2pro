@@ -1151,6 +1151,7 @@ extern cvar_t *hc_single;  // Enable or disable the single shot handcannon
 extern cvar_t *wp_flags;   // Weapon flags (bans)
 extern cvar_t *itm_flags;  // Item flags (bans)
 extern cvar_t *use_classic;	// Use_classic resets weapon balance to 1.52
+extern cvar_t *use_gren_bonk;  // Toggle on/off direct grenade impact damage
 
 extern cvar_t *warmup;    // Enables warmup (value in seconds)
 extern cvar_t *warmup_bots;  // Enables bots to spawn during warmup (value in number of bots)
