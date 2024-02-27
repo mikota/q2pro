@@ -12,7 +12,6 @@ typedef struct request_s {
     CURL* handle;
     size_t data_count;
     char data[MAX_DATA_BYTES];
-    qboolean official_server;
 } request_t;
 
 typedef struct request_list_s {
