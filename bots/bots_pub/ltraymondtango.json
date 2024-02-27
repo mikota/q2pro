@@ -1,0 +1,35 @@
+{
+    "name": "Lt Raymond Tango",
+    "clan_id": null,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.5,
+        "dual_mk23": 1.0,
+        "mp5": 0.2,
+        "m4": 0.4,
+        "m3": 0.3,
+        "hc": 0.4,
+        "sniper": 0.7,
+        "knives": 0.7,
+        "grenades": 0.4
+    },
+    "itemPreferences": {
+        "vest": 0.5,
+        "helm": 0.5,
+        "laser": 0.9,
+        "silencer": 0.3,
+        "slippers": 0.8,
+        "bandolier": 0.7
+    },
+    "coreTraits": {
+        "aggressiveness": 0.3,
+        "teamwork": 0.6,
+        "curiosity": 0.7,
+        "aimingSkill": 0.5,
+        "reactionTime": 0.0,
+        "communicationFreq": 0.6,
+        "communicationTone": 0.7,
+        "movementStyle": 0.8,
+        "objectiveFocus": 0.4
+    }
+}

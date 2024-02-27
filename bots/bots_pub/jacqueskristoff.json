@@ -1,0 +1,35 @@
+{
+    "name": "Jacques Kristoff",
+    "clan_id": null,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.6,
+        "dual_mk23": 0.7,
+        "mp5": 0.5,
+        "m4": 0.3,
+        "m3": 0.9,
+        "hc": 0.8,
+        "sniper": 0.5,
+        "knives": 0.2,
+        "grenades": 0.7
+    },
+    "itemPreferences": {
+        "vest": 0.7,
+        "helm": 0.4,
+        "laser": 0.8,
+        "silencer": 0.7,
+        "slippers": 0.6,
+        "bandolier": 0.7
+    },
+    "coreTraits": {
+        "aggressiveness": 0.2,
+        "teamwork": 0.7,
+        "curiosity": 0.8,
+        "aimingSkill": 0.2,
+        "reactionTime": 0.4,
+        "communicationFreq": 0.4,
+        "communicationTone": 0.4,
+        "movementStyle": 0.8,
+        "objectiveFocus": 0.4
+    }
+}
