@@ -80,12 +80,12 @@ void lc_get_player_stats(char* message)
     request_t *request;
 
     // Don't run this if curl is disabled or the webhook URL is set to "disabled"
-    if (!sv_curl_enable->value || strcmp(sv_curl_stat_api_url->string, "disabled") == 0)
+    if (!sv_curl_enable->value)
         return;
 
     // Use webhook.site to test curl, it's very handy!
     //char *url = "https://webhook.site/4de34388-9f3b-47fc-9074-7bdcd3cfa346";
-    char* url = sv_curl_stat_api_url->string;
+    char* url = AQ2WORLD_STAT_URL;
 
     // Get a new request object
     request = new_request();
@@ -189,21 +189,52 @@ void lc_discord_webhook(char* message)
     lc_start_request_function(request);
 }
 
+void lc_aqtion_stat_send(char *stats)
+{
+    if (!sv_curl_stat_enable->value)
+        return;
+
+    if (!sv_curl_enable->value) {
+        gi.dprintf("%s: sv_curl_enable is disabled, disabling stat reporting to API\n", __func__);
+        gi.cvar_forceset("sv_curl_stat_enable", "0");
+        return;
+    }
+
+    request_t *request;
+    char full_url[1024];
+    char path[] = "/api/v1/stats";
+    char* url = AQ2WORLD_STAT_URL;
+
+    // Get a new request object
+    request = new_request();
+    if (request == NULL) {
+        gi.dprintf("%s: Ran out of request slots\n", __func__);
+        return;
+    }
+    //gi.dprintf("%s: Sending stats to %s\n", __func__, url);
+    // Use webhook.site to test curl, it's very handy!
+    //char *url = "https://webhook.site/4de34388-9f3b-47fc-9074-7bdcd3cfa346";
+    // Concatenate url and path
+    sprintf(full_url, "%s%s", url, path);
+    request->url = full_url;
+    request->payload = strdup(stats);
+    lc_start_request_function(request);
+}
+
 void lc_server_announce(char *path, char *message)
 {
     request_t *request;
     char full_url[1024];
 
     // Don't run this if curl is disabled or the webhook URLs are set to "disabled" or empty, or if no server IP or port is set
-    if (!sv_curl_enable->value 
-    || strcmp(server_announce_url->string, "disabled") == 0 
-    || strcmp(server_announce_url->string, "") == 0 
-    || strcmp(sv_curl_discord_server_url->string, "disabled") == 0
-    || strcmp(sv_curl_discord_server_url->string, "") == 0
-    || !server_ip->string
-    || !server_port->string
-    )
+    if (!cvar_check(sv_curl_enable) 
+        || !cvar_check(server_announce_url)
+        || !cvar_check(sv_curl_discord_server_url)
+        || !cvar_check(server_ip)
+        || !cvar_check(server_port))
+    {
         return;
+    }
 
     // Get a new request object
     request = new_request();

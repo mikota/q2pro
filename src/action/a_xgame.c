@@ -791,3 +791,19 @@ qboolean is_valid_ipv4(char *ip_str)
     free(ip_copy);
     return true;
 }
+
+/*
+cvar_check
+
+Supply a cvar and it will return true if it is set and not empty
+Also works for checking if cvar strings are empty or unset
+*/
+qboolean cvar_check(cvar_t *cvar) {
+    if (!cvar->value 
+        || cvar->string == NULL
+        || strcmp(cvar->string, "disabled") == 0 
+        || strcmp(cvar->string, "") == 0) {
+        return false;
+    }
+    return true;
+}

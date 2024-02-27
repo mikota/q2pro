@@ -1282,7 +1282,7 @@ extern cvar_t *warmup_unready;
 // cURL integration
 extern cvar_t *sv_curl_enable;
 extern cvar_t *sv_discord_announce_enable;
-extern cvar_t *sv_curl_stat_api_url;
+extern cvar_t *sv_curl_stat_enable;
 extern cvar_t *sv_curl_discord_chat_url;
 extern cvar_t *sv_curl_discord_server_url;
 extern cvar_t *server_ip;

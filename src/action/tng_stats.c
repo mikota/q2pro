@@ -615,16 +615,21 @@ void Write_Stats(const char* msg, ...)
 	vsprintf(stat_cpy, msg, argptr);
 	va_end(argptr);
 
-	logfile_name = gi.cvar("logfile_name", "", CVAR_NOSET);
-	sprintf(logpath, "action/logs/%s.stats", logfile_name->string);
+	// Send stats to API, else write to local file
+	if (sv_curl_enable->value && sv_curl_stat_enable->value) {
+		lc_aqtion_stat_send(stat_cpy);
+	} else {
+		logfile_name = gi.cvar("logfile_name", "", CVAR_NOSET);
+		sprintf(logpath, "action/logs/%s.stats", logfile_name->string);
 
-	if ((f = fopen(logpath, "a")) != NULL)
-	{
-		fprintf(f, "%s", stat_cpy);
-		fclose(f);
+		if ((f = fopen(logpath, "a")) != NULL)
+		{
+			fprintf(f, "%s", stat_cpy);
+			fclose(f);
+		}
+		else
+			gi.dprintf("Error writing to %s.stats\n", logfile_name->string);
 	}
-	else
-		gi.dprintf("Error writing to %s.stats\n", logfile_name->string);
 
 }
 

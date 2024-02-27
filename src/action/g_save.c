@@ -647,7 +647,7 @@ void InitGame( void )
 	// curl / tng_net.c
 	sv_curl_enable = gi.cvar("sv_curl_enable", "0", 0);
 	sv_discord_announce_enable = gi.cvar("sv_discord_announce_enable", "0", 0);
-	sv_curl_stat_api_url = gi.cvar("sv_curl_stat_api_url", "disabled", 0);
+	sv_curl_stat_enable = gi.cvar("sv_curl_stat_enable", "0", 0);
 	sv_curl_discord_chat_url = gi.cvar("sv_curl_discord_chat_url", "disabled", 0);
 	sv_curl_discord_server_url = gi.cvar("sv_curl_discord_server_url", "disabled", 0);
 	server_ip = gi.cvar("server_ip", "", 0); // Never include this in serverinfo!

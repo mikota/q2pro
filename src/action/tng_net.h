@@ -3,6 +3,7 @@
 #define MAX_DATA_BYTES    16384
 #define MAX_REQUESTS        256 // Must be 1 or more
 
+#define AQ2WORLD_STAT_URL "https://apigateway.aq2world.com"
 
 typedef struct request_s {
     char* url;
@@ -24,3 +25,4 @@ extern size_t current_requests;
 
 void lc_server_announce(char *path, char *message);
 void announce_server_populating(void);
+void lc_aqtion_stat_send(char *stats);
