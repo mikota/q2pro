@@ -1341,7 +1341,7 @@ void EjectMedKit( edict_t *ent, int medkit )
 void TossItemsOnDeath(edict_t * ent)
 {
 	gitem_t *item;
-	qboolean quad = false;
+	//qboolean quad = false;
 	int i;
 
 	// Don't drop items if leader, this is just a mess
@@ -1385,10 +1385,11 @@ void TossItemsOnDeath(edict_t * ent)
 	}
 // special items
 
-	if (!DMFLAGS(DF_QUAD_DROP))
-		quad = false;
-	else
-		quad = (ent->client->quad_framenum > (level.framenum + HZ));
+	// Quad is unused in AQ2
+	// if (!DMFLAGS(DF_QUAD_DROP))
+	// 	quad = false;
+	// else
+	// 	quad = (ent->client->quad_framenum > (level.framenum + HZ));
 }
 
 void TossClientWeapon(edict_t * self)
@@ -1890,6 +1891,40 @@ edict_t *UncommonSpawnPoint(void)
 	return spot;
 }
 
+edict_t *SelectCoopSpawnPoint(edict_t *ent)
+{
+    int     index;
+    edict_t *spot = NULL;
+    char    *target;
+
+    index = ent->client - game.clients;
+
+    // player 0 starts in normal player spawn point
+    if (!index)
+        return NULL;
+
+    spot = NULL;
+
+    // assume there are four coop spots at each spawnpoint
+    while (1) {
+        spot = G_Find(spot, FOFS(classname), "info_player_coop");
+        if (!spot)
+            return NULL;    // we didn't have enough...
+
+        target = spot->targetname;
+        if (!target)
+            target = "";
+        if (Q_stricmp(game.spawnpoint, target) == 0) {
+            // this is a coop spawn point for one of the clients here
+            index--;
+            if (!index)
+                return spot;        // this is it
+        }
+    }
+
+    return spot;
+}
+
 /*
 ===========
 SelectSpawnPoint
@@ -1906,7 +1941,9 @@ void SelectSpawnPoint(edict_t * ent, vec3_t origin, vec3_t angles)
 	//espsettings_t *es = &espsettings;
 
 	//FIREBLADE
-	if (ctf->value) {
+	if (coop->value){
+		spot = SelectCoopSpawnPoint(ent);
+	} else if (ctf->value) {
 		spot = SelectCTFSpawnPoint(ent);
 	} else if (esp->value) {
 		// SelectEspSpawnPoint handles respawns as well as initial spawnpoints
