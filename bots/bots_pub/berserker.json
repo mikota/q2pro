@@ -1,0 +1,35 @@
+{
+    "name": "Berserker",
+    "clan_id": null,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.5,
+        "dual_mk23": 0.6,
+        "mp5": 0.5,
+        "m4": 0.2,
+        "m3": 0.3,
+        "hc": 0.3,
+        "sniper": 0.3,
+        "knives": 0.5,
+        "grenades": 0.4
+    },
+    "itemPreferences": {
+        "vest": 0.4,
+        "helm": 0.2,
+        "laser": 0.1,
+        "silencer": 0.2,
+        "slippers": 0.6,
+        "bandolier": 0.3
+    },
+    "coreTraits": {
+        "aggressiveness": 0.9,
+        "teamwork": 0.8,
+        "curiosity": 0.7,
+        "aimingSkill": 0.4,
+        "reactionTime": 0.4,
+        "communicationFreq": 0.3,
+        "communicationTone": 0.4,
+        "movementStyle": 0.5,
+        "objectiveFocus": 0.2
+    }
+}

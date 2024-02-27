@@ -1,0 +1,35 @@
+{
+    "name": "Gung Ho",
+    "clan_id": 77,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.1,
+        "dual_mk23": 0.3,
+        "mp5": 0.3,
+        "m4": 0.4,
+        "m3": 0.5,
+        "hc": 0.5,
+        "sniper": 0.7,
+        "knives": 0.7,
+        "grenades": 0.5
+    },
+    "itemPreferences": {
+        "vest": 0.2,
+        "helm": 0.5,
+        "laser": 0.4,
+        "silencer": 0.4,
+        "slippers": 0.6,
+        "bandolier": 0.5
+    },
+    "coreTraits": {
+        "aggressiveness": 0.5,
+        "teamwork": 0.8,
+        "curiosity": -0.0,
+        "aimingSkill": 0.8,
+        "reactionTime": 0.7,
+        "communicationFreq": 0.7,
+        "communicationTone": 0.6,
+        "movementStyle": 0.4,
+        "objectiveFocus": 0.4
+    }
+}

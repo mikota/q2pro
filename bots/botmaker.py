@@ -31,7 +31,7 @@ with open('other.txt', 'r') as file:
 
             bot_profile = {
                 "name": name,
-                "clan_id": random.randint(1, 11) if add_to_clan else None,
+                "clan_id": random.randint(1, 110) if add_to_clan else None,
                 "skin": "male/indy",
                 "weaponPreferences": {key: generate_random_value() for key in ["mk23", "dual_mk23", "mp5", "m4", "m3", "hc", "sniper", "knives", "grenades"]},
                 "itemPreferences": {key: generate_random_value() for key in ["vest", "helm", "laser", "silencer", "slippers", "bandolier"]},
@@ -41,8 +41,9 @@ with open('other.txt', 'r') as file:
             # Remove special characters from the filename
             filename = re.sub('[^a-zA-Z0-9_]', '', name.lower().replace(' ', ''))
 
-            # Write the bot profile to a new JSON file in the bots_clan/ directory
-            filename = os.path.join('bots_clan', filename + '.json')
+            # Write the bot profile to a new JSON file in the appropriate directory
+            directory = 'bots_clan' if add_to_clan else 'bots_pub'
+            filename = os.path.join(directory, filename + '.json')
             with open(filename, 'w') as outfile:
                 json.dump(bot_profile, outfile, indent=4)
         

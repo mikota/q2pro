@@ -1,35 +1,35 @@
 {
     "name": "Meat",
-    "clan_id": 5,
+    "clan_id": 56,
     "skin": "male/indy",
     "weaponPreferences": {
-        "mk23": 0.7,
-        "dual_mk23": 0.5,
-        "mp5": 0.6,
-        "m4": 0.4,
-        "m3": 0.8,
-        "hc": 0.2,
-        "sniper": 0.4,
-        "knives": 0.6,
-        "grenades": 0.4
+        "mk23": 1.0,
+        "dual_mk23": 0.7,
+        "mp5": 0.7,
+        "m4": 0.9,
+        "m3": 0.2,
+        "hc": 0.4,
+        "sniper": 0.8,
+        "knives": 0.4,
+        "grenades": 0.1
     },
     "itemPreferences": {
-        "vest": 0.6,
-        "helm": 0.5,
-        "laser": 0.5,
+        "vest": 0.4,
+        "helm": 0.1,
+        "laser": 0.8,
         "silencer": 0.3,
-        "slippers": 0.2,
-        "bandolier": 0.9
+        "slippers": 0.6,
+        "bandolier": 0.8
     },
     "coreTraits": {
-        "aggressiveness": 0.6,
+        "aggressiveness": 0.4,
         "teamwork": 0.3,
-        "curiosity": 0.2,
-        "aimingSkill": 0.2,
-        "reactionTime": 0.8,
-        "communicationFreq": 0.7,
-        "communicationTone": 0.4,
-        "movementStyle": 0.4,
+        "curiosity": 0.5,
+        "aimingSkill": 0.3,
+        "reactionTime": 0.4,
+        "communicationFreq": 0.3,
+        "communicationTone": 0.8,
+        "movementStyle": 0.5,
         "objectiveFocus": 0.6
     }
 }

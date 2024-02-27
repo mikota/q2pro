@@ -1,35 +1,35 @@
 {
     "name": "Hellhound",
     "clan_id": null,
-    "skin": "null",
+    "skin": "male/indy",
     "weaponPreferences": {
-        "mk23": 0.2,
-        "dual_mk23": 0.5,
-        "mp5": 0.9,
-        "m4": 0.3,
+        "mk23": 0.8,
+        "dual_mk23": 0.6,
+        "mp5": 0.3,
+        "m4": 0.2,
         "m3": 0.5,
-        "hc": 0.4,
-        "sniper": 0.6,
-        "knives": 0.2,
-        "grenades": 0.4
+        "hc": 0.3,
+        "sniper": 0.8,
+        "knives": 0.6,
+        "grenades": 0.5
     },
     "itemPreferences": {
-        "vest": 0.2,
-        "helm": 0.7,
-        "laser": 0.8,
+        "vest": 0.3,
+        "helm": 0.5,
+        "laser": 0.7,
         "silencer": 0.4,
-        "slippers": 0.5,
-        "bandolier": 0.8
+        "slippers": 0.6,
+        "bandolier": 0.3
     },
     "coreTraits": {
-        "aggressiveness": 0.7,
-        "teamwork": 0.4,
-        "curiosity": 0.4,
-        "aimingSkill": 0.5,
-        "reactionTime": 0.6,
+        "aggressiveness": 0.8,
+        "teamwork": 0.2,
+        "curiosity": 0.6,
+        "aimingSkill": 0.3,
+        "reactionTime": 0.3,
         "communicationFreq": 0.4,
-        "communicationTone": 0.3,
-        "movementStyle": 0.7,
-        "objectiveFocus": 0.1
+        "communicationTone": 0.4,
+        "movementStyle": 0.2,
+        "objectiveFocus": 0.4
     }
 }

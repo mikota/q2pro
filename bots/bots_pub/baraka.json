@@ -1,0 +1,35 @@
+{
+    "name": "Baraka",
+    "clan_id": null,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.8,
+        "dual_mk23": 0.5,
+        "mp5": 0.5,
+        "m4": 0.3,
+        "m3": 0.6,
+        "hc": 0.6,
+        "sniper": 0.6,
+        "knives": 0.3,
+        "grenades": 0.6
+    },
+    "itemPreferences": {
+        "vest": 0.4,
+        "helm": 0.4,
+        "laser": 0.8,
+        "silencer": 0.9,
+        "slippers": 0.9,
+        "bandolier": 0.6
+    },
+    "coreTraits": {
+        "aggressiveness": 0.5,
+        "teamwork": 0.2,
+        "curiosity": 0.5,
+        "aimingSkill": 0.4,
+        "reactionTime": 0.5,
+        "communicationFreq": 0.2,
+        "communicationTone": 0.7,
+        "movementStyle": 0.4,
+        "objectiveFocus": 0.5
+    }
+}

@@ -1,35 +1,35 @@
 {
     "name": "PewDiePie",
-    "clan_id": 4,
+    "clan_id": 64,
     "skin": "male/indy",
     "weaponPreferences": {
-        "mk23": 0.5,
+        "mk23": 0.4,
         "dual_mk23": 0.3,
-        "mp5": 0.1,
-        "m4": 0.7,
-        "m3": 0.3,
+        "mp5": 0.5,
+        "m4": 1.1,
+        "m3": 0.5,
         "hc": 0.4,
-        "sniper": 0.7,
-        "knives": 0.4,
-        "grenades": 0.3
+        "sniper": 0.3,
+        "knives": 0.9,
+        "grenades": 0.6
     },
     "itemPreferences": {
-        "vest": 0.6,
-        "helm": 0.7,
-        "laser": 0.1,
+        "vest": 0.4,
+        "helm": 0.8,
+        "laser": 0.6,
         "silencer": 0.6,
-        "slippers": 0.3,
+        "slippers": 0.4,
         "bandolier": 0.3
     },
     "coreTraits": {
-        "aggressiveness": 0.2,
-        "teamwork": 0.4,
-        "curiosity": 0.8,
-        "aimingSkill": 0.4,
-        "reactionTime": 0.5,
-        "communicationFreq": 0.8,
-        "communicationTone": 0.9,
-        "movementStyle": 0.2,
-        "objectiveFocus": 0.5
+        "aggressiveness": 0.5,
+        "teamwork": 0.5,
+        "curiosity": 0.6,
+        "aimingSkill": 0.7,
+        "reactionTime": 0.6,
+        "communicationFreq": 0.2,
+        "communicationTone": 0.7,
+        "movementStyle": 0.5,
+        "objectiveFocus": 0.6
     }
 }

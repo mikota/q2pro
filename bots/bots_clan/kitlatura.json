@@ -1,0 +1,35 @@
+{
+    "name": "Kit Latura",
+    "clan_id": 25,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.7,
+        "dual_mk23": 0.5,
+        "mp5": 0.3,
+        "m4": 0.6,
+        "m3": 0.6,
+        "hc": 0.6,
+        "sniper": 0.5,
+        "knives": 0.4,
+        "grenades": 0.4
+    },
+    "itemPreferences": {
+        "vest": 0.4,
+        "helm": 0.6,
+        "laser": 0.7,
+        "silencer": 0.5,
+        "slippers": 0.6,
+        "bandolier": 0.6
+    },
+    "coreTraits": {
+        "aggressiveness": 0.5,
+        "teamwork": 0.4,
+        "curiosity": 0.2,
+        "aimingSkill": 0.5,
+        "reactionTime": 0.7,
+        "communicationFreq": 0.7,
+        "communicationTone": 0.1,
+        "movementStyle": 0.4,
+        "objectiveFocus": 0.5
+    }
+}

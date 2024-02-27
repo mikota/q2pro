@@ -1,0 +1,35 @@
+{
+    "name": "Toorc",
+    "clan_id": null,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.6,
+        "dual_mk23": 0.7,
+        "mp5": 0.4,
+        "m4": 0.5,
+        "m3": 0.5,
+        "hc": 0.4,
+        "sniper": 0.8,
+        "knives": 0.6,
+        "grenades": 0.4
+    },
+    "itemPreferences": {
+        "vest": 0.4,
+        "helm": 0.3,
+        "laser": 0.5,
+        "silencer": 0.6,
+        "slippers": 0.2,
+        "bandolier": 0.6
+    },
+    "coreTraits": {
+        "aggressiveness": 0.4,
+        "teamwork": 0.1,
+        "curiosity": 0.7,
+        "aimingSkill": 0.4,
+        "reactionTime": 0.4,
+        "communicationFreq": 0.7,
+        "communicationTone": 0.6,
+        "movementStyle": 0.4,
+        "objectiveFocus": 0.7
+    }
+}

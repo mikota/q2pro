@@ -1,35 +1,35 @@
 {
     "name": "Coldcrow",
-    "clan_id": 9,
+    "clan_id": 46,
     "skin": "male/indy",
     "weaponPreferences": {
-        "mk23": 0.9,
-        "dual_mk23": 0.6,
+        "mk23": 0.7,
+        "dual_mk23": 0.9,
         "mp5": 0.6,
-        "m4": 0.5,
+        "m4": 0.8,
         "m3": 0.5,
-        "hc": -0.0,
-        "sniper": 0.5,
-        "knives": 0.5,
-        "grenades": 0.7
+        "hc": 0.4,
+        "sniper": 0.6,
+        "knives": 0.3,
+        "grenades": 0.4
     },
     "itemPreferences": {
-        "vest": 0.5,
-        "helm": 0.4,
-        "laser": 0.4,
-        "silencer": 0.6,
-        "slippers": 0.1,
-        "bandolier": 0.8
+        "vest": 0.4,
+        "helm": 0.3,
+        "laser": 0.3,
+        "silencer": 0.5,
+        "slippers": 0.7,
+        "bandolier": 0.4
     },
     "coreTraits": {
-        "aggressiveness": 0.5,
+        "aggressiveness": 0.6,
         "teamwork": 0.5,
-        "curiosity": 0.6,
-        "aimingSkill": 0.5,
-        "reactionTime": 0.9,
-        "communicationFreq": 0.5,
-        "communicationTone": 0.1,
-        "movementStyle": 0.5,
-        "objectiveFocus": 0.2
+        "curiosity": 0.4,
+        "aimingSkill": 0.6,
+        "reactionTime": 0.3,
+        "communicationFreq": 0.3,
+        "communicationTone": 0.5,
+        "movementStyle": 0.7,
+        "objectiveFocus": 0.3
     }
 }

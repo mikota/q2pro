@@ -1,0 +1,35 @@
+{
+    "name": "Makron",
+    "clan_id": 25,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.2,
+        "dual_mk23": 0.5,
+        "mp5": 0.2,
+        "m4": 0.8,
+        "m3": 0.4,
+        "hc": 0.7,
+        "sniper": 0.7,
+        "knives": 0.4,
+        "grenades": 0.8
+    },
+    "itemPreferences": {
+        "vest": 0.4,
+        "helm": 0.5,
+        "laser": 0.3,
+        "silencer": 0.6,
+        "slippers": 0.6,
+        "bandolier": 1.0
+    },
+    "coreTraits": {
+        "aggressiveness": 0.3,
+        "teamwork": 0.7,
+        "curiosity": 0.6,
+        "aimingSkill": 0.7,
+        "reactionTime": 0.6,
+        "communicationFreq": 0.6,
+        "communicationTone": 0.5,
+        "movementStyle": 0.4,
+        "objectiveFocus": 0.4
+    }
+}

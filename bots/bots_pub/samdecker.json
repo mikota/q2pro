@@ -1,35 +1,35 @@
 {
     "name": "Sam Decker",
     "clan_id": null,
-    "skin": "null",
+    "skin": "male/indy",
     "weaponPreferences": {
-        "mk23": 0.5,
-        "dual_mk23": 0.2,
-        "mp5": 0.7,
-        "m4": 0.4,
-        "m3": 0.3,
-        "hc": 0.5,
-        "sniper": 0.6,
-        "knives": 0.8,
+        "mk23": 0.9,
+        "dual_mk23": 0.6,
+        "mp5": 0.9,
+        "m4": 0.7,
+        "m3": 0.5,
+        "hc": 0.6,
+        "sniper": 0.3,
+        "knives": 0.6,
         "grenades": 0.6
     },
     "itemPreferences": {
-        "vest": -0.1,
-        "helm": 1.1,
-        "laser": 0.4,
-        "silencer": 0.6,
-        "slippers": 0.6,
-        "bandolier": 0.6
+        "vest": 0.4,
+        "helm": 0.2,
+        "laser": 0.9,
+        "silencer": 0.7,
+        "slippers": 1.0,
+        "bandolier": 0.7
     },
     "coreTraits": {
         "aggressiveness": 0.5,
-        "teamwork": 0.2,
-        "curiosity": 0.9,
-        "aimingSkill": 0.5,
-        "reactionTime": 0.6,
-        "communicationFreq": 0.6,
-        "communicationTone": 0.8,
-        "movementStyle": 0.4,
+        "teamwork": 0.5,
+        "curiosity": 0.5,
+        "aimingSkill": 0.6,
+        "reactionTime": 0.5,
+        "communicationFreq": 0.9,
+        "communicationTone": 0.3,
+        "movementStyle": 0.6,
         "objectiveFocus": 0.4
     }
 }

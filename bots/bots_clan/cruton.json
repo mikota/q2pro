@@ -1,0 +1,35 @@
+{
+    "name": "Cruton",
+    "clan_id": 28,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.5,
+        "dual_mk23": 0.3,
+        "mp5": 0.3,
+        "m4": 0.5,
+        "m3": 0.3,
+        "hc": 0.5,
+        "sniper": 0.6,
+        "knives": 0.2,
+        "grenades": -0.0
+    },
+    "itemPreferences": {
+        "vest": 0.6,
+        "helm": 0.9,
+        "laser": 0.4,
+        "silencer": 0.6,
+        "slippers": 0.4,
+        "bandolier": 0.2
+    },
+    "coreTraits": {
+        "aggressiveness": 0.3,
+        "teamwork": 0.8,
+        "curiosity": 0.4,
+        "aimingSkill": 0.7,
+        "reactionTime": 0.6,
+        "communicationFreq": 0.5,
+        "communicationTone": 0.1,
+        "movementStyle": 0.6,
+        "objectiveFocus": 0.7
+    }
+}

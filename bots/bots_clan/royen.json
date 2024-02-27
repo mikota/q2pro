@@ -1,0 +1,35 @@
+{
+    "name": "Royen",
+    "clan_id": 86,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": -0.1,
+        "dual_mk23": 0.4,
+        "mp5": 0.3,
+        "m4": 0.4,
+        "m3": 0.2,
+        "hc": 0.7,
+        "sniper": 0.7,
+        "knives": 0.7,
+        "grenades": 0.7
+    },
+    "itemPreferences": {
+        "vest": 1.0,
+        "helm": 0.4,
+        "laser": 0.7,
+        "silencer": 0.6,
+        "slippers": 0.2,
+        "bandolier": 0.7
+    },
+    "coreTraits": {
+        "aggressiveness": 0.5,
+        "teamwork": 0.5,
+        "curiosity": 0.7,
+        "aimingSkill": 0.2,
+        "reactionTime": 0.6,
+        "communicationFreq": 0.5,
+        "communicationTone": 0.6,
+        "movementStyle": 0.5,
+        "objectiveFocus": 0.7
+    }
+}

@@ -1,0 +1,35 @@
+{
+    "name": "Shinnok",
+    "clan_id": null,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.5,
+        "dual_mk23": 0.6,
+        "mp5": 0.5,
+        "m4": 0.2,
+        "m3": 0.5,
+        "hc": 0.9,
+        "sniper": 0.5,
+        "knives": 1.0,
+        "grenades": 0.5
+    },
+    "itemPreferences": {
+        "vest": 0.5,
+        "helm": 0.7,
+        "laser": 0.6,
+        "silencer": 0.6,
+        "slippers": 0.6,
+        "bandolier": 0.6
+    },
+    "coreTraits": {
+        "aggressiveness": 0.6,
+        "teamwork": 0.4,
+        "curiosity": 0.4,
+        "aimingSkill": 0.3,
+        "reactionTime": 0.5,
+        "communicationFreq": 0.8,
+        "communicationTone": 0.4,
+        "movementStyle": 0.1,
+        "objectiveFocus": 0.5
+    }
+}

@@ -1,0 +1,35 @@
+{
+    "name": "Razor",
+    "clan_id": 34,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.5,
+        "dual_mk23": 0.7,
+        "mp5": 0.3,
+        "m4": 0.1,
+        "m3": 0.4,
+        "hc": 0.7,
+        "sniper": 0.8,
+        "knives": 0.4,
+        "grenades": 0.6
+    },
+    "itemPreferences": {
+        "vest": 0.4,
+        "helm": 0.6,
+        "laser": 0.5,
+        "silencer": 0.9,
+        "slippers": 0.6,
+        "bandolier": 0.2
+    },
+    "coreTraits": {
+        "aggressiveness": 0.7,
+        "teamwork": 0.5,
+        "curiosity": 0.4,
+        "aimingSkill": 0.2,
+        "reactionTime": 0.5,
+        "communicationFreq": 0.5,
+        "communicationTone": 0.6,
+        "movementStyle": 0.4,
+        "objectiveFocus": 0.5
+    }
+}

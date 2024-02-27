@@ -1,0 +1,35 @@
+{
+    "name": "C-Lion",
+    "clan_id": null,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.3,
+        "dual_mk23": 0.5,
+        "mp5": 0.5,
+        "m4": 0.4,
+        "m3": 0.1,
+        "hc": 0.6,
+        "sniper": 0.5,
+        "knives": 0.4,
+        "grenades": 0.6
+    },
+    "itemPreferences": {
+        "vest": -0.2,
+        "helm": 0.5,
+        "laser": 0.8,
+        "silencer": 0.2,
+        "slippers": 0.5,
+        "bandolier": 0.4
+    },
+    "coreTraits": {
+        "aggressiveness": 0.5,
+        "teamwork": 0.7,
+        "curiosity": 0.8,
+        "aimingSkill": 0.6,
+        "reactionTime": 0.6,
+        "communicationFreq": 0.4,
+        "communicationTone": 0.6,
+        "movementStyle": 0.3,
+        "objectiveFocus": 0.6
+    }
+}

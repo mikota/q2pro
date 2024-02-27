@@ -1,0 +1,35 @@
+{
+    "name": "SGT CAPPA",
+    "clan_id": 66,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.5,
+        "dual_mk23": 0.4,
+        "mp5": 0.6,
+        "m4": 0.9,
+        "m3": 0.4,
+        "hc": 0.3,
+        "sniper": 0.6,
+        "knives": 0.7,
+        "grenades": 0.6
+    },
+    "itemPreferences": {
+        "vest": 0.6,
+        "helm": 0.4,
+        "laser": 0.7,
+        "silencer": 0.5,
+        "slippers": 0.4,
+        "bandolier": 0.5
+    },
+    "coreTraits": {
+        "aggressiveness": 0.3,
+        "teamwork": 0.3,
+        "curiosity": 0.5,
+        "aimingSkill": 0.3,
+        "reactionTime": 0.2,
+        "communicationFreq": 0.4,
+        "communicationTone": 0.6,
+        "movementStyle": 0.7,
+        "objectiveFocus": 0.3
+    }
+}

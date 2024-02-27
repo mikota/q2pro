@@ -1,0 +1,35 @@
+{
+    "name": "Chess",
+    "clan_id": 85,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.5,
+        "dual_mk23": 0.3,
+        "mp5": 0.6,
+        "m4": 0.6,
+        "m3": 1.1,
+        "hc": 0.8,
+        "sniper": 0.7,
+        "knives": 0.5,
+        "grenades": 0.5
+    },
+    "itemPreferences": {
+        "vest": 0.4,
+        "helm": 0.6,
+        "laser": 0.5,
+        "silencer": 0.5,
+        "slippers": 0.3,
+        "bandolier": 0.6
+    },
+    "coreTraits": {
+        "aggressiveness": 0.8,
+        "teamwork": 0.3,
+        "curiosity": 0.7,
+        "aimingSkill": 0.1,
+        "reactionTime": 0.5,
+        "communicationFreq": 0.6,
+        "communicationTone": 0.5,
+        "movementStyle": 0.3,
+        "objectiveFocus": 0.6
+    }
+}

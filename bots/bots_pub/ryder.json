@@ -1,35 +1,35 @@
 {
     "name": "Ryder",
     "clan_id": null,
-    "skin": "null",
+    "skin": "male/indy",
     "weaponPreferences": {
         "mk23": 0.2,
-        "dual_mk23": 0.5,
-        "mp5": 0.6,
-        "m4": 0.4,
-        "m3": 0.4,
+        "dual_mk23": 0.3,
+        "mp5": 0.8,
+        "m4": 0.5,
+        "m3": 0.5,
         "hc": 0.4,
-        "sniper": 0.5,
-        "knives": 0.6,
-        "grenades": 0.6
+        "sniper": 0.4,
+        "knives": 0.0,
+        "grenades": 0.4
     },
     "itemPreferences": {
-        "vest": 0.4,
-        "helm": 0.3,
-        "laser": 0.7,
-        "silencer": 0.9,
-        "slippers": 0.4,
-        "bandolier": 0.8
+        "vest": 0.3,
+        "helm": 0.7,
+        "laser": 0.6,
+        "silencer": 0.2,
+        "slippers": 0.7,
+        "bandolier": 0.4
     },
     "coreTraits": {
-        "aggressiveness": 0.4,
+        "aggressiveness": 0.5,
         "teamwork": 0.3,
-        "curiosity": 0.3,
-        "aimingSkill": 0.7,
-        "reactionTime": 0.7,
-        "communicationFreq": 0.7,
-        "communicationTone": 0.2,
+        "curiosity": 0.4,
+        "aimingSkill": 0.9,
+        "reactionTime": 0.8,
+        "communicationFreq": 0.1,
+        "communicationTone": 0.7,
         "movementStyle": 0.4,
-        "objectiveFocus": 0.4
+        "objectiveFocus": 0.6
     }
 }

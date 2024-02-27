@@ -1,35 +1,35 @@
 {
     "name": "Icarus",
-    "clan_id": 1,
+    "clan_id": 104,
     "skin": "male/indy",
     "weaponPreferences": {
-        "mk23": 0.4,
-        "dual_mk23": 0.5,
-        "mp5": 0.3,
-        "m4": 0.3,
-        "m3": 0.6,
-        "hc": 0.6,
-        "sniper": 0.3,
-        "knives": 0.8,
+        "mk23": 0.5,
+        "dual_mk23": 0.3,
+        "mp5": 0.4,
+        "m4": 0.6,
+        "m3": 0.2,
+        "hc": 0.8,
+        "sniper": 0.5,
+        "knives": 0.1,
         "grenades": 0.6
     },
     "itemPreferences": {
-        "vest": 0.5,
-        "helm": 0.5,
-        "laser": 0.1,
-        "silencer": 0.7,
+        "vest": 0.9,
+        "helm": 0.7,
+        "laser": 0.6,
+        "silencer": 0.8,
         "slippers": 0.6,
-        "bandolier": 0.2
+        "bandolier": 0.3
     },
     "coreTraits": {
-        "aggressiveness": 0.4,
+        "aggressiveness": 0.6,
         "teamwork": 0.4,
-        "curiosity": 0.3,
-        "aimingSkill": 0.5,
-        "reactionTime": 0.5,
-        "communicationFreq": 0.7,
-        "communicationTone": 0.7,
-        "movementStyle": 0.6,
-        "objectiveFocus": 0.5
+        "curiosity": 0.7,
+        "aimingSkill": 0.6,
+        "reactionTime": 0.4,
+        "communicationFreq": 0.5,
+        "communicationTone": 0.1,
+        "movementStyle": 0.2,
+        "objectiveFocus": 0.1
     }
 }

@@ -1,0 +1,35 @@
+{
+    "name": "Newbie",
+    "clan_id": 103,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.2,
+        "dual_mk23": 0.2,
+        "mp5": 0.9,
+        "m4": 0.3,
+        "m3": 0.4,
+        "hc": 0.4,
+        "sniper": 0.3,
+        "knives": 0.9,
+        "grenades": 0.3
+    },
+    "itemPreferences": {
+        "vest": 0.4,
+        "helm": 0.5,
+        "laser": 0.5,
+        "silencer": 0.3,
+        "slippers": 0.8,
+        "bandolier": 0.7
+    },
+    "coreTraits": {
+        "aggressiveness": 0.5,
+        "teamwork": 0.2,
+        "curiosity": 0.4,
+        "aimingSkill": 0.4,
+        "reactionTime": 0.6,
+        "communicationFreq": 0.4,
+        "communicationTone": 0.7,
+        "movementStyle": 0.6,
+        "objectiveFocus": 0.5
+    }
+}
