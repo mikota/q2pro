@@ -508,6 +508,8 @@ if get_option('discord-sdk')
     discord_dep_path = join_paths(meson.current_source_dir(), discord_inc_path)
     discord_dep = cc.find_library('discord_game_sdk', dirs : discord_dep_path)
     client_deps += discord_dep
+
+    action_src += ['src/client/discord.c']
   endif
   #endif
 endif
