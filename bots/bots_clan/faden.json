@@ -1,0 +1,35 @@
+{
+    "name": "Faden",
+    "clan_id": 7,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.3,
+        "dual_mk23": 0.5,
+        "mp5": 0.6,
+        "m4": 0.8,
+        "m3": 0.5,
+        "hc": 0.3,
+        "sniper": 0.5,
+        "knives": 0.3,
+        "grenades": 0.9
+    },
+    "itemPreferences": {
+        "vest": 0.6,
+        "helm": 0.6,
+        "laser": 0.9,
+        "silencer": 0.8,
+        "slippers": 0.4,
+        "bandolier": 0.5
+    },
+    "coreTraits": {
+        "aggressiveness": 0.3,
+        "teamwork": 0.9,
+        "curiosity": 0.7,
+        "aimingSkill": 0.8,
+        "reactionTime": 0.5,
+        "communicationFreq": 0.6,
+        "communicationTone": 0.8,
+        "movementStyle": 0.4,
+        "objectiveFocus": 0.4
+    }
+}

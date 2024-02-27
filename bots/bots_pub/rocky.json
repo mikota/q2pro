@@ -1,0 +1,35 @@
+{
+    "name": "Rocky",
+    "clan_id": null,
+    "skin": "null",
+    "weaponPreferences": {
+        "mk23": 0.2,
+        "dual_mk23": 0.5,
+        "mp5": 0.1,
+        "m4": 0.3,
+        "m3": 0.6,
+        "hc": 0.3,
+        "sniper": 0.3,
+        "knives": 0.2,
+        "grenades": 0.3
+    },
+    "itemPreferences": {
+        "vest": 0.6,
+        "helm": 0.4,
+        "laser": 0.4,
+        "silencer": 0.8,
+        "slippers": 0.7,
+        "bandolier": 0.3
+    },
+    "coreTraits": {
+        "aggressiveness": 0.1,
+        "teamwork": 0.4,
+        "curiosity": 0.7,
+        "aimingSkill": 0.6,
+        "reactionTime": 0.6,
+        "communicationFreq": 0.7,
+        "communicationTone": 0.7,
+        "movementStyle": 0.7,
+        "objectiveFocus": 0.5
+    }
+}

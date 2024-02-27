@@ -1,0 +1,35 @@
+{
+    "name": "Mr Suave",
+    "clan_id": null,
+    "skin": "null",
+    "weaponPreferences": {
+        "mk23": 0.5,
+        "dual_mk23": 0.4,
+        "mp5": 0.4,
+        "m4": 0.4,
+        "m3": 0.5,
+        "hc": 0.5,
+        "sniper": 0.7,
+        "knives": 1.0,
+        "grenades": 0.5
+    },
+    "itemPreferences": {
+        "vest": 0.4,
+        "helm": 0.5,
+        "laser": 0.4,
+        "silencer": 0.4,
+        "slippers": 0.8,
+        "bandolier": 0.6
+    },
+    "coreTraits": {
+        "aggressiveness": 0.3,
+        "teamwork": 0.6,
+        "curiosity": 0.9,
+        "aimingSkill": 0.5,
+        "reactionTime": 0.4,
+        "communicationFreq": 0.4,
+        "communicationTone": 0.4,
+        "movementStyle": 0.3,
+        "objectiveFocus": 0.5
+    }
+}

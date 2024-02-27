@@ -1,0 +1,35 @@
+{
+    "name": "Sarina",
+    "clan_id": 3,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.3,
+        "dual_mk23": 0.6,
+        "mp5": 0.1,
+        "m4": 0.7,
+        "m3": 0.5,
+        "hc": 0.7,
+        "sniper": 0.6,
+        "knives": 0.5,
+        "grenades": 0.6
+    },
+    "itemPreferences": {
+        "vest": 0.3,
+        "helm": 0.6,
+        "laser": 0.6,
+        "silencer": 0.5,
+        "slippers": 0.3,
+        "bandolier": 0.8
+    },
+    "coreTraits": {
+        "aggressiveness": 0.4,
+        "teamwork": 0.8,
+        "curiosity": 0.6,
+        "aimingSkill": 0.8,
+        "reactionTime": 0.6,
+        "communicationFreq": 0.5,
+        "communicationTone": 0.6,
+        "movementStyle": 0.3,
+        "objectiveFocus": 0.2
+    }
+}

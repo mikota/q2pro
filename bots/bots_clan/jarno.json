@@ -1,0 +1,35 @@
+{
+    "name": "Jarno",
+    "clan_id": 4,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.2,
+        "dual_mk23": 0.4,
+        "mp5": 0.6,
+        "m4": 0.4,
+        "m3": 0.6,
+        "hc": 0.4,
+        "sniper": 0.7,
+        "knives": 0.6,
+        "grenades": 0.3
+    },
+    "itemPreferences": {
+        "vest": 0.5,
+        "helm": 0.5,
+        "laser": 0.2,
+        "silencer": 0.6,
+        "slippers": 0.6,
+        "bandolier": 0.5
+    },
+    "coreTraits": {
+        "aggressiveness": 0.7,
+        "teamwork": 0.3,
+        "curiosity": 0.8,
+        "aimingSkill": 0.4,
+        "reactionTime": 0.2,
+        "communicationFreq": 0.4,
+        "communicationTone": 0.8,
+        "movementStyle": 0.8,
+        "objectiveFocus": 0.6
+    }
+}

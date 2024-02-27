@@ -1,0 +1,35 @@
+{
+    "name": "VenoM",
+    "clan_id": null,
+    "skin": "null",
+    "weaponPreferences": {
+        "mk23": 0.1,
+        "dual_mk23": 0.2,
+        "mp5": 0.4,
+        "m4": 0.3,
+        "m3": 0.4,
+        "hc": 0.5,
+        "sniper": 0.5,
+        "knives": 0.5,
+        "grenades": 0.4
+    },
+    "itemPreferences": {
+        "vest": 0.4,
+        "helm": 0.1,
+        "laser": 0.7,
+        "silencer": 0.5,
+        "slippers": 0.2,
+        "bandolier": 0.5
+    },
+    "coreTraits": {
+        "aggressiveness": 0.6,
+        "teamwork": 0.4,
+        "curiosity": 0.5,
+        "aimingSkill": 0.2,
+        "reactionTime": 0.5,
+        "communicationFreq": 0.8,
+        "communicationTone": 0.5,
+        "movementStyle": 0.4,
+        "objectiveFocus": 0.7
+    }
+}

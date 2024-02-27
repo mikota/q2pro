@@ -1,0 +1,35 @@
+{
+    "name": "NoAmmo",
+    "clan_id": null,
+    "skin": "null",
+    "weaponPreferences": {
+        "mk23": 0.9,
+        "dual_mk23": 0.8,
+        "mp5": 0.2,
+        "m4": 0.7,
+        "m3": 0.1,
+        "hc": 0.6,
+        "sniper": 0.6,
+        "knives": 0.6,
+        "grenades": 0.5
+    },
+    "itemPreferences": {
+        "vest": 0.2,
+        "helm": 1.1,
+        "laser": 0.5,
+        "silencer": 0.6,
+        "slippers": 0.8,
+        "bandolier": 0.6
+    },
+    "coreTraits": {
+        "aggressiveness": 0.7,
+        "teamwork": 0.4,
+        "curiosity": 0.8,
+        "aimingSkill": 0.6,
+        "reactionTime": 0.5,
+        "communicationFreq": 0.4,
+        "communicationTone": 0.4,
+        "movementStyle": 0.7,
+        "objectiveFocus": 0.6
+    }
+}

@@ -1,0 +1,35 @@
+{
+    "name": "Stinger",
+    "clan_id": 6,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.5,
+        "dual_mk23": 0.7,
+        "mp5": 0.4,
+        "m4": 0.4,
+        "m3": 0.4,
+        "hc": 0.2,
+        "sniper": 0.5,
+        "knives": 0.3,
+        "grenades": 0.7
+    },
+    "itemPreferences": {
+        "vest": 0.3,
+        "helm": 0.4,
+        "laser": 0.3,
+        "silencer": 0.4,
+        "slippers": 0.6,
+        "bandolier": 0.3
+    },
+    "coreTraits": {
+        "aggressiveness": -0.1,
+        "teamwork": 0.3,
+        "curiosity": 0.5,
+        "aimingSkill": 0.4,
+        "reactionTime": 0.4,
+        "communicationFreq": 0.5,
+        "communicationTone": 0.6,
+        "movementStyle": 0.4,
+        "objectiveFocus": 0.4
+    }
+}

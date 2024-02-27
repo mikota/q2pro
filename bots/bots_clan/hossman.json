@@ -1,0 +1,35 @@
+{
+    "name": "Hossman",
+    "clan_id": 9,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.8,
+        "dual_mk23": 0.8,
+        "mp5": 0.8,
+        "m4": 0.5,
+        "m3": 0.4,
+        "hc": 0.5,
+        "sniper": 0.5,
+        "knives": 1.0,
+        "grenades": 0.7
+    },
+    "itemPreferences": {
+        "vest": 0.3,
+        "helm": 0.8,
+        "laser": 0.5,
+        "silencer": 0.8,
+        "slippers": 0.7,
+        "bandolier": 0.7
+    },
+    "coreTraits": {
+        "aggressiveness": 0.4,
+        "teamwork": 0.8,
+        "curiosity": 0.1,
+        "aimingSkill": 0.3,
+        "reactionTime": 0.5,
+        "communicationFreq": 0.6,
+        "communicationTone": 0.7,
+        "movementStyle": 0.6,
+        "objectiveFocus": 0.4
+    }
+}

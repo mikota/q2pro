@@ -1,7 +1,7 @@
 {
     "name": "Why are we here?",
     "clan_id": null,
-    "skin": "male/indy",
+    "skin": "null",
     "weaponPreferences": {
         "mk23": 0.8,
         "dual_mk23": 0.5,

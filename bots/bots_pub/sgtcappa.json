@@ -1,0 +1,35 @@
+{
+    "name": "SGT CAPPA",
+    "clan_id": null,
+    "skin": "null",
+    "weaponPreferences": {
+        "mk23": 0.6,
+        "dual_mk23": 0.4,
+        "mp5": 0.7,
+        "m4": 0.4,
+        "m3": 0.1,
+        "hc": 0.5,
+        "sniper": 0.7,
+        "knives": 0.3,
+        "grenades": 0.3
+    },
+    "itemPreferences": {
+        "vest": 0.5,
+        "helm": 0.3,
+        "laser": 0.5,
+        "silencer": 0.4,
+        "slippers": 0.5,
+        "bandolier": 0.5
+    },
+    "coreTraits": {
+        "aggressiveness": 0.2,
+        "teamwork": 0.7,
+        "curiosity": 0.2,
+        "aimingSkill": 0.2,
+        "reactionTime": 0.3,
+        "communicationFreq": 0.5,
+        "communicationTone": 0.2,
+        "movementStyle": 0.6,
+        "objectiveFocus": 0.9
+    }
+}

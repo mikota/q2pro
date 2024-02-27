@@ -1,0 +1,35 @@
+{
+    "name": "PewDiePie",
+    "clan_id": 4,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.5,
+        "dual_mk23": 0.3,
+        "mp5": 0.1,
+        "m4": 0.7,
+        "m3": 0.3,
+        "hc": 0.4,
+        "sniper": 0.7,
+        "knives": 0.4,
+        "grenades": 0.3
+    },
+    "itemPreferences": {
+        "vest": 0.6,
+        "helm": 0.7,
+        "laser": 0.1,
+        "silencer": 0.6,
+        "slippers": 0.3,
+        "bandolier": 0.3
+    },
+    "coreTraits": {
+        "aggressiveness": 0.2,
+        "teamwork": 0.4,
+        "curiosity": 0.8,
+        "aimingSkill": 0.4,
+        "reactionTime": 0.5,
+        "communicationFreq": 0.8,
+        "communicationTone": 0.9,
+        "movementStyle": 0.2,
+        "objectiveFocus": 0.5
+    }
+}

@@ -1,7 +1,7 @@
 {
     "name": "Lt Raymond Tango",
     "clan_id": null,
-    "skin": "male/indy",
+    "skin": "null",
     "weaponPreferences": {
         "mk23": 0.5,
         "dual_mk23": 1.0,

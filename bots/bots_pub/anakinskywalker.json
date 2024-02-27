@@ -1,7 +1,7 @@
 {
     "name": "Anakin Skywalker",
     "clan_id": null,
-    "skin": "male/indy",
+    "skin": "null",
     "weaponPreferences": {
         "mk23": 1.0,
         "dual_mk23": 0.5,

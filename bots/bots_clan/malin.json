@@ -1,0 +1,35 @@
+{
+    "name": "Malin",
+    "clan_id": 2,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.7,
+        "dual_mk23": 0.3,
+        "mp5": 0.7,
+        "m4": 0.4,
+        "m3": 0.7,
+        "hc": 0.0,
+        "sniper": 0.5,
+        "knives": 0.6,
+        "grenades": 0.4
+    },
+    "itemPreferences": {
+        "vest": 0.6,
+        "helm": 0.6,
+        "laser": 0.6,
+        "silencer": 0.4,
+        "slippers": 0.7,
+        "bandolier": 0.7
+    },
+    "coreTraits": {
+        "aggressiveness": 0.1,
+        "teamwork": 0.4,
+        "curiosity": 0.7,
+        "aimingSkill": 0.6,
+        "reactionTime": 0.3,
+        "communicationFreq": 0.5,
+        "communicationTone": 0.6,
+        "movementStyle": 0.2,
+        "objectiveFocus": 0.6
+    }
+}

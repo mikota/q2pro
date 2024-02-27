@@ -1,0 +1,35 @@
+{
+    "name": "Makron",
+    "clan_id": null,
+    "skin": "null",
+    "weaponPreferences": {
+        "mk23": 0.6,
+        "dual_mk23": 0.2,
+        "mp5": 0.4,
+        "m4": 0.5,
+        "m3": 0.2,
+        "hc": 0.4,
+        "sniper": 0.6,
+        "knives": -0.1,
+        "grenades": 0.3
+    },
+    "itemPreferences": {
+        "vest": 0.1,
+        "helm": 0.5,
+        "laser": 0.4,
+        "silencer": 0.9,
+        "slippers": 0.5,
+        "bandolier": 0.1
+    },
+    "coreTraits": {
+        "aggressiveness": 0.2,
+        "teamwork": 0.5,
+        "curiosity": 1.0,
+        "aimingSkill": 0.5,
+        "reactionTime": 0.7,
+        "communicationFreq": 0.8,
+        "communicationTone": 0.4,
+        "movementStyle": 0.7,
+        "objectiveFocus": 0.3
+    }
+}

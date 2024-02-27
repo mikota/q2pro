@@ -1,0 +1,35 @@
+{
+    "name": "Gordac",
+    "clan_id": null,
+    "skin": "null",
+    "weaponPreferences": {
+        "mk23": 0.6,
+        "dual_mk23": 0.5,
+        "mp5": 0.3,
+        "m4": 0.5,
+        "m3": 0.3,
+        "hc": 0.6,
+        "sniper": 0.5,
+        "knives": 0.9,
+        "grenades": 0.4
+    },
+    "itemPreferences": {
+        "vest": 0.8,
+        "helm": 0.7,
+        "laser": 0.4,
+        "silencer": 0.5,
+        "slippers": 0.3,
+        "bandolier": 0.0
+    },
+    "coreTraits": {
+        "aggressiveness": 0.4,
+        "teamwork": 0.1,
+        "curiosity": 0.5,
+        "aimingSkill": 0.6,
+        "reactionTime": 0.6,
+        "communicationFreq": 0.2,
+        "communicationTone": 0.5,
+        "movementStyle": 0.4,
+        "objectiveFocus": 0.7
+    }
+}

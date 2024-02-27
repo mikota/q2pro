@@ -1,7 +1,7 @@
 {
     "name": "Snapchip Shatter",
     "clan_id": null,
-    "skin": "male/indy",
+    "skin": "null",
     "weaponPreferences": {
         "mk23": 0.7,
         "dual_mk23": 0.8,

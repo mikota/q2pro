@@ -1,0 +1,35 @@
+{
+    "name": "Reddog",
+    "clan_id": null,
+    "skin": "null",
+    "weaponPreferences": {
+        "mk23": 0.6,
+        "dual_mk23": 0.6,
+        "mp5": 0.4,
+        "m4": 0.5,
+        "m3": 1.1,
+        "hc": 0.5,
+        "sniper": 0.5,
+        "knives": 0.8,
+        "grenades": 0.7
+    },
+    "itemPreferences": {
+        "vest": 0.8,
+        "helm": 0.5,
+        "laser": 0.4,
+        "silencer": 0.2,
+        "slippers": 0.6,
+        "bandolier": 0.2
+    },
+    "coreTraits": {
+        "aggressiveness": 0.6,
+        "teamwork": 0.4,
+        "curiosity": 0.5,
+        "aimingSkill": 0.6,
+        "reactionTime": 0.7,
+        "communicationFreq": 0.2,
+        "communicationTone": 0.7,
+        "movementStyle": 0.5,
+        "objectiveFocus": 0.7
+    }
+}

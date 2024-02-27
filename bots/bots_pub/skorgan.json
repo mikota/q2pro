@@ -1,0 +1,35 @@
+{
+    "name": "Skorgan",
+    "clan_id": null,
+    "skin": "null",
+    "weaponPreferences": {
+        "mk23": 0.4,
+        "dual_mk23": 0.4,
+        "mp5": 0.4,
+        "m4": 0.7,
+        "m3": 0.4,
+        "hc": 0.4,
+        "sniper": 0.2,
+        "knives": 0.7,
+        "grenades": 0.3
+    },
+    "itemPreferences": {
+        "vest": 0.4,
+        "helm": 0.6,
+        "laser": 0.6,
+        "silencer": 0.6,
+        "slippers": 0.7,
+        "bandolier": 0.7
+    },
+    "coreTraits": {
+        "aggressiveness": 0.6,
+        "teamwork": 0.8,
+        "curiosity": 0.7,
+        "aimingSkill": 0.5,
+        "reactionTime": 0.6,
+        "communicationFreq": 0.3,
+        "communicationTone": 0.6,
+        "movementStyle": 0.5,
+        "objectiveFocus": 0.6
+    }
+}

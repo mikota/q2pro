@@ -1,0 +1,35 @@
+{
+    "name": "Teabag",
+    "clan_id": 6,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.4,
+        "dual_mk23": 0.6,
+        "mp5": 0.4,
+        "m4": 0.5,
+        "m3": 0.3,
+        "hc": 0.0,
+        "sniper": 0.4,
+        "knives": 0.5,
+        "grenades": 0.4
+    },
+    "itemPreferences": {
+        "vest": 0.3,
+        "helm": 0.3,
+        "laser": 0.3,
+        "silencer": 0.7,
+        "slippers": 0.6,
+        "bandolier": 0.5
+    },
+    "coreTraits": {
+        "aggressiveness": 0.3,
+        "teamwork": 0.5,
+        "curiosity": -0.1,
+        "aimingSkill": 0.6,
+        "reactionTime": 0.2,
+        "communicationFreq": 0.7,
+        "communicationTone": 0.7,
+        "movementStyle": 0.4,
+        "objectiveFocus": 0.7
+    }
+}

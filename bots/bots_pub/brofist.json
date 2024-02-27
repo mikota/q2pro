@@ -1,0 +1,35 @@
+{
+    "name": "BroFist",
+    "clan_id": null,
+    "skin": "null",
+    "weaponPreferences": {
+        "mk23": 0.0,
+        "dual_mk23": 0.9,
+        "mp5": 0.4,
+        "m4": 0.4,
+        "m3": 0.6,
+        "hc": 0.6,
+        "sniper": 0.7,
+        "knives": 0.7,
+        "grenades": 0.4
+    },
+    "itemPreferences": {
+        "vest": 0.7,
+        "helm": 0.8,
+        "laser": 0.3,
+        "silencer": 0.7,
+        "slippers": 0.3,
+        "bandolier": 0.4
+    },
+    "coreTraits": {
+        "aggressiveness": 0.7,
+        "teamwork": 0.5,
+        "curiosity": 0.4,
+        "aimingSkill": 0.4,
+        "reactionTime": 0.6,
+        "communicationFreq": 0.8,
+        "communicationTone": 0.6,
+        "movementStyle": 0.5,
+        "objectiveFocus": 0.9
+    }
+}

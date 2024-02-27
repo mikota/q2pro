@@ -1,0 +1,35 @@
+{
+    "name": "Drahmin",
+    "clan_id": 5,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.5,
+        "dual_mk23": 0.4,
+        "mp5": 0.5,
+        "m4": 0.4,
+        "m3": 1.0,
+        "hc": 0.7,
+        "sniper": 0.7,
+        "knives": 0.8,
+        "grenades": 0.7
+    },
+    "itemPreferences": {
+        "vest": 0.4,
+        "helm": 0.7,
+        "laser": 0.3,
+        "silencer": 0.6,
+        "slippers": 0.3,
+        "bandolier": 0.7
+    },
+    "coreTraits": {
+        "aggressiveness": 0.5,
+        "teamwork": 1.0,
+        "curiosity": 0.5,
+        "aimingSkill": 0.1,
+        "reactionTime": 0.4,
+        "communicationFreq": 0.2,
+        "communicationTone": 0.4,
+        "movementStyle": 0.4,
+        "objectiveFocus": 0.5
+    }
+}

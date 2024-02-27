@@ -1,0 +1,35 @@
+{
+    "name": "Mavado",
+    "clan_id": 8,
+    "skin": "male/indy",
+    "weaponPreferences": {
+        "mk23": 0.7,
+        "dual_mk23": 0.7,
+        "mp5": 0.4,
+        "m4": 0.5,
+        "m3": 0.6,
+        "hc": 0.6,
+        "sniper": 0.2,
+        "knives": 0.7,
+        "grenades": 0.3
+    },
+    "itemPreferences": {
+        "vest": 0.6,
+        "helm": 0.1,
+        "laser": 0.6,
+        "silencer": 0.4,
+        "slippers": 0.4,
+        "bandolier": 0.3
+    },
+    "coreTraits": {
+        "aggressiveness": 0.6,
+        "teamwork": 0.7,
+        "curiosity": 0.6,
+        "aimingSkill": 0.2,
+        "reactionTime": 0.3,
+        "communicationFreq": 0.3,
+        "communicationTone": 0.6,
+        "movementStyle": 0.7,
+        "objectiveFocus": 0.7
+    }
+}
