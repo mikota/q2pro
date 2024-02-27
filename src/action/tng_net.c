@@ -201,9 +201,19 @@ void lc_aqtion_stat_send(char *stats)
     }
 
     request_t *request;
+    // If both AWS keys are set, this is an official server
+    if (cvar_check(sv_aws_access_key) && cvar_check(sv_aws_secret_key))
+        request->official_server = true;
+
     char full_url[1024];
-    char path[] = "/api/v1/stats";
     char* url = AQ2WORLD_STAT_URL;
+    char path[64];
+    // Non-official servers use a different path
+    if (request->official_server) {
+        char path[] = "/api/v1/stats/official";
+    } else {
+        char path[] = "/api/v1/stats";
+    }
 
     // Get a new request object
     request = new_request();
@@ -332,6 +342,15 @@ void lc_start_request_function(request_t* request)
     curl_easy_setopt(request->handle, CURLOPT_URL, request->url);
     curl_easy_setopt(request->handle, CURLOPT_WRITEDATA, request); // Passed as pvt to lc_receive_data_function
     curl_easy_setopt(request->handle, CURLOPT_PRIVATE, request); // Returned by curl_easy_getinfo with the CURLINFO_PRIVATE option
+    
+    if (request->official_server){
+        // Set up the AWS Signature Version 4 options
+        curl_easy_setopt(request->handle, CURLOPT_AWS_SIGV4, "aws:amz:us-east-1:execute-api");
+        // Set the username and password for HTTP authentication
+        curl_easy_setopt(request->handle, CURLOPT_USERNAME, sv_aws_access_key->string);
+        curl_easy_setopt(request->handle, CURLOPT_PASSWORD, sv_aws_secret_key->string);
+    }
+    
     curl_multi_add_handle(stack, request->handle);
     current_requests++;
 }

@@ -535,6 +535,8 @@ cvar_t *warmup_unready; // Toggles warmup if captains unready
 cvar_t *sv_curl_enable;
 cvar_t *sv_discord_announce_enable;
 cvar_t *sv_curl_stat_enable;
+cvar_t *sv_aws_access_key;
+cvar_t *sv_aws_secret_key;
 cvar_t *sv_curl_discord_chat_url;
 cvar_t *sv_curl_discord_server_url;
 cvar_t *server_ip;

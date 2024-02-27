@@ -648,6 +648,8 @@ void InitGame( void )
 	sv_curl_enable = gi.cvar("sv_curl_enable", "0", 0);
 	sv_discord_announce_enable = gi.cvar("sv_discord_announce_enable", "0", 0);
 	sv_curl_stat_enable = gi.cvar("sv_curl_stat_enable", "0", 0);
+	sv_aws_access_key = gi.cvar("sv_aws_access_key", "disabled", 0); // Never include this in serverinfo!
+	sv_aws_secret_key = gi.cvar("sv_aws_secret_key", "disabled", 0); // Never include this in serverinfo!
 	sv_curl_discord_chat_url = gi.cvar("sv_curl_discord_chat_url", "disabled", 0);
 	sv_curl_discord_server_url = gi.cvar("sv_curl_discord_server_url", "disabled", 0);
 	server_ip = gi.cvar("server_ip", "", 0); // Never include this in serverinfo!

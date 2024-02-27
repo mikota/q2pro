@@ -1283,6 +1283,8 @@ extern cvar_t *warmup_unready;
 extern cvar_t *sv_curl_enable;
 extern cvar_t *sv_discord_announce_enable;
 extern cvar_t *sv_curl_stat_enable;
+extern cvar_t *sv_aws_access_key;
+extern cvar_t *sv_aws_secret_key;
 extern cvar_t *sv_curl_discord_chat_url;
 extern cvar_t *sv_curl_discord_server_url;
 extern cvar_t *server_ip;
