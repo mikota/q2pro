@@ -1,35 +1,35 @@
 {
     "name": "Sarge",
-    "clan_id": 32,
-    "skin": "male/indy",
+    "clan_id": 5,
+    "skin": "messiah/leon",
     "weaponPreferences": {
-        "mk23": 0.4,
-        "dual_mk23": 0.5,
-        "mp5": 0.5,
-        "m4": 0.8,
+        "mk23": 0.8,
+        "dual_mk23": 0.8,
+        "mp5": 0.6,
+        "m4": 0.4,
         "m3": 0.5,
-        "hc": 0.2,
-        "sniper": 0.7,
-        "knives": 0.3,
+        "hc": 0.3,
+        "sniper": 0.9,
+        "knives": 0.4,
         "grenades": 0.3
     },
     "itemPreferences": {
-        "vest": 0.5,
-        "helm": 0.2,
+        "vest": 0.1,
+        "helm": 0.4,
         "laser": 0.7,
-        "silencer": 0.3,
-        "slippers": 0.8,
-        "bandolier": 0.3
+        "silencer": 0.4,
+        "slippers": 0.2,
+        "bandolier": 0.5
     },
     "coreTraits": {
-        "aggressiveness": 0.7,
-        "teamwork": 0.2,
-        "curiosity": 0.4,
-        "aimingSkill": 0.8,
-        "reactionTime": 0.2,
-        "communicationFreq": 0.4,
-        "communicationTone": 0.4,
-        "movementStyle": 0.5,
-        "objectiveFocus": 0.5
+        "aggressiveness": 0.6,
+        "teamwork": 0.6,
+        "curiosity": 0.8,
+        "aimingSkill": 0.4,
+        "reactionTime": 0.4,
+        "communicationFreq": 0.6,
+        "communicationTone": 0.5,
+        "movementStyle": 0.7,
+        "objectiveFocus": 0.3
     }
 }

@@ -12,14 +12,11 @@ import re
 def generate_random_value():
     return round(random.normalvariate(0.5, 0.2), 1)
 
-# Open and read the file
-with open('other.txt', 'r') as file:
-    for line in file:
-        name = line.strip()  # Remove newline characters and whitespace
-        length = len(name)
+with open('skin_names.txt', 'r') as file:
+    skin_names = [line.strip() for line in file]
 
-        # Open and read the file
-with open('other.txt', 'r') as file:
+# Open and read the file
+with open('bot_names.txt', 'r') as file:
     for line in file:
         name = line.strip()  # Remove newline characters and whitespace
         length = len(name)
@@ -32,7 +29,7 @@ with open('other.txt', 'r') as file:
             bot_profile = {
                 "name": name,
                 "clan_id": random.randint(1, 110) if add_to_clan else None,
-                "skin": "male/indy",
+                "skin": random.choice(skin_names),  # Randomly select a skin
                 "weaponPreferences": {key: generate_random_value() for key in ["mk23", "dual_mk23", "mp5", "m4", "m3", "hc", "sniper", "knives", "grenades"]},
                 "itemPreferences": {key: generate_random_value() for key in ["vest", "helm", "laser", "silencer", "slippers", "bandolier"]},
                 "coreTraits": {key: generate_random_value() for key in ["aggressiveness", "teamwork", "curiosity", "aimingSkill", "reactionTime", "communicationFreq", "communicationTone", "movementStyle", "objectiveFocus"]}

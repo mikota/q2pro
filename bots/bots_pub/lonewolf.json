@@ -1,35 +1,35 @@
 {
     "name": "Lone Wolf",
     "clan_id": null,
-    "skin": "male/indy",
+    "skin": "terror/rmafia",
     "weaponPreferences": {
-        "mk23": 0.3,
-        "dual_mk23": 0.5,
-        "mp5": 0.6,
-        "m4": 0.2,
-        "m3": 0.3,
-        "hc": 0.7,
-        "sniper": 0.6,
-        "knives": 0.4,
+        "mk23": 0.6,
+        "dual_mk23": 0.3,
+        "mp5": 0.5,
+        "m4": 0.7,
+        "m3": 0.5,
+        "hc": 0.6,
+        "sniper": 0.3,
+        "knives": 0.1,
         "grenades": 0.7
     },
     "itemPreferences": {
-        "vest": 0.3,
-        "helm": 0.6,
-        "laser": 0.7,
-        "silencer": 0.9,
-        "slippers": 0.5,
-        "bandolier": 0.3
+        "vest": 0.1,
+        "helm": 0.7,
+        "laser": 0.6,
+        "silencer": 0.6,
+        "slippers": 0.9,
+        "bandolier": 0.6
     },
     "coreTraits": {
-        "aggressiveness": 0.2,
-        "teamwork": 0.6,
-        "curiosity": 0.6,
-        "aimingSkill": 0.6,
-        "reactionTime": 0.7,
-        "communicationFreq": 0.4,
-        "communicationTone": 0.6,
+        "aggressiveness": 0.6,
+        "teamwork": 0.7,
+        "curiosity": 0.4,
+        "aimingSkill": 0.5,
+        "reactionTime": 0.1,
+        "communicationFreq": 0.5,
+        "communicationTone": 0.2,
         "movementStyle": 0.5,
-        "objectiveFocus": 0.3
+        "objectiveFocus": 0.7
     }
 }

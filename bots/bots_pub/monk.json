@@ -1,35 +1,35 @@
 {
     "name": "Monk",
     "clan_id": null,
-    "skin": "male/indy",
+    "skin": "male/cop",
     "weaponPreferences": {
-        "mk23": 0.5,
+        "mk23": 0.0,
         "dual_mk23": 0.7,
         "mp5": 0.5,
         "m4": 0.5,
-        "m3": 0.6,
+        "m3": 0.4,
         "hc": 0.2,
-        "sniper": 0.2,
-        "knives": 0.7,
-        "grenades": 0.8
+        "sniper": 0.7,
+        "knives": 0.6,
+        "grenades": 0.6
     },
     "itemPreferences": {
-        "vest": 0.6,
+        "vest": 0.4,
         "helm": 0.4,
-        "laser": 0.6,
-        "silencer": 0.8,
+        "laser": 0.3,
+        "silencer": 0.4,
         "slippers": 0.4,
-        "bandolier": 0.6
+        "bandolier": 0.5
     },
     "coreTraits": {
-        "aggressiveness": 0.4,
-        "teamwork": 0.1,
-        "curiosity": 0.7,
-        "aimingSkill": 0.9,
+        "aggressiveness": 0.8,
+        "teamwork": 0.4,
+        "curiosity": 0.4,
+        "aimingSkill": 0.6,
         "reactionTime": 0.6,
-        "communicationFreq": 0.3,
-        "communicationTone": 0.4,
-        "movementStyle": 0.4,
-        "objectiveFocus": 0.6
+        "communicationFreq": 0.4,
+        "communicationTone": 0.7,
+        "movementStyle": 0.3,
+        "objectiveFocus": 0.5
     }
 }
