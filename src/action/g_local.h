@@ -648,6 +648,17 @@ bind 6 "use Sniper Rifle"
 
 #define MAX_SPAWNS 512		// max DM spawn points supported
 
+// High Scores support from OpenFFA
+#define MAX_HIGH_SCORES	10
+
+typedef struct highscore_s
+{
+	char name[MAX_CLIENT_NAME];
+    int score;
+    time_t time;
+} highscore_t;
+
+
 //AQ2:TNG End adding flags
 
 typedef struct itemList_s
@@ -760,6 +771,9 @@ typedef struct
   //q2pro protocol extensions
   cs_remap_t  csr;
   precache_t  *precaches;
+
+  // High Scores support from OpenFFA
+  char        dir[MAX_OSPATH]; // where variable data is stored
 }
 game_locals_t;
 
@@ -787,6 +801,11 @@ typedef struct
   int intermission_exit;
   vec3_t intermission_origin;
   vec3_t intermission_angle;
+
+  // high scores from OpenFFA
+  highscore_t scores[MAX_HIGH_SCORES];
+  int numscores;
+  time_t record;        // not zero if scores updated
 
   char *changemap;
 
@@ -1267,6 +1286,7 @@ extern cvar_t *sv_killgib; // Enable or disable gibbing on kill command
 // 2024
 extern cvar_t *warmup_unready;
 extern cvar_t *training_mode; // Sets training mode vars
+extern cvar_t *g_highscores_dir; // Sets the highscores directory
 
 #if AQTION_EXTENSION
 extern int (*engine_Client_GetVersion)(edict_t *ent);
@@ -1636,6 +1656,9 @@ void ProduceShotgunDamageReport(edict_t*);
 
 //tng_stats.c
 void StatBotCheck(void);
+void G_RegisterScore(void);
+int G_CalcRanks(gclient_t **ranks);
+void G_LoadScores(void);
 #if USE_AQTION
 void LogKill(edict_t *self, edict_t *inflictor, edict_t *attacker);
 void LogWorldKill(edict_t *self);

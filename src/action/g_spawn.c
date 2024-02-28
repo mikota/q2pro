@@ -1371,6 +1371,9 @@ void SpawnEntities (const char *mapname, const char *entities, const char *spawn
 
 	G_LoadLocations();
 
+	// High score load file
+	G_LoadScores();
+
 	SVCmd_CheckSB_f(); //rekkie -- silence ban
 
 	UnBan_TeamKillers();

@@ -651,6 +651,7 @@ void InitGame( void )
 		gi.cvar_forceset("dmweapon", "Combat Knife");
 		gi.cvar_forceset("bholelimit", "30");
 	}
+	g_highscores_dir = gi.cvar("g_highscores_dir", "highscores", 0);
 
 	// new AQtion Extension cvars
 #if AQTION_EXTENSION

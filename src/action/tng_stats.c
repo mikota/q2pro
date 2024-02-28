@@ -69,6 +69,7 @@
 
 #include "g_local.h"
 #include <time.h>
+#include <errno.h>
 
 /* Stats Command */
 
@@ -490,64 +491,317 @@ void Cmd_Statmode_f(edict_t* ent)
 	stuffcmd(ent, stuff);
 }
 
+/*
+==================
+High Scores List
+
+Inspired and based on the original code by skullernet from OpenFFA
+==================
+*/
+
+
+typedef struct {
+    int nb_lines;
+    char **lines;
+    char path[1];
+} load_file_t;
+
+q_printf(1, 2)
+static load_file_t *G_LoadFile(const char *fmt, ...)
+{
+    char path[MAX_OSPATH];
+    size_t pathlen;
+    va_list argptr;
+    int err = 0;
+
+    va_start(argptr, fmt);
+    pathlen = Q_vsnprintf(path, sizeof(path), fmt, argptr);
+    va_end(argptr);
+
+    if (pathlen >= sizeof(path)) {
+        err = ENAMETOOLONG;
+        goto fail0;
+    }
+
+    FILE *fp = fopen(path, "rb");
+    if (!fp) {
+        err = errno;
+        goto fail0;
+    }
+
+    Q_STATBUF st;
+    if (os_fstat(os_fileno(fp), &st)) {
+        err = errno;
+        goto fail1;
+    }
+
+    if (st.st_size >= INT_MAX / sizeof(char *)) {
+        err = EFBIG;
+        goto fail1;
+    }
+
+    char *buf = gi.TagMalloc(st.st_size + 1, TAG_GAME);
+
+    if (!fread(buf, st.st_size, 1, fp)) {
+        err = EIO;
+        goto fail2;
+    }
+
+    buf[st.st_size] = 0;
+
+    load_file_t *f = gi.TagMalloc(sizeof(*f) + pathlen, TAG_GAME);
+    f->nb_lines = 0;
+    f->lines = NULL;
+    memcpy(f->path, path, pathlen + 1);
+
+    int max_lines = 0;
+    while (1) {
+        char *p = strchr(buf, '\n');
+        if (p) {
+            if (p > buf && *(p - 1) == '\r')
+                *(p - 1) = 0;
+            *p = 0;
+        }
+
+        if (f->nb_lines == max_lines) {
+            void *tmp = f->lines;
+            f->lines = gi.TagMalloc(sizeof(char *) * (max_lines += 32), TAG_GAME);
+            if (tmp) {
+                memcpy(f->lines, tmp, sizeof(char *) * f->nb_lines);
+                gi.TagFree(tmp);
+            }
+        }
+        f->lines[f->nb_lines++] = buf;
+
+        if (!p)
+            break;
+        buf = p + 1;
+    }
+
+    fclose(fp);
+    return f;
+
+fail2:
+    gi.TagFree(buf);
+fail1:
+    fclose(fp);
+fail0:
+    gi.dprintf("Couldn't load '%s': %s\n", path, strerror(err));
+    return NULL;
+}
+
+static void G_FreeFile(load_file_t *f)
+{
+    gi.TagFree(f->lines[0]);
+    gi.TagFree(f->lines);
+    gi.TagFree(f);
+}
+
+static int G_CreatePath(char *path)
+{
+    char *p;
+    int ret;
+
+    // skip leading slash(es)
+    for (p = path; *p == '/'; p++)
+        ;
+
+    for (; *p; p++) {
+        if (*p == '/') {
+            // create the directory
+            *p = 0;
+            ret = os_mkdir(path);
+            *p = '/';
+            if (ret == -1 && errno != EEXIST)
+                return -1;
+        }
+    }
+    return 0;
+}
+
+static int ScoreCmp(const void *p1, const void *p2)
+{
+    highscore_t *a = (highscore_t *)p1;
+    highscore_t *b = (highscore_t *)p2;
+
+    if (a->score > b->score) {
+        return -1;
+    }
+    if (a->score < b->score) {
+        return 1;
+    }
+    if (a->time > b->time) {
+        return -1;
+    }
+    if (a->time < b->time) {
+        return 1;
+    }
+    return 0;
+}
+
+#define SD(s)   *s ? "/" : "", s
+
+static void G_SaveScores(void)
+{
+    char path[MAX_OSPATH];
+    highscore_t *s;
+    FILE *fp;
+    int i;
+    size_t len;
+
+    len = Q_snprintf(path, sizeof(path), "%s%s%s/%s.txt",
+                     GAMEVERSION, SD(g_highscores_dir->string), level.mapname);
+    if (len >= sizeof(path)) {
+        return;
+    }
+
+    G_CreatePath(path);
+
+    fp = fopen(path, "w");
+    if (!fp) {
+        gi.dprintf("Couldn't open '%s': %s\n", path, strerror(errno));
+        return;
+    }
+
+    for (i = 0; i < level.numscores; i++) {
+        s = &level.scores[i];
+        fprintf(fp, "\"%s\" %d %lu\n",
+                s->name, s->score, (unsigned long)s->time);
+    }
+
+    fclose(fp);
+}
+
+static int G_PlayerCmp(const void *p1, const void *p2)
+{
+    gclient_t *a = *(gclient_t * const *)p1;
+    gclient_t *b = *(gclient_t * const *)p2;
+
+    int r = b->resp.score - a->resp.score;
+    if (!r)
+        r = a->resp.deaths - b->resp.deaths;
+    if (!r)
+        r = (byte *)a - (byte *)b;
+    return r;
+}
+
+int G_CalcRanks(gclient_t **ranks)
+{
+    int i, total;
+
+    // sort the clients by score, then by eff
+    total = 0;
+    for (i = 0; i < game.maxclients; i++) {
+        if (game.clients[i].pers.connected == true) {
+            if (ranks) {
+                ranks[total] = &game.clients[i];
+            }
+            total++;
+        }
+    }
+
+    if (ranks) {
+        qsort(ranks, total, sizeof(gclient_t *), G_PlayerCmp);
+    }
+
+    return total;
+}
+
+void G_RegisterScore(void)
+{
+    gclient_t    *ranks[MAX_CLIENTS];
+    gclient_t    *c;
+    highscore_t *s;
+    int total;
+    int sec, score;
+
+    total = G_CalcRanks(ranks);
+    if (!total) {
+        return;
+    }
+
+    // grab our champion
+    c = ranks[0];
+
+    // calculate FPH
+    sec = (level.framenum - c->resp.enterframe) / HZ;
+    if (!sec) {
+        sec = 1;
+    }
+    score = c->resp.score * 3600 / sec;
+
+    if (score < 1) {
+        return; // do not record bogus results
+    }
+
+    if (level.numscores < MAX_HIGH_SCORES) {
+        s = &level.scores[level.numscores++];
+    } else {
+        s = &level.scores[ level.numscores - 1 ];
+        if (score < s->score) {
+            return; // result not impressive enough
+        }
+    }
+
+    strcpy(s->name, c->pers.netname);
+    s->score = score;
+    time(&s->time);
+
+    level.record = s->time;
+
+    qsort(level.scores, level.numscores, sizeof(highscore_t), ScoreCmp);
+
+    gi.dprintf("Added highscore entry for %s with %d FPH\n",
+               c->pers.netname, score);
+
+    G_SaveScores();
+}
+
+void G_LoadScores(void)
+{
+    char *token;
+    const char *data;
+    highscore_t *s;
+    load_file_t *f;
+    int i;
+
+    f = G_LoadFile("%s%s%s/%s.txt", GAMEVERSION, SD(g_highscores_dir->string), level.mapname);
+    if (!f) {
+		gi.dprintf("No high scores file loaded for %s\n", level.mapname);
+        return;
+    }
+
+    for (i = 0; i < f->nb_lines && level.numscores < MAX_HIGH_SCORES; i++) {
+        data = f->lines[i];
+
+        if (data[0] == '#' || data[0] == '/') {
+            continue;
+        }
+
+        token = COM_Parse(&data);
+        if (!*token) {
+            continue;
+        }
+
+        s = &level.scores[level.numscores++];
+        Q_strlcpy(s->name, token, sizeof(s->name));
+
+        token = COM_Parse(&data);
+        s->score = strtoul(token, NULL, 10);
+
+        token = COM_Parse(&data);
+        s->time = strtoul(token, NULL, 10);
+    }
+
+    qsort(level.scores, level.numscores, sizeof(highscore_t), ScoreCmp);
+
+    gi.dprintf("Loaded %d scores from '%s'\n", level.numscores, f->path);
+
+    G_FreeFile(f);
+}
+
+
 #if USE_AQTION
-
-// Revisit one day...
-
-// #include <curl/curl.h>
-// // AQtion stats addon
-// // Utilizes AWS API Gateway and AWS SQS
-// // Review documentation to understand their use
-
-// size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
-// {
-//    return size * nmemb;
-// }
-// void StatSend(const char *payload, ...)
-// {	
-// 	va_list argptr;
-// 	char text[1024];
-// 	char apikeyheader[64] = "x-api-key: ";
-// 	char apiurl[128] = "\0";
-// 	int apikey_check;
-
-// 	// If stat logs are disabled or stat-apikey is default, just return
-// 	apikey_check = Q_stricmp(stat_apikey->string, "none");
-// 	if (!stat_logs->value || apikey_check == 0) {
-// 		return;
-// 	}
-	
-// 	Q_strncatz(apikeyheader, stat_apikey->string, sizeof(apikeyheader));
-// 	Q_strncpyz(apiurl, stat_url->string, sizeof(apiurl));
-	
-// 	va_start (argptr, payload);
-// 	vsnprintf (text, sizeof(text), payload, argptr);
-// 	va_end (argptr);
-
-// 	CURL *curl = curl_easy_init();
-// 	struct curl_slist *headers = NULL;
-// 	headers = curl_slist_append(headers, "Accept: application/json");
-// 	headers = curl_slist_append(headers, "Content-Type: application/json");
-// 	headers = curl_slist_append(headers, apikeyheader);
-
-// 	curl_easy_setopt(curl, CURLOPT_URL, apiurl);
-// 	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
-// 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-// 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, text);
-
-// 	// Do not print responses from curl request
-// 	// Comment below if you are debugging responses
-// 	// Hint: Forbidden would mean your stat_url is malformed,
-// 	// and a key error indicates your api key is bad or expired
-// 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-
-// 	// Run it!
-// 	curl_easy_perform(curl);
-// 	curl_easy_cleanup(curl);
-// 	curl_global_cleanup();
-// }
-
-
 
 #ifndef NO_BOTS
 /*

@@ -502,14 +502,14 @@ if get_option('discord-sdk')
     # Discord does not have an SDK for this platform yet, setting USE_DISCORD to false
     config.set10('USE_DISCORD', false)
   else
-    config.set10('USE_DISCORD', false) # Disabling Discord for now
+    config.set10('USE_DISCORD', true) # Disabling Discord for now
     discord_inc_path = join_paths('extern/discord/lib/', host_machine.cpu_family())
     dis_inc = include_directories(discord_inc_path)
     discord_dep_path = join_paths(meson.current_source_dir(), discord_inc_path)
     discord_dep = cc.find_library('discord_game_sdk', dirs : discord_dep_path)
     client_deps += discord_dep
 
-    action_src += ['src/client/discord.c']
+    client_src += ['src/client/discord.c']
   endif
   #endif
 endif

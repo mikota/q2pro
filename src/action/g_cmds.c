@@ -1829,6 +1829,33 @@ static void Cmd_CPSI_f (edict_t * ent)
 	}
 }
 
+void Cmd_HighScores_f(edict_t *ent)
+{
+    int i;
+    char date[MAX_QPATH];
+    struct tm *tm;
+    highscore_t *s;
+
+    if (!level.numscores) {
+        gi.cprintf(ent, PRINT_HIGH, "No high scores available.\n");
+        return;
+    }
+
+    gi.cprintf(ent, PRINT_HIGH,
+	           "\n"
+               " # Name            FPH  Date\n"
+               "-- --------------- ---- ----------------\n");
+    for (i = 0; i < level.numscores; i++) {
+        s = &level.scores[i];
+
+        tm = localtime(&s->time);
+        if (!tm || !strftime(date, sizeof(date), "%Y-%m-%d %H:%M", tm))
+            strcpy(date, "???");
+        gi.cprintf(ent, PRINT_HIGH, "%2d %-15.15s %4d %s\n",
+                   i + 1, s->name, s->score, date);
+    }
+}
+
 #define CMDF_CHEAT	1 //Need cheat to be enabled
 #define CMDF_PAUSE	2 //Cant use while pause
 
@@ -1952,7 +1979,8 @@ static cmdList_t commandList[] =
 	{ "jmod", Cmd_Jmod_f, 0 },
 	// Espionage, aliased command so it's easy to remember
 	{ "volunteer", Cmd_Volunteer_f, 0},
-	{ "leader", Cmd_Volunteer_f, 0}
+	{ "leader", Cmd_Volunteer_f, 0},
+	{ "highscores", Cmd_HighScores_f, 0},
 };
 
 #define MAX_COMMAND_HASH 64

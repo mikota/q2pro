@@ -532,6 +532,7 @@ cvar_t *sv_killgib; // Gibs on 'kill' command
 // 2024
 cvar_t *warmup_unready; // Toggles warmup if captains unready
 cvar_t *training_mode; // Sets training mode vars
+cvar_t *g_highscores_dir; // Sets the highscores directory
 
 #if AQTION_EXTENSION
 cvar_t *use_newirvision;
@@ -832,6 +833,9 @@ void EndDMLevel (void)
 	(void) strftime (ltm, 64, "%A %d %B %H:%M:%S", now);
 	gi.bprintf (PRINT_HIGH, "Game ending at: %s\n", ltm);
 	IRC_printf (IRC_T_GAME, "Game ending at: %s", ltm);
+
+	// High scores from OpenFFA
+	G_RegisterScore();
 
 	// JBravo: Stop q2pro MVD2 recording
 	if (use_mvd2->value)
