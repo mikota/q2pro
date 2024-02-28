@@ -649,8 +649,8 @@ static void G_SaveScores(void)
     int i;
     size_t len;
 
-    len = Q_snprintf(path, sizeof(path), "%s%s%s/%s.txt",
-                     GAMEVERSION, SD(g_highscores_dir->string), level.mapname);
+    len = Q_snprintf(path, sizeof(path), "%s%s%s/%s/%s.txt",
+                     GAMEVERSION, SD(g_highscores_dir->string), game.mode, level.mapname);
     if (len >= sizeof(path)) {
         return;
     }
@@ -665,8 +665,8 @@ static void G_SaveScores(void)
 
     for (i = 0; i < level.numscores; i++) {
         s = &level.scores[i];
-        fprintf(fp, "\"%s\" %d %lu\n",
-                s->name, s->score, (unsigned long)s->time);
+        fprintf(fp, "\"%s\" %d %f %f %lu\n",
+                s->name, s->score, s->fragsper, s->accuracy, (unsigned long)s->time);
     }
 
     fclose(fp);
@@ -711,24 +711,42 @@ void G_RegisterScore(void)
 {
     gclient_t    *ranks[MAX_CLIENTS];
     gclient_t    *c;
-    highscore_t *s;
+    highscore_t  *s;
     int total;
-    int sec, score;
+    int score;
+	int sec;
+	float accuracy, fragsper;
 
     total = G_CalcRanks(ranks);
     if (!total) {
         return;
     }
 
+	if (teamplay->value && game.roundNum > 0){
+		return; // No rounds were played, so skip
+	}
+
     // grab our champion
     c = ranks[0];
 
-    // calculate FPH
-    sec = (level.framenum - c->resp.enterframe) / HZ;
-    if (!sec) {
-        sec = 1;
-    }
-    score = c->resp.score * 3600 / sec;
+	// Just straight up score
+	score = c->resp.score;
+
+	// Calculate FPR, if mode is teamplay, else FPH
+	if (teamplay->value && game.roundNum > 0){
+		fragsper = c->resp.score / game.roundNum;
+	} else {
+		sec = (level.framenum - c->resp.enterframe) / HZ;
+		if (!sec)
+            sec = 1;
+		fragsper = c->resp.score * 3600 / sec;
+	}
+
+	int shots = min(c->resp.shotsTotal, 9999 );
+	if (shots)
+			accuracy = (double)c->resp.hitsTotal * 100.0 / (double)c->resp.shotsTotal;
+		else
+			accuracy = 0;
 
     if (score < 1) {
         return; // do not record bogus results
@@ -745,13 +763,15 @@ void G_RegisterScore(void)
 
     strcpy(s->name, c->pers.netname);
     s->score = score;
+	s->fragsper = fragsper;
+	s->accuracy = accuracy;
     time(&s->time);
 
     level.record = s->time;
 
     qsort(level.scores, level.numscores, sizeof(highscore_t), ScoreCmp);
 
-    gi.dprintf("Added highscore entry for %s with %d FPH\n",
+    gi.dprintf("Added highscore entry for %s with %d score\n",
                c->pers.netname, score);
 
     G_SaveScores();
@@ -765,7 +785,7 @@ void G_LoadScores(void)
     load_file_t *f;
     int i;
 
-    f = G_LoadFile("%s%s%s/%s.txt", GAMEVERSION, SD(g_highscores_dir->string), level.mapname);
+    f = G_LoadFile("%s%s%s/%s/%s.txt", GAMEVERSION, SD(g_highscores_dir->string), game.mode, level.mapname);
     if (!f) {
 		gi.dprintf("No high scores file loaded for %s\n", level.mapname);
         return;
@@ -788,6 +808,13 @@ void G_LoadScores(void)
 
         token = COM_Parse(&data);
         s->score = strtoul(token, NULL, 10);
+
+		token = COM_Parse(&data);
+		s->fragsper = strtoul(token, NULL, 10);  // Load fragsper value
+
+		token = COM_Parse(&data);
+		s->accuracy = strtoul(token, NULL, 10);  // Load accuracy value
+
 
         token = COM_Parse(&data);
         s->time = strtoul(token, NULL, 10);

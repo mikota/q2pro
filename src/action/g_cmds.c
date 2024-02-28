@@ -1841,19 +1841,37 @@ void Cmd_HighScores_f(edict_t *ent)
         return;
     }
 
-    gi.cprintf(ent, PRINT_HIGH,
-	           "\n"
-               " # Name            FPH  Date\n"
-               "-- --------------- ---- ----------------\n");
-    for (i = 0; i < level.numscores; i++) {
-        s = &level.scores[i];
+	if (teamplay->value){
+		gi.cprintf(ent, PRINT_HIGH,
+				"\n"
+				" # Name            Score  FPR    Acc   Date\n"
+				"-- --------------- -----  ----   ---   -------------\n");
+		for (i = 0; i < level.numscores; i++) {
+			s = &level.scores[i];
 
-        tm = localtime(&s->time);
-        if (!tm || !strftime(date, sizeof(date), "%Y-%m-%d %H:%M", tm))
-            strcpy(date, "???");
-        gi.cprintf(ent, PRINT_HIGH, "%2d %-15.15s %4d %s\n",
-                   i + 1, s->name, s->score, date);
-    }
+			tm = localtime(&s->time);
+			if (!tm || !strftime(date, sizeof(date), "%Y-%m-%d %H:%M", tm))
+				strcpy(date, "???");
+			gi.cprintf(ent, PRINT_HIGH, "%2d %-15.15s %5d %5.1i %5.1f %2s\n",
+					i + 1, s->name, s->score, (int)s->fragsper, s->accuracy, date);
+		}
+
+	} else {
+		gi.cprintf(ent, PRINT_HIGH,
+				"\n"
+				" # Name            Score  FPH    Acc   Date\n"
+				"-- --------------- -----  ----   ---   -------------\n");
+
+		for (i = 0; i < level.numscores; i++) {
+			s = &level.scores[i];
+
+			tm = localtime(&s->time);
+			if (!tm || !strftime(date, sizeof(date), "%Y-%m-%d %H:%M", tm))
+				strcpy(date, "???");
+			gi.cprintf(ent, PRINT_HIGH, "%2d %-15.15s %5d %5.1i %5.1f %2s\n",
+					i + 1, s->name, s->score, (int)s->fragsper, s->accuracy, date);
+		}
+	}
 }
 
 #define CMDF_CHEAT	1 //Need cheat to be enabled

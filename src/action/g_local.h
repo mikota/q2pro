@@ -655,6 +655,8 @@ typedef struct highscore_s
 {
 	char name[MAX_CLIENT_NAME];
     int score;
+	float fragsper;
+	float accuracy;
     time_t time;
 } highscore_t;
 
@@ -774,6 +776,7 @@ typedef struct
 
   // High Scores support from OpenFFA
   char        dir[MAX_OSPATH]; // where variable data is stored
+  char		  mode[MAX_QPATH]; // current game mode
 }
 game_locals_t;
 

@@ -863,20 +863,28 @@ int Gamemode(void)
 	int gamemode = 0;
 	if (teamdm->value) {
 		gamemode = GM_TEAMDM;
+		strcpy(game.mode, "teamdm");
 	} else if (ctf->value) {
 		gamemode = GM_CTF;
+		strcpy(game.mode, "ctf");
 	} else if (use_tourney->value) {
 		gamemode = GM_TOURNEY;
+		strcpy(game.mode, "tourney");
 	} else if (teamplay->value) {
 		gamemode = GM_TEAMPLAY;
+		strcpy(game.mode, "teamplay");
 	} else if (dom->value) {
 		gamemode = GM_DOMINATION;
+		strcpy(game.mode, "dom");
 	} else if (deathmatch->value) {
 		gamemode = GM_DEATHMATCH;
+		strcpy(game.mode, "deathmatch");
 	} else if (esp->value && atl->value) {
 		gamemode = GM_ASSASSINATE_THE_LEADER;
+		strcpy(game.mode, "atl");
 	} else if (esp->value && etv->value) {
 		gamemode = GM_ESCORT_THE_VIP;
+		strcpy(game.mode, "etv");
 	}
 	return gamemode;
 }
@@ -1235,8 +1243,9 @@ void SpawnEntities (const char *mapname, const char *entities, const char *spawn
 
 	gi.FreeTags(TAG_LEVEL);
 
-	// Set serverinfo correctly for gamemodeflags
+	// Set serverinfo correctly for gamemodeflags and game.mode
 	Gamemodeflag();
+	Gamemode();
 
 	#if USE_AQTION
 	generate_uuid();  // Run this once every time a map loads to generate a unique id for stats (game.matchid)
