@@ -356,17 +356,25 @@ void Announce_Reward(edict_t *ent, int rewardType) {
     char *playername = ent->client->pers.netname;
 
     switch (rewardType) {
+        case ACCURACY:
+            if (ent->client->resp.streakHS/3 >= 2) {
+                sprintf(buf,"ACCURACY %s (%dx)!", playername, ent->client->resp.streakHS/3);
+            } else {
+                sprintf(buf,"ACCURACY %s!", playername);
+            }
+            soundFile = "tng/accuracy.wav";
+            break;
         case IMPRESSIVE:
-            sprintf(buf,"IMPRESSIVE %s (%dx)!", playername, ent->client->resp.streakKills/5);
+            if (ent->client->resp.streakKills/5 >= 2) {
+                sprintf(buf,"IMPRESSIVE %s (%dx)!", playername, ent->client->resp.streakKills/5);
+            } else {
+                sprintf(buf,"IMPRESSIVE %s!", playername);
+            }
             soundFile = "tng/impressive.wav";
             break;
         case EXCELLENT:
             sprintf(buf,"EXCELLENT %s (%dx)!", playername, ent->client->resp.streakKills/12);
             soundFile = "tng/excellent.wav";
-            break;
-        case ACCURACY:
-            sprintf(buf,"ACCURACY %s (%dx)!", playername, ent->client->resp.streakHS/3);
-            soundFile = "tng/accuracy.wav";
             break;
         case DOMINATING:
             sprintf(buf,"%s IS DOMINATING!", playername);
