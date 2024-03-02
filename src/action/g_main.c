@@ -835,7 +835,8 @@ void EndDMLevel (void)
 	IRC_printf (IRC_T_GAME, "Game ending at: %s", ltm);
 
 	// High scores from OpenFFA
-	G_RegisterScore();
+	if (!matchmode->value) // Non-disruptive matchmode constraint
+		G_RegisterScore();
 
 	// JBravo: Stop q2pro MVD2 recording
 	if (use_mvd2->value)

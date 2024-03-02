@@ -776,7 +776,6 @@ typedef struct
 
   // High Scores support from OpenFFA
   char        dir[MAX_OSPATH]; // where variable data is stored
-  char		  mode[MAX_QPATH]; // current game mode
 }
 game_locals_t;
 
