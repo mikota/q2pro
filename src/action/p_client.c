@@ -356,24 +356,32 @@ void Announce_Reward(edict_t *ent, int rewardType) {
     char *playername = ent->client->pers.netname;
 
     switch (rewardType) {
+        case ACCURACY:
+            if (ent->client->resp.streakHS/3 >= 2) {
+                sprintf(buf,"ACCURACY %s (%dx)!", playername, ent->client->resp.streakHS/3);
+            } else {
+                sprintf(buf,"ACCURACY %s!", playername);
+            }
+            soundFile = "tng/accuracy.wav";
+            break;
         case IMPRESSIVE:
-            sprintf(buf,"-------------------\n" "IMPRESSIVE %s (%dx)!\n" "-------------------\n", playername, ent->client->resp.streakKills/5);
+            if (ent->client->resp.streakKills/5 >= 2) {
+                sprintf(buf,"IMPRESSIVE %s (%dx)!", playername, ent->client->resp.streakKills/5);
+            } else {
+                sprintf(buf,"IMPRESSIVE %s!", playername);
+            }
             soundFile = "tng/impressive.wav";
             break;
         case EXCELLENT:
-            sprintf(buf,"-------------------\n" "EXCELLENT %s (%dx)!\n" "-------------------\n", playername, ent->client->resp.streakKills/12);
+            sprintf(buf,"EXCELLENT %s (%dx)!", playername, ent->client->resp.streakKills/12);
             soundFile = "tng/excellent.wav";
             break;
-        case ACCURACY:
-            sprintf(buf,"-------------------\n" "ACCURACY %s (%dx)!\n" "-------------------\n", playername, ent->client->resp.streakHS/3);
-            soundFile = "tng/accuracy.wav";
-            break;
         case DOMINATING:
-            sprintf(buf,"-------------------\n" "%s IS DOMINATING!\n" "-------------------\n", playername);
+            sprintf(buf,"%s IS DOMINATING!", playername);
             soundFile = "radio/male/deliv3.wav";
             break;
         case UNSTOPPABLE:
-            sprintf(buf,"-------------------\n" "%s IS UNSTOPPABLE!\n" "-------------------\n", playername);
+            sprintf(buf,"%s IS UNSTOPPABLE!", playername);
             soundFile = "radio/male/deliv3.wav";
             break;
         default:
@@ -1938,7 +1946,6 @@ chosen ones
 void SelectSpawnPoint(edict_t * ent, vec3_t origin, vec3_t angles)
 {
 	edict_t *spot = NULL;
-	//espsettings_t *es = &espsettings;
 
 	//FIREBLADE
 	if (coop->value){
@@ -1946,7 +1953,7 @@ void SelectSpawnPoint(edict_t * ent, vec3_t origin, vec3_t angles)
 	} else if (ctf->value) {
 		spot = SelectCTFSpawnPoint(ent);
 	} else if (esp->value) {
-		// SelectEspSpawnPoint handles respawns as well as initial spawnpoints
+		// SelectEspSpawnPoint handles on-leader respawns as well as initial spawnpoints
 		spot = SelectEspSpawnPoint(ent);
 	} else if (dom->value) {
 		spot = SelectDeathmatchSpawnPoint();

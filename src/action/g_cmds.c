@@ -1829,6 +1829,51 @@ static void Cmd_CPSI_f (edict_t * ent)
 	}
 }
 
+void Cmd_HighScores_f(edict_t *ent)
+{
+    int i;
+    char date[MAX_QPATH];
+    struct tm *tm;
+    highscore_t *s;
+
+    if (!level.numscores) {
+        gi.cprintf(ent, PRINT_HIGH, "No high scores available.\n");
+        return;
+    }
+
+	if (teamplay->value){
+		gi.cprintf(ent, PRINT_HIGH,
+				"\n"
+				" # Name            Score  FPR    Acc   Date\n"
+				"-- --------------- -----  ----   ---   -------------\n");
+		for (i = 0; i < level.numscores; i++) {
+			s = &level.scores[i];
+
+			tm = localtime(&s->time);
+			if (!tm || !strftime(date, sizeof(date), "%Y-%m-%d %H:%M", tm))
+				strcpy(date, "???");
+			gi.cprintf(ent, PRINT_HIGH, "%2d %-15.15s %5d %5.1i %5.1f %2s\n",
+					i + 1, s->name, s->score, (int)s->fragsper, s->accuracy, date);
+		}
+
+	} else {
+		gi.cprintf(ent, PRINT_HIGH,
+				"\n"
+				" # Name            Score  FPH    Acc   Date\n"
+				"-- --------------- -----  ----   ---   -------------\n");
+
+		for (i = 0; i < level.numscores; i++) {
+			s = &level.scores[i];
+
+			tm = localtime(&s->time);
+			if (!tm || !strftime(date, sizeof(date), "%Y-%m-%d %H:%M", tm))
+				strcpy(date, "???");
+			gi.cprintf(ent, PRINT_HIGH, "%2d %-15.15s %5d %5.1i %5.1f %2s\n",
+					i + 1, s->name, s->score, (int)s->fragsper, s->accuracy, date);
+		}
+	}
+}
+
 #define CMDF_CHEAT	1 //Need cheat to be enabled
 #define CMDF_PAUSE	2 //Cant use while pause
 
@@ -1952,7 +1997,8 @@ static cmdList_t commandList[] =
 	{ "jmod", Cmd_Jmod_f, 0 },
 	// Espionage, aliased command so it's easy to remember
 	{ "volunteer", Cmd_Volunteer_f, 0},
-	{ "leader", Cmd_Volunteer_f, 0}
+	{ "leader", Cmd_Volunteer_f, 0},
+	{ "highscores", Cmd_HighScores_f, 0},
 };
 
 #define MAX_COMMAND_HASH 64

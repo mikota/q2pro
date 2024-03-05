@@ -18,7 +18,7 @@ env:
     -Dvariable-fps=true
     -Dwerror=false
     -Daqtion-build=true
-    -Ddiscord-sdk=true
+    -Ddiscord-sdk=false
 
   MESON_ARGS_WIN: >-
     -Dsdl2=disabled

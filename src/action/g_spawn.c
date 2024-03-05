@@ -1237,6 +1237,7 @@ void SpawnEntities (const char *mapname, const char *entities, const char *spawn
 
 	// Set serverinfo correctly for gamemodeflags
 	Gamemodeflag();
+	Gamemode();
 
 	#if USE_AQTION
 	generate_uuid();  // Run this once every time a map loads to generate a unique id for stats (game.matchid)
@@ -1370,6 +1371,10 @@ void SpawnEntities (const char *mapname, const char *entities, const char *spawn
 	}
 
 	G_LoadLocations();
+
+	// High score load file
+	if (!matchmode->value) // Non-disruptive matchmode constraint
+		G_LoadScores();
 
 	SVCmd_CheckSB_f(); //rekkie -- silence ban
 

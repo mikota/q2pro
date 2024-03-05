@@ -5,9 +5,8 @@
 //=====================================================================================================
 
 //rekkie -- external ip -- s
-#include <curl/curl.h>
-
-cvar_t* cl_extern_ip;   // External IP address
+#include <client.h>
+#include "../extern/discord/c/discord_game_sdk.h"
 
 static size_t CurlWriteCallback(char* buf, size_t size, size_t nmemb, void* up)
 {
@@ -77,111 +76,6 @@ static qboolean CL_IsPrivateNetwork(void)
 // https://dl-game-sdk.discordapp.net/2.5.6/discord_game_sdk.zip
 //
 // Extract the contents of the zip to /extern/discord/
-
-#include "../extern/discord/c/discord_game_sdk.h"
-
-#if _MSC_VER >= 1920 && !__INTEL_COMPILER
-#if defined( _WIN64 )
-        #pragma comment(lib, "../extern/discord/lib/x86_64/discord_game_sdk.dll.lib")
-    #elif defined( _WIN32 )
-        #pragma comment(lib, "../extern/discord/lib/x86/discord_game_sdk.dll.lib")
-    #endif // End 64/32 bit check
-#elif _MSC_VER < 1920 // older MSC
-// Push/Pop fix needed for older versions of Visual Studio to prevent unexpected crashes due to compile configurations
-    #pragma pack(push, 8)
-        #include "../extern/discord/c/discord_game_sdk.h"
-    #pragma pack(pop)
-#endif // _MSC_VER >= 1920 && !__INTEL_COMPILER
-
-#define DISCORD_APP_ID 1002762540247433297  // Discord application ID (also referred to as "Client ID" is the game's unique identifier across Discord)
-#define DISCORD_APP_TEXT "AQtion"           // Tooltip name
-#define DISCORD_APP_IMAGE "aqtion"          // Rich presence -> art asset -> asset name
-#define DISCORD_UPDATE_MSEC 1000            // Time between updates, 1000 = 1 second.
-#define DISCORD_ACTIVITY_UPDATE_MSEC 15000  // Time between updates, 1000 = 1 second.
-
-cvar_t *cl_discord;                         // Allow the user to disable Discord features for privacy
-cvar_t *cl_discord_id;                      // User ID
-cvar_t *cl_discord_username;                // User name
-cvar_t *cl_discord_discriminator;           // User's unique discrim ( username#discriminator -> bob#1900 )
-cvar_t *cl_discord_avatar;                  // Hash of the user's avatar
-cvar_t *cl_discord_accept_join_requests;    // If true automatically accept join request, else let the user decide
-
-enum discord_message_type {
-    DISCORD_MSG_NULL,       // Null packet
-    DISCORD_MSG_PING,       // Ping -> pong
-    DISCORD_MSG_CONNECT,    // Client wants to connect to the game server
-    DISCORD_MSG_OWNERSHIP   // Transfer of ownership
-};
-
-struct Application {
-    struct IDiscordCore* core;
-    struct IDiscordApplicationManager* application;
-    struct IDiscordUserManager* user;
-    struct IDiscordImageManager* images;
-    struct IDiscordActivityManager* activities;
-    struct IDiscordRelationshipManager* relationships;
-    struct IDiscordLobbyManager* lobbies;
-    struct IDiscordNetworkManager* network;
-    struct IDiscordOverlayManager* overlay;
-    struct IDiscordStorageManager* storage;
-    struct IDiscordStoreManager* store;
-    struct IDiscordVoiceManager* voice;
-    struct IDiscordAchievementManager* achievements;
-};
-
-typedef struct {
-    struct Application app;             // Discord app
-    struct DiscordCreateParams params;  // Creation parameters
-    
-    // Events
-    IDiscordCoreEvents* events;                                 // Core events
-    struct IDiscordUserEvents users_events;                     // Users
-    struct IDiscordActivityEvents activities_events;            // Activities
-    struct IDiscordRelationshipEvents relationships_events;     // Relationships
-    struct IDiscordLobbyEvents lobbies_events;                  // Lobbies
-    struct IDiscordAchievementEvents achievements_events;       // Achievements
-    struct IDiscordNetworkEvents* network_events;               // Network
-    struct IDiscordOverlayEvents* overlay_events;               // Overlay
-    IDiscordStorageEvents* storage_events;                      // Storage
-    struct IDiscordStoreEvents* store_events;                   // Store
-    struct IDiscordVoiceEvents* voice_events;                   // Voice
-    struct IDiscordAchievementEvents* achievement_events;       // Achievements
-    
-    // Activities
-    struct DiscordActivity activity;                // Activities (rich presence)
-
-    // Lobbies
-    struct IDiscordLobbyTransaction *transaction;   // Transaction
-    struct DiscordLobby lobby;                      // Lobby
-    
-    // User
-    struct DiscordUser user;            // User data (the user's discord id, username, etc)
-    
-    // Init
-    qboolean init;                      // Discord is initialized true/false
-    qboolean discord_found;             // If Discord is running
-
-    // Callback
-    int result;
-    
-    // Timers
-    int last_discord_runtime;           // Last time (in msec) discord was updated
-    int last_activity_time;             // Last time (in msec) activity was updated
-    
-    char server_hostname[64];           // Cache hostname
-    char mapname[MAX_QPATH];            // Cache map
-    byte curr_players;                  // How many players currently connected to the server
-    byte prev_players;                  // How many players previously connected to the server
-    
-} discord_t;
-discord_t discord;
-
-void     CL_InitDiscord(void);
-void     CL_CreateDiscordLobby_f(void);
-void     CL_DeleteDiscordLobby(void);
-void     CL_RunDiscord(void);
-void     CL_ShutdownDiscord(void);
-
 
 static void DiscordCallback(void* data, enum EDiscordResult result)
 {
@@ -492,7 +386,7 @@ static void OnActivityJoinRequest(void* event_data, struct DiscordUser* user)
     
 }
 
-static void CL_DiscordParseServerStatus(serverStatus_t* status, const char* string)
+void CL_DiscordParseServerStatus(serverStatus_t* status, const char* string)
 {
     const char* s;
     size_t infolen;

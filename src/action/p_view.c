@@ -304,6 +304,7 @@ void SV_CalcViewOffset (edict_t * ent)
 	if (ent->deadflag)
 	{
 		VectorClear(angles);
+
 		ent->client->ps.viewangles[ROLL] = 40;
 		ent->client->ps.viewangles[PITCH] = -15;
 		ent->client->ps.viewangles[YAW] = ent->client->killer_yaw;

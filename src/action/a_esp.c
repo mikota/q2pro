@@ -412,6 +412,7 @@ void EspCapturePointThink( edict_t *flag )
 			gi.sound( &g_edicts[0], CHAN_BODY | CHAN_NO_PHS_ADD, gi.soundindex("aqdt/aqg_bosswin.wav"), 1.0, ATTN_NONE, 0.0 );
 			espsettings.escortcap = flag->owner->client->resp.team;
 			if (esp_punish->value)
+				esp_punishment_phase = true;
 				EspPunishment(OtherTeam(flag->owner->client->resp.team));
 
 			if (use_rewards->value) {
@@ -1826,6 +1827,7 @@ int EspReportLeaderDeath(edict_t *ent)
 	// Find all players in the game and play this sound
 	gi.sound(&g_edicts[0], CHAN_BODY | CHAN_NO_PHS_ADD, gi.soundindex("tng/leader_death.wav"), 1.0, ATTN_NONE, 0.0);
 	if (esp_punish->value)
+		esp_punishment_phase = true;
 		EspPunishment(dead_leader_team);
 
 	// Stats Reset
@@ -1855,7 +1857,6 @@ void MakeTeamInvulnerable(int winner, int uvtime)
 
 void EspPunishment(int teamNum)
 {
-	esp_punishment_phase = true;
 	// Only perform team punishments if there's only 2 teams
 	if (esp->value && teamCount == 2){
 		if(esp_punish->value == 1){
