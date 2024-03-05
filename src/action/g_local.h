@@ -1289,6 +1289,7 @@ extern cvar_t *sv_killgib; // Enable or disable gibbing on kill command
 extern cvar_t *warmup_unready;
 extern cvar_t *training_mode; // Sets training mode vars
 extern cvar_t *g_highscores_dir; // Sets the highscores directory
+extern cvar_t *lca_grenade; // Allows grenade pin pulling during LCA
 
 #if AQTION_EXTENSION
 extern int (*engine_Client_GetVersion)(edict_t *ent);
