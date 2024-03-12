@@ -411,9 +411,10 @@ void EspCapturePointThink( edict_t *flag )
 			// Escort point captured, end round and start again
 			gi.sound( &g_edicts[0], CHAN_BODY | CHAN_NO_PHS_ADD, gi.soundindex("aqdt/aqg_bosswin.wav"), 1.0, ATTN_NONE, 0.0 );
 			espsettings.escortcap = flag->owner->client->resp.team;
-			if (esp_punish->value)
+			if (esp_punish->value) {
 				esp_punishment_phase = true;
 				EspPunishment(OtherTeam(flag->owner->client->resp.team));
+			}
 
 			if (use_rewards->value) {
 				if(teams[TEAM1].leader->client->resp.esp_capstreak == 5)
@@ -1775,6 +1776,37 @@ void EspLeaderLeftTeam( edict_t *ent )
 }
 
 /*
+Called from EspReportLeaderDeath in ATL mode
+*/
+static int EspReportATLWinner(int dead_leader_team)
+{
+	int winner = 0;
+
+	switch (dead_leader_team) {
+		case TEAM1:
+			if (IS_ALIVE(teams[TEAM2].leader) && !IS_ALIVE(teams[TEAM3].leader))
+				winner = TEAM2;
+			else if (!IS_ALIVE(teams[TEAM2].leader) && IS_ALIVE(teams[TEAM3].leader))
+				winner = TEAM3;
+			break;
+		case TEAM2:
+			if (IS_ALIVE(teams[TEAM1].leader) && !IS_ALIVE(teams[TEAM3].leader))
+				winner = TEAM1;
+			else if (!IS_ALIVE(teams[TEAM1].leader) && IS_ALIVE(teams[TEAM3].leader))
+				winner = TEAM3;
+			break;
+		case TEAM3:
+			if (IS_ALIVE(teams[TEAM1].leader) && !IS_ALIVE(teams[TEAM2].leader))
+				winner = TEAM1;
+			else if (!IS_ALIVE(teams[TEAM1].leader) && IS_ALIVE(teams[TEAM2].leader))
+				winner = TEAM2;
+			break;
+	}
+
+	return winner;
+}
+
+/*
 This is called from player_die, and only called
 if the player was a leader
 */
@@ -1803,32 +1835,16 @@ int EspReportLeaderDeath(edict_t *ent)
 				winner = TEAM1;
 		// 3 team winner checks
 		} else {
-			if (dead_leader_team == TEAM1) {
-				if (IS_ALIVE(teams[TEAM2].leader) && !IS_ALIVE(teams[TEAM3].leader))
-					winner = TEAM2;
-				else if (!IS_ALIVE(teams[TEAM2].leader) && IS_ALIVE(teams[TEAM3].leader))
-					winner = TEAM3;
-			}
-			else if (dead_leader_team == TEAM2) {
-				if (IS_ALIVE(teams[TEAM1].leader) && !IS_ALIVE(teams[TEAM3].leader))
-					winner = TEAM1;
-				else if (!IS_ALIVE(teams[TEAM1].leader) && IS_ALIVE(teams[TEAM3].leader))
-					winner = TEAM3;
-			}
-			else if (dead_leader_team == TEAM3) {
-				if (IS_ALIVE(teams[TEAM1].leader) && !IS_ALIVE(teams[TEAM2].leader))
-					winner = TEAM1;
-				else if (!IS_ALIVE(teams[TEAM1].leader) && IS_ALIVE(teams[TEAM2].leader))
-					winner = TEAM2;
-			}
+			winner = EspReportATLWinner(dead_leader_team);
 		}
 	}
 
 	// Find all players in the game and play this sound
 	gi.sound(&g_edicts[0], CHAN_BODY | CHAN_NO_PHS_ADD, gi.soundindex("tng/leader_death.wav"), 1.0, ATTN_NONE, 0.0);
-	if (esp_punish->value)
+	if (esp_punish->value) {
 		esp_punishment_phase = true;
 		EspPunishment(dead_leader_team);
+	}
 
 	// Stats Reset
 	if (ent->client->resp.esp_capstreak > ent->client->resp.esp_capstreakbest)
