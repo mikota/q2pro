@@ -1028,7 +1028,7 @@ T_RadiusDamage (edict_t * inflictor, edict_t * attacker, float damage,
 	else if (selfharm)
 		gi.cprintf(attacker, PRINT_HIGH, "You were blasted by your own grenade, throw farther next time?\n");
 	else if (ent_count > 0)
-		gi.cprintf(attacker, PRINT_HIGH, "%s was blasted by your grenade.\n", ent_name_list);
+		gi.cprintf(attacker, PRINT_HIGH, "%s were blasted by your grenade.\n", ent_name_list);
 
 	// Stats for fun, tracks the highest amount of players hit by a single grenade
 	if (ent_count > attacker->client->resp.grenSplash)
