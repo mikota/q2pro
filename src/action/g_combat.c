@@ -973,19 +973,23 @@ T_RadiusDamage (edict_t * inflictor, edict_t * attacker, float damage,
 			selfharm = true;
 
 		// Messaging addition
-    if ((ent->client || ent->is_bot) && IS_ALIVE(ent) && ent != attacker){
-        // Calculate the length of the new string
-        int new_length = strlen(ent_name_list) + strlen(" and ") + strlen(ent->client->pers.netname);
+		if ((ent->client || ent->is_bot) && IS_ALIVE(ent) && ent != attacker){
+			// Only add the name to the list if there are less than 4 names
+			if (ent_count < 4)
+			{
+				// Calculate the length of the new string
+				int new_length = strlen(ent_name_list) + strlen(" and ") + strlen(ent->client->pers.netname);
 
-        // Check if the new string would fit in ent_name_list
-        if (new_length < sizeof(ent_name_list))
-        {
-            if (ent_count > 0)
-                strncat(ent_name_list, " and ", sizeof(ent_name_list) - strlen(ent_name_list) - 1);
-            strncat(ent_name_list, ent->client->pers.netname, sizeof(ent_name_list) - strlen(ent_name_list) - 1);
-            ent_count++;
-        }
-    }
+				// Check if the new string would fit in ent_name_list
+				if (new_length < sizeof(ent_name_list))
+				{
+					if (ent_count > 0)
+						strncat(ent_name_list, " and ", sizeof(ent_name_list) - strlen(ent_name_list) - 1);
+					strncat(ent_name_list, ent->client->pers.netname, sizeof(ent_name_list) - strlen(ent_name_list) - 1);
+				}
+			}
+			ent_count++;
+		}
 
 		// End messaging addition
 
