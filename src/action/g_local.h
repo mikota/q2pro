@@ -1835,6 +1835,7 @@ typedef struct
   int streakHS;						//Headshots in a Row
   int streakKillsHighest;			//Highest kills in a row
   int streakHSHighest;				//Highest headshots in a Row
+  int grenSplash;					//Tracks latest amount of players harmed by a single grenade
 
   int hitsLocations[LOC_MAX];		//Number of hits for different locations
   gunStats_t gunstats[MOD_TOTAL]; //Number of shots/hits for different guns, adjusted to MOD_TOTAL to allow grenade, kick and punch stats
