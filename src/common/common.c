@@ -458,6 +458,13 @@ void Com_LPrintf(print_type_t type, const char *fmt, ...)
         // debugging console
         console_write(type, msg);
 
+        //rekkie -- MSVC Support -- s
+        #if USE_DEBUG && _WIN32 && _MSC_VER >= 1920 && !__INTEL_COMPILER
+        #include <stdio.h>
+        OutputDebugStringA(msg); // Force printing to MSVC debug output window
+        #endif
+        //rekkie -- MSVC Support -- e
+
         // remote console
         //SV_ConsoleOutput(msg);
 
