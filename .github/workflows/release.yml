@@ -101,6 +101,13 @@ jobs:
           name: q2pro-darwin-x86_64
           skip_unpack: true
 
+      - name: Download Darwin arm64 build artifacts
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: build.yml
+          name: q2pro-darwin-arm64
+          skip_unpack: true
+
       - name: Upload dist tarball to release
         uses: softprops/action-gh-release@v1
         env:
@@ -117,8 +124,4 @@ jobs:
             q2pro-lin-wayland-gcc.zip
             q2pro-lin-wayland-clang.zip
             q2pro-darwin-x86_64.zip
-
-
-
-            
-
+            q2pro-darwin-arm64.zip
