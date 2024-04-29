@@ -258,7 +258,7 @@ jobs:
           meson compile -vC builddir
         env:
           CC: "gcc"
-          PKG_CONFIG_PATH: "/usr/local/opt/openal-soft/lib/pkgconfig"
+          PKG_CONFIG_PATH: "/opt/homebrew/opt/openal-soft/lib/pkgconfig"
           CFLAGS: "-mmacosx-version-min=10.7"
 
       - name: Set binaries as executable
