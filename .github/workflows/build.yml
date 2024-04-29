@@ -241,7 +241,7 @@ jobs:
             builddir/gamearm.so
 
   darwin:
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v2
 
@@ -276,7 +276,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Homebrew for ARM64 and dependencies
+      - name: Install dependencies
         run: |
           brew install pkg-config meson libpng sdl2 openal-soft zlib curl ffmpeg jpeg-turbo
 
