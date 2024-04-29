@@ -70,7 +70,7 @@ jobs:
           meson compile -vC builddir
 
       - name: Generate Win Mingw archives
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: q2pro-mingw-${{ matrix.arch }}
           path: |
@@ -107,7 +107,7 @@ jobs:
           meson compile -C builddir
 
       - name: Generate Win MSVC archives
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: q2pro-msvc-${{ matrix.arch }}
           path: |
@@ -151,7 +151,7 @@ jobs:
           chmod +x builddir/q2pro*
           
       - name: Generate Linux x64 archives
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: q2pro-lin-${{ matrix.cc }}
           path: |
@@ -195,7 +195,7 @@ jobs:
           chmod +x builddir/q2pro*
           
       - name: Generate Linux x64 archives
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: q2pro-lin-wayland-${{ matrix.cc }}
           path: |
@@ -232,7 +232,7 @@ jobs:
           chmod +x builddir/q2pro*
 
       - name: Generate Linux ARM archives
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: q2pro-lin-arm64
           path: |
@@ -263,7 +263,7 @@ jobs:
           chmod +x builddir/q2pro*
 
       - name: Generate Mac archives
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: q2pro-darwin-x86_64
           path: |
@@ -294,7 +294,7 @@ jobs:
           chmod +x builddir/q2pro*
 
       - name: Generate Mac archives
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: q2pro-darwin-arm64
           path: |
