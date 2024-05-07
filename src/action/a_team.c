@@ -309,6 +309,7 @@
 qboolean team_game_going = false;	// is a team game going right now?
 qboolean team_round_going = false;	// is an actual round of a team game going right now?
 
+int during_countdown = 0;		// This is set to 1 when the 10..9..8.. countdown is going on
 int team_round_countdown = 0;	// countdown variable for start of a round
 int rulecheckfrequency = 0;	// accumulator variable for checking rules every 1.5 secs
 int lights_camera_action = 0;	// countdown variable for "lights...camera...action!" 
@@ -2340,6 +2341,7 @@ void StartRound (void)
 
 static void StartLCA(void)
 {
+	during_countdown = 0;
 	if ((gameSettings & (GS_WEAPONCHOOSE|GS_ROUNDBASED)))
 		CleanLevel();
 
@@ -2462,6 +2464,22 @@ void PrintScores (void)
 	}
 }
 
+void handleTimeWarning(int timeLeft, char* soundFile, int* timeWarning, qboolean condition) {
+    if (*timeWarning < timeLeft && condition) {
+        if (timeLeft == 1) {
+            CenterPrintAll("1 MINUTE LEFT...");
+        } else if (timeLeft == 3) {
+            CenterPrintAll("3 MINUTES LEFT...");
+        }
+        gi.sound(&g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex(soundFile), 1.0, ATTN_NONE, 0.0);
+        *timeWarning = timeLeft;
+        if (esp->value && esp_debug->value) {
+            gi.dprintf("%s: level.matchTime = %f\n", __FUNCTION__, level.matchTime);
+            EspAnnounceDetails(true);
+        }
+    }
+}
+
 qboolean CheckTimelimit( void )
 {
 	if (timelimit->value > 0)
@@ -2497,14 +2515,16 @@ qboolean CheckTimelimit( void )
 		
 		// CTF or Espionage with use_warnings should have the same warnings when the map is ending as it does for halftime (see CTFCheckRules).
 		// Otherwise, use_warnings should warn about 3 minutes and 1 minute left, but only if there aren't round ending warnings.
-		if( use_warnings->value && (ctf->value || ! roundtimelimit->value) )
+
+		// CTF and Espionage warnings
+		if( use_warnings->value && (ctf->value || ! roundtimelimit->value) && !(gameSettings & GS_DEATHMATCH) )
 		{
-			if( timewarning < 3 && (ctf->value && level.matchTime >= timelimit->value * 60 - 10 ))
+			if( timewarning < 3 && ((ctf->value) && level.matchTime >= timelimit->value * 60 - 10 ))
 			{
 				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("world/10_0.wav"), 1.0, ATTN_NONE, 0.0 );
 				timewarning = 3;
 			}
-			else if( timewarning < 2 && level.matchTime >= (timelimit->value - 1) * 60 )
+			else if( timewarning < 2 && level.matchTime >= ((timelimit->value - 1) * 60) && !during_countdown)
 			{
 				CenterPrintAll( "1 MINUTE LEFT..." );
 				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("tng/1_minute.wav"), 1.0, ATTN_NONE, 0.0 );
@@ -2515,7 +2535,33 @@ qboolean CheckTimelimit( void )
 					EspAnnounceDetails(true);
 				}
 			}
-			else if( timewarning < 1 && (! ctf->value) && timelimit->value > 3 && level.matchTime >= (timelimit->value - 3) * 60 )
+			else if( timewarning < 1 && (!ctf->value) && timelimit->value > 3 && level.matchTime >= ((timelimit->value - 3) * 60) && !during_countdown )
+			{
+				CenterPrintAll( "3 MINUTES LEFT..." );
+				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("tng/3_minutes.wav"), 1.0, ATTN_NONE, 0.0 );
+				timewarning = 1;
+			}
+		}
+		// Deathmatch and Team Deathmatch warnings
+		else if( use_warnings->value && deathmatch->value && (gameSettings & GS_DEATHMATCH))
+		{
+			if( timewarning < 3 && (level.matchTime >= timelimit->value * 60 - 10 ))
+			{
+				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("world/10_0.wav"), 1.0, ATTN_NONE, 0.0 );
+				timewarning = 3;
+			}
+			else if( timewarning < 2 && level.matchTime >= ((timelimit->value - 1) * 60) && !during_countdown )
+			{
+				CenterPrintAll( "1 MINUTE LEFT..." );
+				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("tng/1_minute.wav"), 1.0, ATTN_NONE, 0.0 );
+				timewarning = 2;
+				if (esp->value){
+					if (esp_debug->value)
+						gi.dprintf("%s: level.matchTime = %f\n", __FUNCTION__, level.matchTime);
+					EspAnnounceDetails(true);
+				}
+			}
+			else if( timewarning < 1 && timelimit->value > 3 && level.matchTime >= ((timelimit->value - 3) * 60) && !during_countdown)
 			{
 				CenterPrintAll( "3 MINUTES LEFT..." );
 				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("tng/3_minutes.wav"), 1.0, ATTN_NONE, 0.0 );
@@ -2809,6 +2855,7 @@ int CheckTeamRules (void)
 		{
 			if (team_round_countdown == 101)
 			{
+				during_countdown = 1;
 				gi.sound (&g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD,
 				gi.soundindex ("world/10_0.wav"), 1.0, ATTN_NONE, 0.0);
 
@@ -2832,11 +2879,13 @@ int CheckTeamRules (void)
 					edict_t *capturepoint;
 					edict_t *ent;
 					capturepoint = G_Find(NULL, FOFS(classname), "item_flag");
-					if (!capturepoint) // Somehow we're in ETV with no capture point?	
-						gi.dprintf("ERROR: No capture point (item_flag) found for ETV!?\n");
+					if (!capturepoint) // Somehow we're in ETV with no capture point?
+						if (esp_debug->value)
+							gi.dprintf("ERROR: No capture point (item_flag) found for ETV!?\n");
 
 					if (capturepoint) {
-						gi.dprintf("INFO: capture point (item_flag) found\n");
+						if (esp_debug->value)
+							gi.dprintf("INFO: capture point (item_flag) found\n");
 						VectorCopy( capturepoint->s.origin, level.poi_origin );
 						VectorCopy( capturepoint->s.angles, level.poi_angle );
 					}
@@ -2850,7 +2899,8 @@ int CheckTeamRules (void)
 							continue;
 						// if (!ent->client->pers.spectator)
 						// 	continue;
-						gi.dprintf("INFO: moving spectators\n");
+						if (esp_debug->value)
+							gi.dprintf("INFO: moving spectators\n");
 
 						MoveClientToPOI(ent, capturepoint);
 					}
