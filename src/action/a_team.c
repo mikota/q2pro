@@ -2464,22 +2464,6 @@ void PrintScores (void)
 	}
 }
 
-void handleTimeWarning(int timeLeft, char* soundFile, int* timeWarning, qboolean condition) {
-    if (*timeWarning < timeLeft && condition) {
-        if (timeLeft == 1) {
-            CenterPrintAll("1 MINUTE LEFT...");
-        } else if (timeLeft == 3) {
-            CenterPrintAll("3 MINUTES LEFT...");
-        }
-        gi.sound(&g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex(soundFile), 1.0, ATTN_NONE, 0.0);
-        *timeWarning = timeLeft;
-        if (esp->value && esp_debug->value) {
-            gi.dprintf("%s: level.matchTime = %f\n", __FUNCTION__, level.matchTime);
-            EspAnnounceDetails(true);
-        }
-    }
-}
-
 qboolean CheckTimelimit( void )
 {
 	if (timelimit->value > 0)
