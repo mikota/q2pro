@@ -2427,7 +2427,7 @@ static void SCR_DrawGhud(void)
 			//
 
 			float mult = 300 / link->distance;
-			Q_clip(mult, 0.25, 5);
+			Q_clipf(mult, 0.25, 5);
 
 			int sizex = element->size[0] * mult;
 			int sizey = element->size[1] * mult;

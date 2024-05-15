@@ -22,6 +22,30 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // shared.h -- included first by ALL program modules
 //
 
+//rekkie -- CMAKE -- s
+#if _MSC_VER >= 1920 && !__INTEL_COMPILER
+    //#define NDEBUG 1
+#define VERSION "ReKTeK"
+//#define BUILDSTRING "1"
+//#define CPUSTRING "1"
+//#define BASEGAME "baseq2"
+//#define DEFGAME "baseq2"
+#define PLATFORM "Win64"
+//#define USE_MVD_SERVER 1
+//#define USE_SERVER 1
+//#define USE_CLIENT 1
+//#define USE_DBGHELP 1
+#pragma warning(disable:4305) // warning C4305: 'initializing': truncation from 'double' to 'const vec_t'
+#pragma warning(disable:4244) // warning C4244: '=': conversion from 'int64_t' to 'unsigned int', possible loss of data
+#pragma warning(disable:4267) // warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+#pragma warning(disable:4018) // warning C4018: '>': signed/unsigned mismatch
+#pragma warning(disable:4013) // warning C4013: 'MSG_ShowSVC' undefined; assuming extern returning int
+#pragma warning(disable:4047) // warning C4047: 'function': 'HDC' differs in levels of indirection from 'int'
+#pragma warning(disable:4133) // warning C4133: 'function': incompatible types - from 'HGLRC' to 'HDC'
+#pragma warning(disable:4146) // warning C4146: unary minus operator applied to unsigned type, result still unsigned
+#endif
+//rekkie -- CMAKE -- e
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -374,6 +398,11 @@ typedef struct vrect_s {
 #define Vector4Set(v, a, b, c, d)   ((v)[0]=(a),(v)[1]=(b),(v)[2]=(c),(v)[3]=(d))
 #define Vector4Compare(v1,v2)       ((v1)[0]==(v2)[0]&&(v1)[1]==(v2)[1]&&(v1)[2]==(v2)[2]&&(v1)[3]==(v2)[3])
 #define Dot4Product(x, y)           ((x)[0]*(y)[0]+(x)[1]*(y)[1]+(x)[2]*(y)[2]+(x)[3]*(y)[3])
+
+//rekkie -- ENGINE_DLL -- s
+void VectorRotate2(vec3_t v, float degrees);
+void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, float degrees);
+//#endif // End of ENGINE_DLL
 
 void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
 vec_t VectorNormalize(vec3_t v);        // returns vector length
@@ -1006,6 +1035,7 @@ typedef enum {
 #if AQTION_EXTENSION
 // pmove->pm_aq2_flags
 #define PMF_AQ2_LIMP		0x01 // used to predict limping
+#define PMF_AQ2_FRICTION    0x02 //rekkie -- Increase friction for bots
 #endif
 
 // this structure needs to be communicated bit-accurate
