@@ -293,7 +293,7 @@
 #include	"p_antilag.h"
 
 #ifndef NO_BOTS
-#include	"acesrc/botnav.h"
+//#include	"acesrc/botnav.h"
 #include	"botlib/botlib.h"
 #endif
 
@@ -1171,6 +1171,9 @@ extern cvar_t *radio_repeat;
 extern cvar_t *radio_repeat_time;
 
 extern cvar_t *hc_single;  // Enable or disable the single shot handcannon
+extern cvar_t *hc_boost; //rekkie -- allow HC to 'boost' the player
+extern cvar_t *hc_boost_percent; //rekkie -- allow HC to 'boost' the player
+extern cvar_t *hc_silencer; //rekkie -- allow HC to 'boost' the player
 extern cvar_t *wp_flags;   // Weapon flags (bans)
 extern cvar_t *itm_flags;  // Item flags (bans)
 extern cvar_t *use_classic;	// Use_classic resets weapon balance to 1.52
@@ -1505,6 +1508,13 @@ void T_RadiusDamage (edict_t * inflictor, edict_t * attacker, float damage,
 #define DEFAULT_SHOTGUN_COUNT                   12
 #define DEFAULT_SSHOTGUN_COUNT                  20
 
+//rekkie -- DEV_1 -- s
+//
+// g_func.c
+//
+void door_use(edict_t* self, edict_t* other, edict_t* activator);
+//rekkie -- DEV_1 -- e
+
 //
 // g_misc.c
 //
@@ -1626,7 +1636,7 @@ void EspionageChaseCam(edict_t *self, edict_t *attacker);
 //
 void ChangePlayerSpawns(void);
 void ED_CallSpawn( edict_t *ent );
-char* ED_NewString(char* string);
+char* ED_NewString(const char* string);
 void G_UpdateSpectatorStatusbar( void );
 void G_UpdatePlayerStatusbar( edict_t *ent, int force );
 int Gamemodeflag(void);

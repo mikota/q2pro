@@ -397,6 +397,9 @@ cvar_t *video_force_restart;
 cvar_t *video_check_lockpvs;
 cvar_t *video_check_glclear;
 cvar_t *hc_single;
+cvar_t *hc_boost; //rekkie -- allow HC to 'boost' the player
+cvar_t *hc_boost_percent; //rekkie -- allow HC to 'boost' the player
+cvar_t *hc_silencer;
 cvar_t *wp_flags;		// Weapon Banning
 cvar_t *itm_flags;		// Item Banning
 cvar_t *matchmode;
@@ -595,6 +598,10 @@ void ShutdownGame (void)
 	IRC_exit ();
 #ifndef NO_BOTS
 	ACECM_Store();
+	BOTLIB_FreeNodes(); //rekkie -- DEV_1 -- Hard map change. Free any existing node memory used
+	BOTLIB_FreeAreaNodes(); //rekkie -- DEV_1 -- Soft map change. Free all area node memory used
+	DC_Free_Spawnpoints();  //rekkie -- DEV_1 -- Hard map change. Free any existing spawnpoint memory used
+	BOTLIB_SaveBotsFromPreviousMap(); //rekkie -- Hard map change.
 #endif
 	//PG BUND
 	vExitGame ();
@@ -1021,6 +1028,31 @@ void CheckDMRules (void)
 	if (level.intermission_framenum)
 		return;
 
+//rekkie -- DEV_1 -- s
+#ifndef NO_BOTS
+	if (FRAMESYNC)
+	{
+		BOTLIB_CheckBotRules();
+
+		// Reduce noise timers
+		for (int i = 0; i < MAX_CLIENTS; i++)
+		{
+			if (botlib_noises.self_time[i] > 0)
+				botlib_noises.self_time[i]--;
+
+			if (botlib_noises.weapon_time[i] > 0)
+			{
+				botlib_noises.weapon_time[i]--;
+				//Com_Printf("%s %s counting PNOISE_WEAPON %d\n", __func__, botlib_noises.owner[i]->client->pers.netname, botlib_noises.weapon_time[i]);
+			}
+
+			if (botlib_noises.impact_time[i] > 0)
+				botlib_noises.impact_time[i]--;
+		}
+	}
+#endif
+	//rekkie -- DEV_1 -- e
+
 	//FIREBLADE
 	if (teamplay->value)
 	{
@@ -1103,6 +1135,8 @@ void ExitLevel (void)
 	int i;
 	edict_t *ent;
 	char command[256];
+
+	BOTLIB_SaveBotsFromPreviousMap(); //rekkie -- Soft map change (timelimit, fraglimit)
 
 	if(softquit) {
 		gi.bprintf(PRINT_HIGH, "Soft quit was requested by admin. The server will now exit.\n");
