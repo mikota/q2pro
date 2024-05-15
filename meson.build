@@ -231,6 +231,21 @@ ltk_src = [
   'src/action/acesrc/botscan.c'
 ]
 
+botlib_src = [
+  'src/action/botlib/botlib_ai.c',
+  'src/action/botlib/botlib_cmd.c',
+  'src/action/botlib/botlib_communication.c',
+  'src/action/botlib/botlib_ctf.c',
+  'src/action/botlib/botlib_items.c',
+  'src/action/botlib/botlib_math.c',
+  'src/action/botlib/botlib_movement.c',
+  'src/action/botlib/botlib_nav.c',
+  'src/action/botlib/botlib_nodes.c',
+  'src/action/botlib/botlib_spawn.c',
+  'src/action/botlib/botlib_spawnpoints.c',
+  'src/action/botlib/botlib_weapons.c',
+]
+
 cc = meson.get_compiler('c')
 
 win32 = host_machine.system() == 'windows'
@@ -318,6 +333,8 @@ if cc.get_argument_syntax() == 'gcc'
   endif
 elif cc.get_id() == 'msvc'
   common_args += ['/wd4146', '/wd4244', '/wd4305']
+else
+  dll_link_args += '--no-relax'
 endif
 
 add_project_arguments(common_args, language: 'c')
@@ -489,6 +506,7 @@ if get_option('aqtion-build')
   config.set10('AQTION_EXTENSION', true)
   config.set10('AQTION_HUD', true)
   action_src += ltk_src
+  action_src += botlib_src
 
   # Win32 winsock compat
   if win32

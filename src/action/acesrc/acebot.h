@@ -53,6 +53,7 @@
 #ifndef _ACEBOT_H
 #define _ACEBOT_H
 
+#include "../botlib/botlib.h"
 // Bots think at the server framerate to make sure they move smoothly.
 #define BOT_FPS (game.framerate)
 
@@ -260,6 +261,7 @@ typedef struct node_s
 	byte num_links;		// Total links this node has
 	nodelink_t links[MAXLINKS];	// store all links. - RiEvEr
 } node_t;
+extern node_t *nodes;
 
 typedef struct item_table_s
 {
@@ -279,13 +281,13 @@ extern node_t *unsorted_nodes; // Used to generate all links, so they can be sor
 #define MAX_PNODES 8096 //8096
 //32768 Absolute max nodes
 //extern node_t *nodes;
-node_t *nodes;
+extern node_t *nodes;
 //node_t *nodes[MAX_PNODES];
 //node_t nodes[MAX_PNODES];
 //extern node_t nodes[MAX_PNODES];
 //rekkie -- DEV_1 -- e
 
-short int** path_table;
+extern short int** path_table;
 ////short int path_table[MAX_PNODES][MAX_PNODES];
  
 //extern node_t nodes[MAX_NODES];
@@ -318,7 +320,7 @@ void ACEAI_Cmd_Choose_Item_Num( edict_t *ent, int num );
 
 // acebot_cmds.c protos
 qboolean ACECM_Commands(edict_t *ent);
-void     ACECM_Store();
+void     ACECM_Store(void);
 
 // acebot_items.c protos
 void     ACEIT_RebuildPlayerList( void );
@@ -383,14 +385,14 @@ int		BOTLIB_TestForNodeDist(vec_t* origin, float distance, vec3_t mins, vec3_t m
 //int      ACEND_AddNode(edict_t *self, int type);
 //void     ACEND_UpdateNodeEdge(edict_t *self, int from, int to);
 void     ACEND_RemoveNodeEdge(edict_t *self, int from, int to);
-//void     ACEND_ResolveAllPaths();
-//void     ACEND_SaveNodes();
-//void     ACEND_LoadNodes();
+//void     ACEND_ResolveAllPaths(void);
+//void     ACEND_SaveNodes(void);
+//void     ACEND_LoadNodes(void);
 
 // acebot_spawn.c protos
-//void	 ACESP_SaveBots();
-//void	 ACESP_LoadBots();
-void	 ACESP_LoadBotConfig();
+//void	 ACESP_SaveBots(void);
+//void	 ACESP_LoadBots(void);
+void	 ACESP_LoadBotConfig(void);
 edict_t *ACESP_SpawnBotFromConfig( char *inString );
 void     ACESP_HoldSpawn(edict_t *self);
 void     ACESP_PutClientInServer (edict_t *bot, qboolean respawn, int team);
@@ -398,7 +400,7 @@ void     ACESP_Respawn (edict_t *self);
 edict_t *ACESP_FindFreeClient (void);
 void     ACESP_SetName(edict_t *bot, char *name, char *skin, char *team);
 edict_t *ACESP_SpawnBot (char *team, char *name, char *skin, char *userinfo);
-//void     ACESP_ReAddBots();
+//void     ACESP_ReAddBots(void);
 void     ACESP_RemoveBot(char *name);
 void	 safe_cprintf (edict_t *ent, int printlevel, const char *fmt, ...);
 void     safe_centerprintf (edict_t *ent, const char *fmt, ...);
@@ -499,17 +501,17 @@ void		BOTWP_RemoveSniperZoomMode(edict_t *bot);
 // 
 // - Bots aiming through water, some water opacity should limit the bot's ability to aim through water, via water
 //
-// - [Drg] Varekai — Today at 22:26
+// - [Drg] Varekai ï¿½ Today at 22:26
 //	I've always wondered because we use punch to get to weird places and I imagined that how far someone went had more to do with their initial speed
 //	as in, hitting them as they're just jumping would be more effective
-//	darksaint — Today at 22:27
-//	ReKTeK aka Mech — Today at 22 : 31
+//	darksaint ï¿½ Today at 22:27
+//	ReKTeK aka Mech ï¿½ Today at 22 : 31
 //	Having another quick skim of the code, it doesn't take velocity into account. However, if the player is airborne, they wouldn't be slowed down by any initial friction(if any is applied) plus the height would give extra distance
-//	Drg] Varekai — Today at 22 : 32
+//	Drg] Varekai ï¿½ Today at 22 : 32
 //	so it is mostly random, pretty nuts
-//	ReKTeK aka Mech — Today at 22 : 33
+//	ReKTeK aka Mech ï¿½ Today at 22 : 33
 //	I suppose velocity should be taken into account
-//	darksaint — Today at 22 : 35
+//	darksaint ï¿½ Today at 22 : 35
 //	Kicking someone in mid - air after being kicked should result in double damage :) using their body like a football
 // 
 // - Roundlimit: add a countdown at 30 seconds, 15 seconds...
@@ -568,10 +570,10 @@ extern cvar_t* bot_randname;
 typedef struct {
 	char name[16];			// Name
 }bot_names_t;
-int	dc_total_male_names;		// Total male names
-int	dc_total_female_names;		// Total female names
-bot_names_t bot_male[MAX_BOT_NAMES];	// Cached copy
-bot_names_t bot_female[MAX_BOT_NAMES];	// Cached copy
+extern int	dc_total_male_names;		// Total male names
+extern int	dc_total_female_names;		// Total female names
+extern bot_names_t bot_male[MAX_BOT_NAMES];	// Cached copy
+extern bot_names_t bot_female[MAX_BOT_NAMES];	// Cached copy
 
 
 
@@ -673,15 +675,15 @@ typedef struct nmesh_s {
 	unsigned bsp_checksum; // Map checksum
 
 } nmesh_t;
-nmesh_t nmesh;
+extern nmesh_t nmesh;
 
 
-int num_poi_nodes;
-int poi_nodes[MAX_POI_NODES];
-edict_t* node_ents[MAX_EDICTS]; // If the node is attached to an entity (such as a NODE_DOOR being attached to a func_door_rotating or func_door entity)
-int num_vis_nodes;
-int node_vis[10][10]; // Cached node visibily. node_vis[X][Y] <-- can X see Y? If Y == INVALID, then false. Otherwise Y == NODE NUM
-int node_vis_list[10][10]; // Cached node visibility list. node_vis_list[X][list-of-nodes-x-can-see]  <-- All the nodes that X can see.
+extern int num_poi_nodes;
+extern int poi_nodes[MAX_POI_NODES];
+extern edict_t* node_ents[MAX_EDICTS]; // If the node is attached to an entity (such as a NODE_DOOR being attached to a func_door_rotating or func_door entity)
+extern int num_vis_nodes;
+extern int node_vis[10][10]; // Cached node visibily. node_vis[X][Y] <-- can X see Y? If Y == INVALID, then false. Otherwise Y == NODE NUM
+extern int node_vis_list[10][10]; // Cached node visibility list. node_vis_list[X][list-of-nodes-x-can-see]  <-- All the nodes that X can see.
 //int node_vis[MAX_PNODES][MAX_PNODES]; // Cached node visibily. node_vis[X][Y] <-- can X see Y? If Y == INVALID, then false. Otherwise Y == NODE NUM
 //int node_vis_list[MAX_PNODES][MAX_VIS_NODES]; // Cached node visibility list. node_vis_list[X][list-of-nodes-x-can-see]  <-- All the nodes that X can see.
 
@@ -762,8 +764,8 @@ void	 BOTLIB_LoadNav(void);
 #endif
 qboolean NodeTypeToString(edict_t* self, int type, char* string, const int max_string_size);
 
-//void	 ACEND_FreeUnsortedNodes();
-//qboolean ACEND_InitUnsortedNodes();
+//void	 ACEND_FreeUnsortedNodes(void);
+//qboolean ACEND_InitUnsortedNodes(void);
 void	 ACEND_BSP(edict_t* ent);
 void	 ACEND_BuildSpawnPointNodes(void);
 void	 ACEND_CachePointOfInterestNodes(void);
@@ -841,9 +843,10 @@ extern int numthreads;
 void ThreadSetDefault(void);
 int GetThreadWork(void);
 //void RunThreadsOnIndividual(int workcnt, qboolean showpacifier, void (*func)(int));
-void RunThreadsOnIndividual(int workcnt, qboolean showpacifier, void (*func), void *param);
+//void RunThreadsOnIndividual(int workcnt, qboolean showpacifier, void (*func), void *param);
 //void RunThreadsOn(int workcnt, qboolean showpacifier, void (*func)(int));
-void RunThreadsOn(int workcnt, qboolean showpacifier, void(*func), void* param);
+void RunThreadsOn(int workcnt, qboolean showpacifier, void (*func)(int));
+//void RunThreadsOn(int workcnt, qboolean showpacifier, void(*func), void* param);
 void ThreadLock(void);
 void ThreadUnlock(void);
 //rekkie -- Quake3 -- e

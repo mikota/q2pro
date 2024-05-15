@@ -50,7 +50,7 @@ typedef struct bot_connections_s
 	int desire_team2;
 	int desire_team3;
 } bot_connections_t;
-bot_connections_t bot_connections;
+extern bot_connections_t bot_connections;
 
 //the bot input, will be converted to a usercmd_t
 typedef struct bot_input_s
@@ -105,7 +105,7 @@ typedef struct botlib_noises_s
 	vec3_t impact_origin[MAX_CLIENTS];
 
 } botlib_noises_t;
-botlib_noises_t botlib_noises;
+extern botlib_noises_t botlib_noises;
 
 // Actionable flags
 #define ACTION_NONE				0x00000000	// No action taken
@@ -167,7 +167,7 @@ typedef struct ctf_status_s
 	float team1_carrier_dist_to_home; // How close the red team carrier is to the home red flag node
 	float team2_carrier_dist_to_home; // How close the blue team carrier is to the home blue flag node
 } ctf_status_t;
-ctf_status_t bot_ctf_status;
+extern ctf_status_t bot_ctf_status;
 
 // Get flag, retrieve flag, intercept flag carrier, etc.
 typedef enum
@@ -195,7 +195,7 @@ qboolean BOTLIB_Commands(edict_t* ent); // Client commands
 // botlib_communication.c
 // ===========================================================================
 void BOTLIB_Wave(edict_t* ent, int type);
-void BOTLIB_PrecacheRadioSounds();
+void BOTLIB_PrecacheRadioSounds(void);
 void BOTLIB_AddRadioMsg(radio_t* radio, int sndIndex, int len, edict_t* from_player);
 void BOTLIB_Radio(edict_t* self, usercmd_t* ucmd);
 
@@ -328,8 +328,8 @@ void BOTLIB_Look(edict_t* self, usercmd_t* ucmd);
 #define MAX_NAV_AREAS_EDGES 64
 #define MAX_NAV_AREAS_PATHS 512 //512
 #define MAX_NAV_AREAS_NODES 4096
-int DFS_area_nodes[MAX_NAV_AREAS][MAX_NAV_AREAS_NODES]; // Area nodes - [(32 * 1024) * 4 bytes = 132k]
-int DFS_area_edges[MAX_NAV_AREAS][MAX_NAV_AREAS_EDGES]; // Area edge nodes (area edges that connect to other areas) - [(32 * 64) * 4 bytes = 8k]
+extern int DFS_area_nodes[MAX_NAV_AREAS][MAX_NAV_AREAS_NODES]; // Area nodes - [(32 * 1024) * 4 bytes = 132k]
+extern int DFS_area_edges[MAX_NAV_AREAS][MAX_NAV_AREAS_EDGES]; // Area edge nodes (area edges that connect to other areas) - [(32 * 64) * 4 bytes = 8k]
 
 
 
@@ -352,13 +352,13 @@ typedef struct {
 
 
 } nav_area_t;
-nav_area_t nav_area;
+extern nav_area_t nav_area;
 
-void BOTLIB_MallocAreaNodes();
-void BOTLIB_FreeAreaNodes();
+void BOTLIB_MallocAreaNodes(void);
+void BOTLIB_FreeAreaNodes(void);
 
 void BOTLIB_InitAreaNodes(void); // Init area nodes to INVALID
-void BOTLIB_InitAreaConnections(); // Init and make area connections
+void BOTLIB_InitAreaConnections(void); // Init and make area connections
 qboolean BOTLIB_CanGotoNode(edict_t* self, int goal_node, qboolean path_randomization); // Supports new and old pathing methods
 qboolean BOTLIB_CanVisitAreaNode(edict_t* self, int goal_node); // Checks if possible to traverse from current node to goal_node
 void BOTLIB_GetAreaPath(edict_t* self, int goal_node); // Sets a path from area-to-area
@@ -366,7 +366,7 @@ qboolean BOTLIB_GetNextAreaNode(edict_t* self);
 void BOTLIB_UpdateAllAreaEdges(void); // Stores all the nodes within an area that connect to an external area (edge nodes)
 int BOTLIB_GetRandomEdgeConnection(int area_1, int area_2); // Returns a random edge node that is inside the second area (so the bot traverses just inside the next area)
 void BOTLIB_DepthFirstSearch(edict_t* self, int current, int destination); // Finds ALL possible paths from current to destination using the Depth-First Search (DFS) algorithm
-void BOTLIB_RandomizeAreaColors(); // Randomize area colors
+void BOTLIB_RandomizeAreaColors(void); // Randomize area colors
 void BOTLIB_AutoArea(edict_t* self);
 qboolean BOTLIB_DijkstraAreaPath(edict_t* ent, int from, int to, qboolean path_randomization, int area, qboolean build_new_path);
 qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_randomization);
@@ -385,7 +385,7 @@ typedef struct {
 typedef struct {
 	botlib_sll_nodes_t* head; // Front
 	botlib_sll_nodes_t* tail; // Back
-}	botlib_sll_t;
+} botlib_sll_t;
 //}	ltklist_t;
 
 // ===========================================================================
@@ -395,7 +395,7 @@ void BOTLIB_LinkNodesNearbyNode(edict_t* ent, int from);
 qboolean BOTLIB_CanVisitNode(edict_t* self, int goal_node, qboolean path_randomization, int area, qboolean build_new_path);
 
 void BOTLIB_GroupConnectedNodeArea(edict_t* self, int start_node);
-void BOTLIB_SetAllNodeNormals();
+void BOTLIB_SetAllNodeNormals(void);
 
 // ===========================================================================
 // botlib_spawn.c
@@ -422,9 +422,9 @@ typedef struct {
 	vec3_t origin;		// Spawn point location
 	vec3_t angles;		// Spawn point direction
 } dc_sp_t;
-dc_sp_t* dc_sp;
-int dc_sp_count; // Total spawn points
-qboolean dc_sp_edit; // If the spawn points have been made visible for editing
+extern dc_sp_t* dc_sp;
+extern int dc_sp_count; // Total spawn points
+extern qboolean dc_sp_edit; // If the spawn points have been made visible for editing
 #define DC_SP_LIMIT 255 // Maximum spawn points
 #define DC_SP_VERSION 1 // Version of spawn point file
 void DC_Init_Spawnpoints(void); // Initialise spawn points
@@ -433,8 +433,8 @@ void DC_Add_Spawnpoint(edict_t* ent); // Add a spawn point at the player locatio
 void DC_Remove_Spawnpoint(edict_t* self); // Remove a spawn point at the player location
 void DC_Get_Map_Spawnpoints(void); // Find and add all the map spawn points to the dc_sp[] array
 void BOTLIB_Show_Spawnpoints(void); // Find and display (as visible ents) all spawn points (map and custom)
-void DC_Save_Spawnpoints();	// Save the spawn points
-void DC_Load_Spawnpoints();	// Load the spawn points
+void DC_Save_Spawnpoints(void);	// Save the spawn points
+void DC_Load_Spawnpoints(void);	// Load the spawn points
 
 
 // ===========================================================================

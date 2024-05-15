@@ -1380,24 +1380,33 @@ void SpawnEntities (const char *mapname, const char *entities, const char *spawn
 
 	UnBan_TeamKillers();
 
+
+//rekkie -- s
 #ifndef NO_BOTS
-	// Reload nodes and any persistent bots.
-	ACEND_InitNodes();
-	ACEND_LoadNodes();
 	
-	// Normal operations, load LTK bots as normal
-	if (Q_stricmp(am->string, "0") == 0) {
-		ACESP_LoadBotConfig();
-	} else {
-		// Reset bot count, load initial bots
-		game.bot_count = 0;
-		attract_mode_bot_check();
-	}
+	//BOTLIB_THREAD_LOADAAS(false); // Threaded version -- this will also generate AAS if it doesn't exist
+	BOTLIB_InitNavigation(NULL);
 
-	// Clear LTK bot names
-	LTKClearBotNames();
-
+#ifdef USE_ZLIB
+	BOTLIB_LoadNavCompressed();
+#else
+	BOTLIB_LoadNav();
 #endif
+
+	//ACEND_LoadAAS(false); // This will also generate AAS if it doesn't exist
+	//ACEND_BSP(NULL);
+
+	// Bot connections
+	memset(&bot_connections, 0, sizeof(bot_connections));
+
+	// Player noises
+	memset(&botlib_noises, 0, sizeof(botlib_noises));
+
+	//rekkie -- Fake Bot Client -- s
+	gi.SV_BotClearClients(); // So the server can clear all fake bot clients
+	//rekkie -- Fake Bot Client -- e
+#endif
+//rekkie -- e
 }
 
 

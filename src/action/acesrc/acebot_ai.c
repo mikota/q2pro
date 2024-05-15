@@ -54,6 +54,7 @@
 #include "../g_local.h"
 #include "acebot.h"
 #include "botchat.h"
+#include "../botlib/botlib.h"
 
 void	ACEAI_Cmd_Choose( edict_t *ent, char *s);
 void	ACEMV_ChangeBotAngle (edict_t *ent);

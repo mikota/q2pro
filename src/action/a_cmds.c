@@ -1354,6 +1354,10 @@ void generate_uuid(void)
 }
 #endif
 
+
+//rekkie -- DEV_1 -- s
+// original code -- disabled
+/*
 #ifndef NO_BOTS
 void Cmd_Placenode_f (edict_t *ent)
 {
@@ -1367,6 +1371,8 @@ void Cmd_Placenode_f (edict_t *ent)
 		ACEND_AddNode(ent,NODE_MOVE);
 }
 #endif
+*/
+//rekkie -- DEV_1 -- e
 
 void Cmd_Volunteer_f(edict_t * ent)
 {

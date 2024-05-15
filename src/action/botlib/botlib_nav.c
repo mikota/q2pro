@@ -6,8 +6,8 @@
  //== GLOBAL SEMAPHORE ==
 int	antSearch;
 
-extern short int** path_table;
-////extern short int path_table[MAX_PNODES][MAX_PNODES];
+short int** path_table;
+nav_area_t nav_area;
 
 qboolean	nodeused[MAX_PNODES]; // This is used for a FAST check if the node has been used
 short int	nodefrom[MAX_PNODES]; // Stores how we got here once the node is closed
@@ -586,6 +586,8 @@ qboolean BOTLIB_NodeCanSeeEnemyPath(edict_t* ent, int atNode)
 // 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+int DFS_area_nodes[MAX_NAV_AREAS][MAX_NAV_AREAS_NODES]; // Area nodes - [(32 * 1024) * 4 bytes = 132k]
+int DFS_area_edges[MAX_NAV_AREAS][MAX_NAV_AREAS_EDGES]; // Area edge nodes (area edges that connect to other areas) - [(32 * 64) * 4 bytes = 8k]
 
 // Init data used when selecting nodes
 void BOTLIB_InitAreaNodes(void)
@@ -3035,16 +3037,16 @@ void ThreadWorkerFunction(int threadnum) {
 }
 
 //void RunThreadsOnIndividual(int workcnt, qboolean showpacifier, void (*func)(int)) {
-void RunThreadsOnIndividual(int workcnt, qboolean showpacifier, void(*func), void* param) {
-	if (numthreads == -1) {
-		ThreadSetDefault();
-	}
-	workfunction = func;
-	RunThreadsOn(workcnt, showpacifier, ThreadWorkerFunction, param);
-}
+// void RunThreadsOnIndividual(int workcnt, qboolean showpacifier, void(*func), void* param) {
+// 	if (numthreads == -1) {
+// 		ThreadSetDefault();
+// 	}
+// 	workfunction = func;
+// 	RunThreadsOn(workcnt, showpacifier, ThreadWorkerFunction, param);
+// }
 
 
-#if GDEF_OS_WINDOWS
+#if _WIN32
 
 /*
    ===================================================================

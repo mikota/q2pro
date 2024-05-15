@@ -110,18 +110,18 @@ qboolean BOTLIB_SV_Cmds(void)
 		return true;
 	}
 	//rekkie -- BSP -- s
-	else if (Q_stricmp(cmd, "loadaas") == 0) // Load AAS
-	{
-		BOTLIB_THREAD_LOADAAS(true); // Threaded version -- this will also generate AAS if it doesn't exist
-		//ACEND_LoadAAS(true); // This will also generate AAS if it doesn't exist
-		return true;
-	}
-	// Process BSP and generate AAS reachability with nodes
-	else if (Q_stricmp(cmd, "aas") == 0)
-	{
-		ACEND_BSP(NULL);
-		return true;
-	}
+	// else if (Q_stricmp(cmd, "loadaas") == 0) // Load AAS
+	// {
+	// 	BOTLIB_THREAD_LOADAAS(true); // Threaded version -- this will also generate AAS if it doesn't exist
+	// 	//ACEND_LoadAAS(true); // This will also generate AAS if it doesn't exist
+	// 	return true;
+	// }
+	// // Process BSP and generate AAS reachability with nodes
+	// else if (Q_stricmp(cmd, "aas") == 0)
+	// {
+	// 	ACEND_BSP(NULL);
+	// 	return true;
+	// }
 	//rekkie -- BSP -- e
 
 	//rekkie -- python chatbot -- s
@@ -261,13 +261,14 @@ qboolean BOTLIB_Commands(edict_t* ent)
 	char* cmd = gi.argv(0);
 
 	//rekkie -- BSP -- s
-	if (Q_stricmp(cmd, "loadaas") == 0) // Load AAS
-	{
-		BOTLIB_THREAD_LOADAAS(true); // Threaded version -- this will also generate AAS if it doesn't exist
-		//ACEND_LoadAAS(true); // This will also generate AAS if it doesn't exist
-		return true;
-	}
-	else if (Q_stricmp(cmd, "dc_save_aas") == 0) // Save AAS
+	// if (Q_stricmp(cmd, "loadaas") == 0) // Load AAS
+	// {
+	// 	BOTLIB_THREAD_LOADAAS(true); // Threaded version -- this will also generate AAS if it doesn't exist
+	// 	//ACEND_LoadAAS(true); // This will also generate AAS if it doesn't exist
+	// 	return true;
+	// }
+	// else 
+	if (Q_stricmp(cmd, "dc_save_aas") == 0) // Save AAS
 	{
 		ACEND_SaveAAS(true);
 		return true;
@@ -579,16 +580,16 @@ qboolean BOTLIB_Commands(edict_t* ent)
 			return true;
 		}
 	}
-	else if (Q_stricmp(cmd, "head") == 0) // Test func -- spawn kickable head
-	{
-		ThrowGibbedHead(ent, 50); // Spawn kickable head
-		return true;
-	}
-	else if (Q_stricmp(cmd, "ball") == 0) // Test func -- spawn kickable ball
-	{
-		QPong_Ball(ent, 50);
-		return true;
-	}
+	// else if (Q_stricmp(cmd, "head") == 0) // Test func -- spawn kickable head
+	// {
+	// 	ThrowGibbedHead(ent, 50); // Spawn kickable head
+	// 	return true;
+	// }
+	// else if (Q_stricmp(cmd, "ball") == 0) // Test func -- spawn kickable ball
+	// {
+	// 	QPong_Ball(ent, 50);
+	// 	return true;
+	// }
 	else if (Q_stricmp(cmd, "dc_add_sp") == 0) // Add (or recycle unused) custom spawn point
 	{
 		DC_Add_Spawnpoint(ent); // This will add a custom spawn point at the player's location

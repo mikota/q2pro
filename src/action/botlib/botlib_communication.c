@@ -45,14 +45,14 @@ void BOTLIB_PrecacheRadioSounds()
 	//male
 	for (i = 0; i < bot_numMaleSnds; i++)
 	{
-		Com_sprintf(path, sizeof(path), "%s%s.wav", "radio/male/", bot_male_radio_msgs[i].msg);
+		Q_snprintf(path, sizeof(path), "%s%s.wav", "radio/male/", bot_male_radio_msgs[i].msg);
 		bot_male_radio_msgs[i].sndIndex = gi.soundindex(path);
 	}
 
 	//female
 	for (i = 0; i < bot_numFemaleSnds; i++)
 	{
-		Com_sprintf(path, sizeof(path), "%s%s.wav", "radio/female/", bot_female_radio_msgs[i].msg);
+		Q_snprintf(path, sizeof(path), "%s%s.wav", "radio/female/", bot_female_radio_msgs[i].msg);
 		bot_female_radio_msgs[i].sndIndex = gi.soundindex(path);
 	}
 }
@@ -177,14 +177,14 @@ void BOTLIB_Say(edict_t* ent, char* pMsg, qboolean team_message)
 	if (ent->solid == SOLID_NOT || ent->deadflag == DEAD_DEAD)
 	{
 		if (team_message)
-			Com_sprintf(text, sizeof(text), "[DEAD] (%s):", ent->client->pers.netname); // Dead, say team
+			Q_snprintf(text, sizeof(text), "[DEAD] (%s):", ent->client->pers.netname); // Dead, say team
 		else
-			Com_sprintf(text, sizeof(text), "[DEAD] %s:", ent->client->pers.netname); // Dead, say all
+			Q_snprintf(text, sizeof(text), "[DEAD] %s:", ent->client->pers.netname); // Dead, say all
 	}
 	else if (team_message)
-		Com_sprintf(text, sizeof(text), "(%s):", ent->client->pers.netname); // Alive, say team
+		Q_snprintf(text, sizeof(text), "(%s):", ent->client->pers.netname); // Alive, say team
 	else
-		Com_sprintf(text, sizeof(text), "%s:", ent->client->pers.netname); // Alive, say all
+		Q_snprintf(text, sizeof(text), "%s:", ent->client->pers.netname); // Alive, say all
 
 	offset_of_text = strlen(text);  //FB 5/31/99
 

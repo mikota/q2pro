@@ -2,6 +2,8 @@
 #include "../acesrc/acebot.h"
 #include "botlib.h"
 
+ctf_status_t bot_ctf_status;
+
 // Does this bot have the flag?
 qboolean BOTLIB_Carrying_Flag(edict_t* self)
 {

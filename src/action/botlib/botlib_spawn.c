@@ -2,6 +2,12 @@
 #include "../acesrc/acebot.h"
 #include "botlib.h"
 
+int	dc_total_male_names;		// Total male names
+int	dc_total_female_names;		// Total female names
+bot_names_t bot_male[MAX_BOT_NAMES];	// Cached copy
+bot_names_t bot_female[MAX_BOT_NAMES];	// Cached copy
+bot_connections_t bot_connections;
+
 // Find a free entity for the bot to use
 edict_t* BOTLIB_FindFreeEntity(void)
 {
@@ -475,9 +481,9 @@ void BOTLIB_RandomizeTeamSkins(edict_t* bot)
 	//Com_Printf("%s after T1[%s] T2[%s] T3[%s]\n", __func__, teams[TEAM1].skin, teams[TEAM2].skin, teams[TEAM3].skin);
 
 	// Update skin associated indexes
-	Com_sprintf(teams[TEAM1].skin_index, sizeof(teams[TEAM1].skin_index), "../players/%s_i", teams[TEAM1].skin);
-	Com_sprintf(teams[TEAM2].skin_index, sizeof(teams[TEAM2].skin_index), "../players/%s_i", teams[TEAM2].skin);
-	Com_sprintf(teams[TEAM3].skin_index, sizeof(teams[TEAM3].skin_index), "../players/%s_i", teams[TEAM3].skin);
+	Q_snprintf(teams[TEAM1].skin_index, sizeof(teams[TEAM1].skin_index), "../players/%s_i", teams[TEAM1].skin);
+	Q_snprintf(teams[TEAM2].skin_index, sizeof(teams[TEAM2].skin_index), "../players/%s_i", teams[TEAM2].skin);
+	Q_snprintf(teams[TEAM3].skin_index, sizeof(teams[TEAM3].skin_index), "../players/%s_i", teams[TEAM3].skin);
 
 	// Change team picture using the updated skin indexes
 	level.pic_teamskin[TEAM1] = gi.imageindex(teams[TEAM1].skin_index);

@@ -2,6 +2,8 @@
 #include "../acesrc/acebot.h"
 #include "botlib.h"
 
+botlib_noises_t botlib_noises;
+
 // Returns the XYZ distance
 float VectorDistance(vec3_t start, vec3_t end)
 {

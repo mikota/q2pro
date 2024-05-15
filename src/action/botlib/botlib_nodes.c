@@ -2,8 +2,14 @@
 #include "../acesrc/acebot.h"
 #include "botlib.h"
 
-
-//rekkie -- DEV_1 -- s
+int num_poi_nodes;
+int poi_nodes[MAX_POI_NODES];
+edict_t* node_ents[MAX_EDICTS]; // If the node is attached to an entity (such as a NODE_DOOR being attached to a func_door_rotating or func_door entity)
+int num_vis_nodes;
+int node_vis[10][10]; // Cached node visibily. node_vis[X][Y] <-- can X see Y? If Y == INVALID, then false. Otherwise Y == NODE NUM
+int node_vis_list[10][10]; // Cached node
+node_t *nodes;
+nmesh_t nmesh;
 
 // Free nodes
 void BOTLIB_FreeNodes(void)
@@ -2736,10 +2742,7 @@ void BOTLIB_SetAllNodeNormals()
 
 // Compression -- s
 #if USE_ZLIB
-#include "..\..\extern\zlib\zlib.h"
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <string.h>
+#include <zlib.h>
 
 #define CHUNK_SIZE 16384
 
@@ -4750,8 +4753,8 @@ void BOTLIB_BSP_SURFACES(bsp_t* bsp)
 		for (e = 0, src_surfedge = surf->firstsurfedge; e < surf->numsurfedges; e++, src_surfedge++)
 		{
 			// Copy edge verts
-			VectorCopy(src_surfedge->edge->v[0]->point, nmesh.face[f].edge[e].v[0]);
-			VectorCopy(src_surfedge->edge->v[1]->point, nmesh.face[f].edge[e].v[1]);
+			VectorCopy(bsp->vertices[bsp->edges[src_surfedge->edge].v[0]].point, nmesh.face[f].edge[e].v[0]);
+			VectorCopy(bsp->vertices[bsp->edges[src_surfedge->edge].v[1]].point, nmesh.face[f].edge[e].v[1]);
 
 
 			// Copy face verts
@@ -5414,6 +5417,12 @@ void BOTLIB_InitNavigation(edict_t* ent)
 		return;
 	}
 
+	if (bsp->checksum == NULL)
+	{
+		gi.dprintf("%s bsp->checksum is null\n", __func__);
+		return;
+	}
+
 	if (ent == NULL)
 	{
 		ent = g_edicts;
@@ -5422,6 +5431,7 @@ void BOTLIB_InitNavigation(edict_t* ent)
 	}
 
 	BOTLIB_InitNodes();
+
 	nmesh.bsp_checksum = bsp->checksum; // Save the map checksum
 
 	Remove_All_Doors(); // Make sure all doors are open before making any nodes

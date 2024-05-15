@@ -2327,7 +2327,7 @@ void RunWarmup (void)
 	if (warmup_bots->value){
 		gi.cvar_forceset("am", "1");
 		gi.cvar_forceset("am_botcount", warmup_bots->string);
-		attract_mode_bot_check();
+		//attract_mode_bot_check();
 	}
 	#endif
 }
@@ -2817,7 +2817,7 @@ int CheckTeamRules (void)
 				if (warmup_bots->value){
 					gi.cvar_forceset("am", "0");
 					gi.cvar_forceset("am_botcount", "0");
-					attract_mode_bot_check();
+					//attract_mode_bot_check();
 					ACESP_RemoveBot("all");
 					CenterPrintAll("All bots removed, good luck and have fun!");
 

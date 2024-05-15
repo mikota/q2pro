@@ -3019,7 +3019,7 @@ void ClientBeginDeathmatch(edict_t * ent)
 		StatBotCheck();
 		#if USE_AQTION
 			if(am->value){
-				attract_mode_bot_check();
+				//attract_mode_bot_check();
 		}
 	#endif
 #endif
@@ -3439,7 +3439,7 @@ void ClientDisconnect(edict_t * ent)
 
 	#if USE_AQTION
 		if(am->value){
-			attract_mode_bot_check();
+			//attract_mode_bot_check();
 		}
 	#endif
 #endif

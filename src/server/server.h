@@ -886,3 +886,17 @@ trace_t q_gameabi SV_Trace(const vec3_t start, const vec3_t mins,
 trace_t q_gameabi SV_Clip(const vec3_t start, const vec3_t mins,
                           const vec3_t maxs, const vec3_t end,
                           edict_t *clip, int contentmask);
+
+bsp_t* SV_BSP(void);
+void SV_BotInit(void);
+void SV_BotUpdateInfo(char* name, int ping, int score);
+void SV_BotConnect(char* name);
+void SV_BotDisconnect(char* name);
+void SV_BotClearClients(void);
+typedef struct bot_client_s {
+    qboolean in_use;
+    char name[16];
+    int ping;
+    short score;
+} bot_client_t;
+//rekkie -- Fake Bot Client -- e

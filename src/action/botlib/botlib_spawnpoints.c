@@ -2,6 +2,10 @@
 #include "../acesrc/acebot.h"
 #include "botlib.h"
 
+dc_sp_t* dc_sp;
+int dc_sp_count; // Total spawn points
+qboolean dc_sp_edit; // If the spawn points have been made visible for editing
+
 // Free the memory
 void DC_Free_Spawnpoints(void)
 {
