@@ -1132,7 +1132,7 @@ void BOTLIB_UTIL_MakePolySquare(int face, vec3_t out)
 	// Find each edge that goes in the same direction
 	// Try to find the total length of that direction
 	vec3_t v1, v2;
-	float highest = 0, lowest = 0;
+	//float highest = 0, lowest = 0;
 	float v1_x; // V1 X
 	float v1_y; // V1 Y
 	float v2_x; // V2 X
@@ -1343,7 +1343,7 @@ void LaunchP(edict_t* ent, vec3_t origin, vec3_t target)
 	VectorCopy(ent->velocity, ent->client->oldvelocity);
 	VectorCopy(ent->velocity, ent->avelocity);
 
-	float speed = VectorLength(velocity);
+	//float speed = VectorLength(velocity);
 	//gi.dprintf("speed[%f] z_height[%f] jump[%f]\n", speed, z_height, jump_height);
 }
 
@@ -1858,7 +1858,8 @@ int DC_Reachability(int from, int to, vec3_t origin, vec3_t target, vec3_t norma
 	}
 
 	qboolean target_is_above = false, target_is_below = false, target_is_equal = false;
-	float higher = 0, lower = 0;
+	float higher = 0;
+	float lower = 0;
 	if (origin[2] > target[2]) // We're above the target
 	{
 		target_is_below = true;
@@ -2121,7 +2122,7 @@ int DC_Reachability(int from, int to, vec3_t origin, vec3_t target, vec3_t norma
 //qboolean TrianglesAreCoplanar(vec3_t t1_p1, vec3_t t1_p2, vec3_t t1_p3, vec3_t t2_p1, vec3_t t2_p2, vec3_t t2_p3)
 
 // Explodes all breakable glass :D
-void Remove_All_Breakableglass()
+void Remove_All_Breakableglass(void)
 {
 	edict_t* glass;
 	for (glass = g_edicts; glass < &g_edicts[globals.num_edicts]; glass++)
@@ -2164,7 +2165,7 @@ void kill_door(edict_t* self, edict_t* inflictor, edict_t* attacker, int damage,
 	G_FreeEdict(self);
 }
 // Removes all door types
-void Remove_All_Doors()
+void Remove_All_Doors(void)
 {
 	edict_t* door;
 	for (door = g_edicts; door < &g_edicts[globals.num_edicts]; door++)
@@ -2247,11 +2248,11 @@ void ACEND_FindEdgeLadders(void)
 {
 	int f, e, f2, f3, i;
 	trace_t tr;
-	vec3_t zero = { 0 };
+	//vec3_t zero = { 0 };
 	//	Player when standing
-	vec3_t  player_standing_mins_up = { -16, -16, -1 };
+	//vec3_t  player_standing_mins_up = { -16, -16, -1 };
 	//vec3_t  player_standing_mins = { -16, -16, -0 };
-	vec3_t  player_standing_maxs = { 16, 16, 32 };
+	//vec3_t  player_standing_maxs = { 16, 16, 32 };
 
 
 	//vec3_t *ladder_faces = (vec3_t*)malloc(sizeof(vec3_t) * MAX_LADDER_FACES);
@@ -2863,7 +2864,7 @@ void QsortLinks(QSLink* links, size_t length) {
 }
 
 // Sorts node links by height. Highest to lowest.
-void QSNodeLinksByHeight()
+void QSNodeLinksByHeight(void)
 {
 	QSLink qslinks[MAXLINKS]; // Temp links
 
@@ -3001,7 +3002,7 @@ void BOTLIB_SaveNavCompressed(void)
 	}
 
 	// Compress the buffer
-	int compressed_buff_len = 0;
+	long compressed_buff_len = 0;
 	char* compressed_buff = (char*)malloc(uncompressed_buff_len); // Make the compressed buffer as large as the uncompressed buffer
 	if (compressed_buff != NULL)
 	{
@@ -3118,9 +3119,9 @@ void BOTLIB_LoadNavCompressed(void)
 	Com_Printf("%s Reading NAV file... detected version [%d]\n", __func__, version);
 
 	// Read Compressed and uncompressed buffer sizes
-	int uncompressed_buff_len = 0;
+	long uncompressed_buff_len = 0;
 	fileSize += sizeof(int) * fread(&uncompressed_buff_len, sizeof(int), 1, fIn); // Uncompressed buffer size
-	int compressed_buff_len = 0;
+	long compressed_buff_len = 0;
 	fileSize += sizeof(int) * fread(&compressed_buff_len, sizeof(int), 1, fIn); // Compressed buffer size
 	
 	// Read compressed buffer
@@ -4632,7 +4633,7 @@ void BOTLIB_AddItemNodes()
 }
 
 // Find the reachability for each node
-void BOTLIB_ProcesssReachabilities()
+void BOTLIB_ProcesssReachabilities(void)
 {
 	vec3_t zero = { 0 };
 	node_t* from_node;	// From node
@@ -4792,7 +4793,8 @@ void BOTLIB_Process_NMesh(edict_t* ent)
 	qboolean hit_ledge = false; // If we hit a suspected ledge (not 100% sure)
 
 	vec3_t mid_point = { 0 };
-	vec3_t ladder_bottom = { 0 }, ladder_top = { 0 };
+	vec3_t ladder_bottom = { 0 };
+	vec3_t ladder_top = { 0 };
 
 	float tmp = 0;
 	int f, e;
@@ -5417,9 +5419,9 @@ void BOTLIB_InitNavigation(edict_t* ent)
 		return;
 	}
 
-	if (bsp->checksum == NULL)
+	if (bsp->checksum == 0)
 	{
-		gi.dprintf("%s bsp->checksum is null\n", __func__);
+		gi.dprintf("%s bsp->checksum is zero\n", __func__);
 		return;
 	}
 

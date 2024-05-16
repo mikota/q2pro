@@ -825,6 +825,7 @@ qboolean BOTLIB_CanGotoNode(edict_t* self, int goal_node, qboolean path_randomiz
 	else // Fallback to old pathing
 	{
 		self->bot.goal_node = INVALID;
+		//gi.dprintf("BOTLIB_CanVisitNode? %d\n", BOTLIB_CanVisitNode(self, nodes[goal_node].nodenum, path_randomization, INVALID, false));
 		if (BOTLIB_CanVisitNode(self, nodes[goal_node].nodenum, path_randomization, INVALID, false))
 		{
 
