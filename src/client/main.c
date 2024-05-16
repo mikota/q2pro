@@ -301,7 +301,7 @@ void CL_UpdateRecordingSetting(void)
 
 static void CL_UpdateFlaresSetting(void)
 {
-    if (cls.netchan.protocol != PROTOCOL_VERSION_Q2PRO) {
+    if (cls.netchan.protocol != PROTOCOL_VERSION_Q2PRO && cls.netchan.protocol != PROTOCOL_VERSION_AQTION) {
         return;
     }
     if (!cl.csr.extended) {

@@ -434,22 +434,20 @@ void SV_WriteFrameToClient_Aqtion(client_t *client)
 	}
 
 	clientEntityNum = 0;
-    if (client->protocol == PROTOCOL_VERSION_AQTION) {
-        if (frame->ps.pmove.pm_type < PM_DEAD && !client->settings[CLS_RECORDING]) {
-            clientEntityNum = frame->clientNum + 1;
-        }
-        if (client->settings[CLS_NOPREDICT]) {
-            psFlags |= MSG_PS_IGNORE_PREDICTION;
-        }
-        suppressed = client->frameflags;
-    } else {
-        suppressed = client->suppress_count;
-    }
+	if (frame->ps.pmove.pm_type < PM_DEAD && !client->settings[CLS_RECORDING]) {
+		clientEntityNum = frame->clientNum + 1;
+	}
+	if (client->settings[CLS_NOPREDICT]) {
+		psFlags |= MSG_PS_IGNORE_PREDICTION;
+	}
+	suppressed = client->frameflags;
+    
     if (client->csr->extended) {
         psFlags |= MSG_PS_EXTENSIONS;
     }
 
     // delta encode the playerstate
+    MSG_WriteByte(svc_playerinfo);
 	extraflags = MSG_WriteDeltaPlayerstate_Aqtion(oldstate, &frame->ps, psFlags);
 
 	if (client->protocol == PROTOCOL_VERSION_AQTION) {
@@ -475,6 +473,7 @@ void SV_WriteFrameToClient_Aqtion(client_t *client)
 	client->frameflags = 0;
 
 	// delta encode the entities
+    MSG_WriteByte(svc_packetentities);
 	SV_EmitPacketEntities(client, oldframe, frame, clientEntityNum);
 
 #if AQTION_EXTENSION
