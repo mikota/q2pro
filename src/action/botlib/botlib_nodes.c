@@ -1697,7 +1697,7 @@ int DC_Reachability(int from, int to, vec3_t origin, vec3_t target, vec3_t norma
 	if (nodes[from].type == NODE_LADDER_UP && nodes[to].type != NODE_LADDER_DOWN)
 	{
 		//if (abs(origin[2] - target[2]) > STEPSIZE || xyz_distance > 128 || xyz_distance < 48)
-		if (abs(origin[2] < target[2]) > 8 || xyz_distance > 128 || xyz_distance < 48)
+		if (fabsf(origin[2] < target[2]) > 8 || xyz_distance > 128 || xyz_distance < 48)
 			return INVALID;
 		else
 			return NODE_MOVE;
@@ -1707,14 +1707,14 @@ int DC_Reachability(int from, int to, vec3_t origin, vec3_t target, vec3_t norma
 	// Bottom ladder node -> non-ladder node, test if within z height range +/-
 	if (nodes[from].type == NODE_LADDER_DOWN && nodes[to].type != NODE_LADDER_UP)
 	{
-		if (abs(origin[2] - target[2]) > STEPSIZE || xyz_distance > 96)
+		if (fabsf(origin[2] - target[2]) > STEPSIZE || xyz_distance > 96)
 			return INVALID;
 	}
 
 	// Non-ladder node -> top ladder node - test if within z height range +/-
 	if (nodes[from].type != NODE_LADDER_DOWN && nodes[to].type == NODE_LADDER_UP)
 	{
-		if (abs(origin[2] - target[2]) > NODE_Z_HEIGHT || xyz_distance > 96)
+		if (fabsf(origin[2] - target[2]) > NODE_Z_HEIGHT || xyz_distance > 96)
 			return INVALID;
 	}
 	// Non-ladder node -> bottom ladder node - test if within z height range +/-
@@ -1722,7 +1722,7 @@ int DC_Reachability(int from, int to, vec3_t origin, vec3_t target, vec3_t norma
 	{
 		//if (abs(origin[2] - target[2]) > NODE_Z_HEIGHT || xyz_distance > 96)
 		//	return INVALID;
-		if (abs(origin[2] - target[2]) <= NODE_MAX_JUMP_HEIGHT && xyz_distance < 96)
+		if (fabsf(origin[2] - target[2]) <= NODE_MAX_JUMP_HEIGHT && xyz_distance < 96)
 			return NODE_JUMPPAD;
 		else
 			return INVALID;
@@ -1792,7 +1792,7 @@ int DC_Reachability(int from, int to, vec3_t origin, vec3_t target, vec3_t norma
 	if (nodes[from].type == NODE_STEP || nodes[to].type == NODE_STEP)
 	{
 		// Getting off step to a landing node
-		if (nodes[from].type == NODE_STEP && nodes[to].type == NODE_MOVE && abs(origin[2] - target[2]) <= NODE_Z_HEIGHT_PLUS_STEPSIZE && xyz_distance <= 80)
+		if (nodes[from].type == NODE_STEP && nodes[to].type == NODE_MOVE && fabsf(origin[2] - target[2]) <= NODE_Z_HEIGHT_PLUS_STEPSIZE && xyz_distance <= 80)
 		{
 			trace_t tr_step = gi.trace(origin, tv(-15,-15,-18), tv(15,15,32), target, g_edicts, MASK_PLAYERSOLID);
 			if (tr_step.fraction == 1)
@@ -1801,7 +1801,7 @@ int DC_Reachability(int from, int to, vec3_t origin, vec3_t target, vec3_t norma
 			}
 		}
 		// Getting on step
-		else if (nodes[from].type == NODE_MOVE && nodes[to].type == NODE_STEP && abs(origin[2] - target[2]) <= STEPSIZE && xyz_distance <= 80)
+		else if (nodes[from].type == NODE_MOVE && nodes[to].type == NODE_STEP && fabsf(origin[2] - target[2]) <= STEPSIZE && xyz_distance <= 80)
 		{
 			trace_t tr_step = gi.trace(origin, tv(-15,-15,-18), tv(15,15,32), target, g_edicts, MASK_PLAYERSOLID);
 			if (tr_step.fraction == 1)
@@ -1810,7 +1810,7 @@ int DC_Reachability(int from, int to, vec3_t origin, vec3_t target, vec3_t norma
 			}
 		}
 		// Step to Step
-		else if (nodes[from].type == NODE_STEP && nodes[to].type == NODE_STEP && abs(origin[2] - target[2]) <= STEPSIZE && xyz_distance < 40)
+		else if (nodes[from].type == NODE_STEP && nodes[to].type == NODE_STEP && fabsf(origin[2] - target[2]) <= STEPSIZE && xyz_distance < 40)
 		{
 
 			//is_gap
@@ -1969,7 +1969,7 @@ int DC_Reachability(int from, int to, vec3_t origin, vec3_t target, vec3_t norma
 					return NODE_JUMPPAD;
 			}
 			// Roughly equal
-			else if (abs(origin[2] - target[2]) <= 8) // target node is +/- 8
+			else if (fabsf(origin[2] - target[2]) <= 8) // target node is +/- 8
 			{
 				float speed = VectorLength(velocity);
 				if (speed < 600 && z_height < z_height_max + NODE_Z_HALF_HEIGHT && jump_height <= 750)
@@ -2043,7 +2043,7 @@ int DC_Reachability(int from, int to, vec3_t origin, vec3_t target, vec3_t norma
 			if (tr.fraction == 1)
 				return NODE_MOVE;
 		}
-		else if (abs(origin[2] - target[2]) <= STEPSIZE) // target node is +/- STEPSIZE
+		else if (fabsf(origin[2] - target[2]) <= STEPSIZE) // target node is +/- STEPSIZE
 		{
 			//tr = gi.trace(origin, tv(-16, -16, -(NODE_Z_HEIGHT - STEPSIZE)), tv(16, 16, 24), target, g_edicts, MASK_DEADSOLID);
 			tr = gi.trace(origin, tv(-15, -15, -(NODE_Z_HEIGHT - STEPSIZE)), tv(15, 15, 24), target, g_edicts, MASK_DEADSOLID);
@@ -4496,7 +4496,7 @@ void BOTLIB_RestoreEntsSolidState(solid_t* trigger_solid)
 }
 
 // Add nodes at item locations
-void BOTLIB_AddItemNodes()
+void BOTLIB_AddItemNodes(void)
 {
 	// ===========================
 	// Add nodes at item locations
