@@ -300,4 +300,4 @@ jobs:
           path: |
             builddir/q2pro
             builddir/q2proded
-            builddir/gamex86_64.dylib
+            builddir/gamearm64.dylib
