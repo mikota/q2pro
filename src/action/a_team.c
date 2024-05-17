@@ -308,8 +308,8 @@
 
 qboolean team_game_going = false;	// is a team game going right now?
 qboolean team_round_going = false;	// is an actual round of a team game going right now?
+qboolean during_countdown = false;		// This is set to 1 when the 10..9..8.. countdown is going on
 
-int during_countdown = 0;		// This is set to 1 when the 10..9..8.. countdown is going on
 int team_round_countdown = 0;	// countdown variable for start of a round
 int rulecheckfrequency = 0;	// accumulator variable for checking rules every 1.5 secs
 int lights_camera_action = 0;	// countdown variable for "lights...camera...action!" 
@@ -2341,7 +2341,7 @@ void StartRound (void)
 
 static void StartLCA(void)
 {
-	during_countdown = 0;
+	during_countdown = false;
 	if ((gameSettings & (GS_WEAPONCHOOSE|GS_ROUNDBASED)))
 		CleanLevel();
 
@@ -2836,7 +2836,7 @@ int CheckTeamRules (void)
 		{
 			if (team_round_countdown == 101)
 			{
-				during_countdown = 1;
+				during_countdown = true;
 				gi.sound (&g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD,
 				gi.soundindex ("world/10_0.wav"), 1.0, ATTN_NONE, 0.0);
 
