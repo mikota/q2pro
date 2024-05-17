@@ -197,7 +197,7 @@ jobs:
       - name: Generate Linux x64 archives
         uses: actions/upload-artifact@v4
         with:
-          name: q2pro-lin-wayland-${{ matrix.cc }}
+          name: q2pro-lin-wayland-${{ matrix.cc }}-x86_64
           path: |
             builddir/q2pro
             builddir/q2proded
