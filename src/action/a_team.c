@@ -2501,8 +2501,9 @@ qboolean CheckTimelimit( void )
 		// Otherwise, use_warnings should warn about 3 minutes and 1 minute left, but only if there aren't round ending warnings.
 
 		// CTF and Espionage warnings
-		if( use_warnings->value && (ctf->value || ! roundtimelimit->value) && !(gameSettings & GS_DEATHMATCH) )
+		if( use_warnings->value && (ctf->value || esp->value || ! roundtimelimit->value) && !(gameSettings & GS_DEATHMATCH) )
 		{
+			// CTF countdown when the match is ending.  Espionage is round-based so there's no countdown.
 			if( timewarning < 3 && ((ctf->value) && level.matchTime >= timelimit->value * 60 - 10 ))
 			{
 				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("world/10_0.wav"), 1.0, ATTN_NONE, 0.0 );
@@ -2516,6 +2517,7 @@ qboolean CheckTimelimit( void )
 				if (esp->value){
 					if (esp_debug->value)
 						gi.dprintf("%s: level.matchTime = %f\n", __FUNCTION__, level.matchTime);
+					// Warns the players that the round is ending in 1 minute
 					EspAnnounceDetails(true);
 				}
 			}
@@ -2539,11 +2541,6 @@ qboolean CheckTimelimit( void )
 				CenterPrintAll( "1 MINUTE LEFT..." );
 				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("tng/1_minute.wav"), 1.0, ATTN_NONE, 0.0 );
 				timewarning = 2;
-				if (esp->value){
-					if (esp_debug->value)
-						gi.dprintf("%s: level.matchTime = %f\n", __FUNCTION__, level.matchTime);
-					EspAnnounceDetails(true);
-				}
 			}
 			else if( timewarning < 1 && timelimit->value > 3 && level.matchTime >= ((timelimit->value - 3) * 60) && !during_countdown)
 			{
