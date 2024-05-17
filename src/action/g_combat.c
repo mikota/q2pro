@@ -1035,6 +1035,6 @@ T_RadiusDamage (edict_t * inflictor, edict_t * attacker, float damage,
 		gi.cprintf(attacker, PRINT_HIGH, "%s were blasted by your grenade.\n", ent_name_list);
 
 	// Stats for fun, tracks the highest amount of players hit by a single grenade
-	if (ent_count > attacker->client->resp.grenSplash)
-		attacker->client->resp.grenSplash = ent_count;
+	// if (ent_count > attacker->client->resp.grenSplash)
+	// 	attacker->client->resp.grenSplash = ent_count;
 }
