@@ -495,8 +495,23 @@ char *ED_NewString (char *string)
 	return newb;
 }
 
+/*
+===============
+FindField
 
+Finds valid fields in the fields array
+===============
+*/
 
+field_t* FindField(const char* key) {
+    field_t* f;
+    for (f = fields; f->name; f++) {
+        if (!Q_stricmp(f->name, key)) {
+            return f;
+        }
+    }
+    return NULL;
+}
 
 /*
 ===============
@@ -512,6 +527,11 @@ void ED_ParseField (char *key, char *value, edict_t * ent)
 	byte *b;
 	float v;
 	vec3_t vec;
+
+	if (FindField(key) == NULL) {
+		gi.dprintf("ED_ParseField: %s is not a valid field\n", key);
+		return;
+	}
 
 	for (f = fields; f->name; f++)
 	{
