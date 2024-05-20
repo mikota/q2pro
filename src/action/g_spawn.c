@@ -663,6 +663,25 @@ char* ED_NewString(const char* string)
 
 /*
 ===============
+FindField
+
+Finds valid fields in the fields array
+Returns NULL if not found
+===============
+*/
+
+field_t* FindField(const char* key) {
+    field_t* f;
+    for (f = fields; f->name; f++) {
+        if (!Q_stricmp(f->name, key)) {
+            return f;
+        }
+    }
+    return NULL;
+}
+
+/*
+===============
 ED_ParseField
 
 Takes a key/value pair and sets the binary values
@@ -675,10 +694,23 @@ static bool ED_ParseField(const spawn_field_t* fields, const char* key, const ch
 	float   v;
 	vec3_t  vec;
 
-	for (f = fields; f->name; f++) {
-		if (!Q_stricmp(f->name, key)) {
-			// found it
-			switch (f->type) {
+	if (FindField(key) == NULL) {
+		gi.dprintf("ED_ParseField: %s is not a valid field\n", key);
+		return;
+	}
+
+	for (f = fields; f->name; f++)
+	{
+		// FFL_NOSPAWN check in the following added in 3.20.  Adding here.  -FB
+		if (!(f->flags & FFL_NOSPAWN) && !Q_stricmp (f->name, key))
+		{			// found it
+			if (f->flags & FFL_SPAWNTEMP)
+				b = (byte *)&st;
+			else
+				b = (byte *)ent;
+
+			switch (f->type)
+			{
 			case F_LSTRING:
 				*(char**)(b + f->ofs) = ED_NewString(value);
 				break;
