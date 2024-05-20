@@ -164,6 +164,7 @@ typedef struct {
 	char* name;
 	unsigned ofs;
 	fieldtype_t type;
+	int flags;
 } spawn_field_t;
 
 typedef struct
@@ -699,15 +700,17 @@ static bool ED_ParseField(const spawn_field_t* fields, const char* key, const ch
 		return;
 	}
 
-	for (f = fields; f->name; f++)
-	{
-		// FFL_NOSPAWN check in the following added in 3.20.  Adding here.  -FB
-		if (!(f->flags & FFL_NOSPAWN) && !Q_stricmp (f->name, key))
-		{			// found it
-			if (f->flags & FFL_SPAWNTEMP)
-				b = (byte *)&st;
-			else
-				b = (byte *)ent;
+	// for (f = fields; f->name; f++)
+	// {
+	// 	// FFL_NOSPAWN check in the following added in 3.20.  Adding here.  -FB
+	// 	if (!(f->flags & FFL_NOSPAWN) && !Q_stricmp (f->name, key))
+	// 	{			// found it
+	// 		if (f->flags & FFL_SPAWNTEMP)
+	// 			b = (byte *)&st;
+	// 		else
+	// 			b = (byte *)ent;
+	for (f = fields; f->name; f++) {
+		if (!Q_stricmp(f->name, key)) {
 
 			switch (f->type)
 			{
