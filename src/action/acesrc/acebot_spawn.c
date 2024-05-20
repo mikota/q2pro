@@ -71,7 +71,7 @@ void	ACEAI_Cmd_Choose( edict_t *ent, char *s);
 //==============================
 // Get the number of the next team a bot should join
 //==============================
-int GetNextTeamNumber()
+int GetNextTeamNumber(void)
 {
         int i, onteam1 = 0, onteam2 = 0, onteam3 = 0;
         edict_t *e;
@@ -118,7 +118,7 @@ void ACESP_JoinTeam(edict_t *ent, int desired_team)
 //======================================
 // Using RiEvEr's new config file
 //
-void ACESP_LoadBotConfig()
+void ACESP_LoadBotConfig(void)
 {
     FILE	*pIn;
 	cvar_t	*game_dir = NULL, *botdir = NULL;
@@ -882,7 +882,7 @@ void DC_GetRandomBotName(byte gender, char* bot_name)
 // Gets a random clan tag char symbol: ie --> [ ], ( ), { }, < >, etc
 // Returns char
 //======================================
-int DC_GetRandomClanSymbol()
+int DC_GetRandomClanSymbol(void)
 {	
 	int sym = rand() % 27;
 	switch (sym)
@@ -959,7 +959,7 @@ int DC_GetOpposingClanSymbol(char symbol)
 // Gets a random clan letter
 // Returns char
 //======================================
-int DC_GetRandomClanLetter()
+int DC_GetRandomClanLetter(void)
 {
 	// Gets a random ASCII letter between 65 and 90, or 97 and 122
 	int letter = rand() % 52;

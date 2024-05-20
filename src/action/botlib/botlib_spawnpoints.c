@@ -333,7 +333,7 @@ void BOTLIB_Show_Spawnpoints(void)
 	}
 }
 // Save SPs to file
-void DC_Save_Spawnpoints()
+void DC_Save_Spawnpoints(void)
 {
 	FILE* fOut;
 	char filename[128];
@@ -389,7 +389,7 @@ void DC_Save_Spawnpoints()
 	Com_Printf("%s Saved %s [%i bytes] to disk\n", __func__, filename, fileSize);
 }
 // Load SPs from file
-void DC_Load_Spawnpoints()
+void DC_Load_Spawnpoints(void)
 {
 	FILE* fIn;
 	char filename[128];

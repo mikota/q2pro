@@ -743,7 +743,7 @@ void BOTLIB_InitAreaConnections(void)
 }
 
 // Create area nodes mallocs
-void BOTLIB_MallocAreaNodes()
+void BOTLIB_MallocAreaNodes(void)
 {
 	// Dynamically cache all the nodes in each area -- currently a max of 1024 nodes per area is allowed
 	//area_nodes[MAX_NAV_AREAS][MAX_NAV_AREAS_NODES]; // A collection of all nodes in an area
@@ -792,8 +792,6 @@ qboolean BOTLIB_CanGotoNode(edict_t* self, int goal_node, qboolean path_randomiz
 {
 	if (goal_node == INVALID)
 		return false;
-
-	//Com_Printf("%s\n", __func__);
 
 	self->bot.node_list_count = 0;
 

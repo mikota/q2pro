@@ -3154,7 +3154,7 @@ void ACEND_BuildSpawnPointNodes(void)
 	// Exit if no DM SPs found
 	if (!sp_counter)
 	{
-		Com_Printf("%s Failed build spawn point nodes. No deathmatch spawn points found.\n", __func__, MAX_SP_NODES);
+		Com_Printf("%s Failed build spawn point nodes. No deathmatch spawn points found.\n", __func__);
 		return;
 	}
 

@@ -37,7 +37,7 @@ void BOTLIB_Wave(edict_t* ent, int type)
 	}
 }
 
-void BOTLIB_PrecacheRadioSounds()
+void BOTLIB_PrecacheRadioSounds(void)
 {
 	int i;
 	char path[MAX_QPATH];
