@@ -1204,7 +1204,7 @@ qboolean BOTLIB_CanMove(edict_t* self, int direction)
 		G_ProjectSource(self->s.origin, offset, forward, right, end);
 
 		tr = gi.trace(start, NULL, NULL, end, self, MASK_SOLID | MASK_OPAQUE);
-		if (((tr.fraction == 1.0) && !((lights_camera_action || self->client->uvTime) && CanMoveSafely(self, angles))) // avoid falling after LCA
+		if (((tr.fraction == 1.0) && !((lights_camera_action || self->client->uvTime) && BOTCOL_CanMoveSafely(self, angles))) // avoid falling after LCA
 			|| (tr.contents & MASK_DEADLY)							  // avoid SLIME or LAVA
 			|| (tr.ent && (tr.ent->touch == hurt_touch)))			  // avoid MOD_TRIGGER_HURT
 		{

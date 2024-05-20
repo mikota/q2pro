@@ -123,7 +123,9 @@ qboolean ACECM_Commands(edict_t *ent)
 			if( ent->inuse && ent->is_bot && IS_ALIVE(ent) )
 			{
 				AntInitSearch( ent );
-				BOTLIB_SetGoal( ent, node );
+				
+				// This func has been deprecated in favor of BOTLIB_CanVisitNode, but it's unusable here
+				//BOTLIB_SetGoal( ent, node );
 				ent->state = STATE_MOVE;
 				ent->node_timeout = 0;
 			}

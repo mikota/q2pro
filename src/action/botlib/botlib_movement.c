@@ -854,7 +854,7 @@ qboolean BOTLIB_CanMoveDir(edict_t* self, vec3_t direction)
 
 	tr = gi.trace(start, NULL, NULL, end, self, MASK_PLAYERSOLID | MASK_OPAQUE); // Solid, lava, and slime
 
-	if (((tr.fraction == 1.0) && !((lights_camera_action || self->client->uvTime) && CanMoveSafely(self, angles))) // avoid falling after LCA
+	if (((tr.fraction == 1.0) && !((lights_camera_action || self->client->uvTime) && BOTCOL_CanMoveSafely(self, angles))) // avoid falling after LCA
 		|| (tr.contents & MASK_DEADLY)							  // avoid SLIME or LAVA
 		|| (tr.ent && (tr.ent->touch == hurt_touch)))			  // avoid MOD_TRIGGER_HURT
 	{

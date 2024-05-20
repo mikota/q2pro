@@ -1513,6 +1513,9 @@ void T_RadiusDamage (edict_t * inflictor, edict_t * attacker, float damage,
 // g_func.c
 //
 void door_use(edict_t* self, edict_t* other, edict_t* activator);
+
+// from a_cmds.c
+void _SetSniper(edict_t * ent, int zoom);
 //rekkie -- DEV_1 -- e
 
 //
@@ -1620,6 +1623,7 @@ edict_t *ChooseRandomPlayer(int teamNum, qboolean allowBot);
 //
 // g_chase.c
 //
+void DisableChaseCam( edict_t *ent );
 void UpdateChaseCam (edict_t * ent);
 int ChaseTargetGone (edict_t * ent);
 void NextChaseMode( edict_t *ent );

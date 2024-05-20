@@ -309,6 +309,7 @@ qboolean ClientConnect (edict_t *ent, char *userinfo);
 void     Use_Plat (edict_t *ent, edict_t *other, edict_t *activator);
 
 // acebot_ai.c protos
+qboolean ACEAI_CheckShot(edict_t *self);
 void     ACEAI_Think (edict_t *self);
 void     ACEAI_PickLongRangeGoal(edict_t *self);
 void     ACEAI_PickShortRangeGoal(edict_t *self);
@@ -342,6 +343,7 @@ int      ACEIT_ClassnameToIndex( char *classname );
 void     ACEIT_BuildItemNodeTable (qboolean rebuild);
 
 // acebot_movement.c protos
+qboolean ACEMV_CanMove(edict_t *self, int direction);
 qboolean ACEMV_SpecialMove(edict_t *self,usercmd_t *ucmd);
 //void     ACEMV_Move(edict_t *self, usercmd_t *ucmd);
 void     ACEMV_Attack (edict_t *self, usercmd_t *ucmd);
@@ -362,6 +364,7 @@ qboolean BOTLIB_Jump_Takeoff(edict_t* self, edict_t* target, vec3_t target_point
 //rekkie -- Quake3 -- e
 
 // acebot_nodes.c protos
+void     ACEND_SetGoal(edict_t *self, int goal_node);
 int      ACEND_FindCost(int from, int to);
 int      ACEND_FindCloseReachableNode(edict_t *self, int dist, int type);
 int      ACEND_FindClosestReachableNode(edict_t *self, int range, int type);
