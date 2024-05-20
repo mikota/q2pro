@@ -2722,7 +2722,7 @@ qboolean ACEND_FindLadder(vec3_t origin, vec3_t ladder_bottom, vec3_t ladder_top
 //rekkie -- walknodes -- s
 
 
-void BOTLIB_SetAllNodeNormals()
+void BOTLIB_SetAllNodeNormals(void)
 {
 	vec3_t mins = { -14, -14, -4, };
 	vec3_t maxs = { 14, 14, 4, };

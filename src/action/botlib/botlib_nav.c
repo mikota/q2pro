@@ -609,7 +609,7 @@ void BOTLIB_InitAreaNodes(void)
 	}
 }
 
-void BOTLIB_InitAreaConnections()
+void BOTLIB_InitAreaConnections(void)
 {
 	// For all areas, find all their connecting neighbors.
 	for (int i = 0; i < MAX_NAV_AREAS; i++)
@@ -767,7 +767,7 @@ void BOTLIB_MallocAreaNodes()
 	}
 }
 // Free area nodes mallocs
-void BOTLIB_FreeAreaNodes()
+void BOTLIB_FreeAreaNodes(void)
 {
 	if (nav_area.area_nodes)
 	{
@@ -1438,7 +1438,7 @@ void BOTLIB_AutoArea(edict_t* self)
 }
 
 // Randomize area colors
-void BOTLIB_RandomizeAreaColors()
+void BOTLIB_RandomizeAreaColors(void)
 {
 	int color;
 	for (int i = 0; i < MAX_NAV_AREAS; ++i)
@@ -1467,7 +1467,7 @@ void BOTLIB_RandomizeAreaColors()
 // Create local area nodes memory alloc
 int total_local_area_nodes;
 qboolean* local_area_nodes;
-qboolean BOTLIB_MallocLocalAreaNodes()
+qboolean BOTLIB_MallocLocalAreaNodes(void)
 {
 	total_local_area_nodes = 0;
 	local_area_nodes = NULL;
@@ -1489,7 +1489,7 @@ qboolean BOTLIB_MallocLocalAreaNodes()
 	return true; // Success
 }
 // Free local area nodes memory alloc
-void BOTLIB_FreeLocalAreaNodes()
+void BOTLIB_FreeLocalAreaNodes(void)
 {
 	if (local_area_nodes)
 	{
