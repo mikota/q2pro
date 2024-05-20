@@ -308,7 +308,7 @@ field_t fields[] = {
   {"minpitch", STOFS (minpitch), F_FLOAT, FFL_SPAWNTEMP},
   {"maxpitch", STOFS (maxpitch), F_FLOAT, FFL_SPAWNTEMP},
   {"nextmap", STOFS (nextmap), F_LSTRING, FFL_SPAWNTEMP},
-  {NULL}
+  {NULL}  // Added NULL terminator for safety -- darksaint
 };
 
 /*

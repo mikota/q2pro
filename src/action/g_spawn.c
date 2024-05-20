@@ -500,6 +500,7 @@ char *ED_NewString (char *string)
 FindField
 
 Finds valid fields in the fields array
+Returns NULL if not found
 ===============
 */
 
