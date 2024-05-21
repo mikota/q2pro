@@ -697,7 +697,7 @@ static bool ED_ParseField(const spawn_field_t* fields, const char* key, const ch
 
 	if (FindField(key) == NULL) {
 		gi.dprintf("ED_ParseField: %s is not a valid field\n", key);
-		return;
+		return false;
 	}
 
 	// for (f = fields; f->name; f++)
