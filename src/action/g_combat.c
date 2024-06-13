@@ -1024,16 +1024,17 @@ T_RadiusDamage (edict_t * inflictor, edict_t * attacker, float damage,
 		}
 	}
 
+	if (attacker){
 	// Messaging addition
-	if (ent_count > 3)
-		gi.cprintf(attacker, PRINT_HIGH, "You nailed several players with that grenade, nicely done!\n");
-	else if (selfharm && ent_count > 0)
-		gi.cprintf(attacker, PRINT_HIGH, "You were blasted by your own grenade, along with %s\n", ent_name_list);
-	else if (selfharm)
-		gi.cprintf(attacker, PRINT_HIGH, "You were blasted by your own grenade, throw farther next time?\n");
-	else if (ent_count > 0)
-		gi.cprintf(attacker, PRINT_HIGH, "%s were blasted by your grenade.\n", ent_name_list);
-
+		if (ent_count > 3)
+			gi.cprintf(attacker, PRINT_HIGH, "You nailed several players with that grenade, nicely done!\n");
+		else if (selfharm && ent_count > 0)
+			gi.cprintf(attacker, PRINT_HIGH, "You were blasted by your own grenade, along with %s\n", ent_name_list);
+		else if (selfharm)
+			gi.cprintf(attacker, PRINT_HIGH, "You were blasted by your own grenade, throw farther next time?\n");
+		else if (ent_count > 0)
+			gi.cprintf(attacker, PRINT_HIGH, "%s were blasted by your grenade.\n", ent_name_list);
+	}
 	// Stats for fun, tracks the highest amount of players hit by a single grenade
 	// if (ent_count > attacker->client->resp.grenSplash)
 	// 	attacker->client->resp.grenSplash = ent_count;
