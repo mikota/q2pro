@@ -1473,7 +1473,7 @@ void player_die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
 
 	VectorClear(self->avelocity);
 
-	self->takedamage = DAMAGE_YES;
+	self->takedamage = DAMAGE_NO;
 	self->movetype = MOVETYPE_TOSS;
 
 	self->s.modelindex2 = 0;	// remove linked weapon model
