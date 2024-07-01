@@ -118,7 +118,7 @@ void antilag_rewind_all(edict_t *ent)
 		//Com_Printf("seek diff %f\n", (float)state->seek - rewind_seek);
 		//LerpVector(state->hist_origin[((int)rewind_seek) & ANTILAG_MASK], state->hist_origin[((int)(rewind_seek+1)) & ANTILAG_MASK], rewind_seek - ((float)(int)rewind_seek), who->s.origin);
 		
-    int lerp_latest = 0;
+        int lerp_latest = 0;
 		if (rewind_seek < 0) {
 			lerp_latest = 1;
 			rewind_seek = -rewind_seek;
