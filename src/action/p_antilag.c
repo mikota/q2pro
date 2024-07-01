@@ -105,7 +105,7 @@ void antilag_rewind_all(edict_t *ent)
 		if (who->deadflag != DEAD_NO)
 			continue;
 
-		float rewind_seek = antilag_findseek(who, time_to_seek);
+		float rewind_seek = antilag_findseek(who, time_to_seek);      
 		//Com_Printf("rewind seek %f\n", rewind_seek);
 		if (rewind_seek == 0)
 			continue;
@@ -117,8 +117,8 @@ void antilag_rewind_all(edict_t *ent)
 
 		//Com_Printf("seek diff %f\n", (float)state->seek - rewind_seek);
 		//LerpVector(state->hist_origin[((int)rewind_seek) & ANTILAG_MASK], state->hist_origin[((int)(rewind_seek+1)) & ANTILAG_MASK], rewind_seek - ((float)(int)rewind_seek), who->s.origin);
-
-				int lerp_latest = 0;
+		
+    int lerp_latest = 0;
 		if (rewind_seek < 0) {
 			lerp_latest = 1;
 			rewind_seek = -rewind_seek;
@@ -135,7 +135,7 @@ void antilag_rewind_all(edict_t *ent)
 			//Com_Printf("Using hist_origin as next\n");
 		}
 		LerpVector(prev, next, lerpfrac, who->s.origin);
-		
+    
 		VectorCopy(state->hist_mins[(int)rewind_seek & ANTILAG_MASK], who->mins);
 		VectorCopy(state->hist_maxs[(int)rewind_seek & ANTILAG_MASK], who->maxs);
 

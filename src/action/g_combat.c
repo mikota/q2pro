@@ -950,8 +950,7 @@ void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const ve
   T_RadiusDamage
   ============
 */
-void
-T_RadiusDamage (edict_t * inflictor, edict_t * attacker, float damage,
+void T_RadiusDamage (edict_t * inflictor, edict_t * attacker, float damage,
 		edict_t * ignore, float radius, int mod)
 {
 	float points;
@@ -1024,17 +1023,18 @@ T_RadiusDamage (edict_t * inflictor, edict_t * attacker, float damage,
 		}
 	}
 
-	// Messaging addition
-	if (ent_count > 3)
-		gi.cprintf(attacker, PRINT_HIGH, "You nailed several players with that grenade, nicely done!\n");
-	else if (selfharm && ent_count > 0)
-		gi.cprintf(attacker, PRINT_HIGH, "You were blasted by your own grenade, along with %s\n", ent_name_list);
-	else if (selfharm)
-		gi.cprintf(attacker, PRINT_HIGH, "You were blasted by your own grenade, throw farther next time?\n");
-	else if (ent_count > 0)
-		gi.cprintf(attacker, PRINT_HIGH, "%s were blasted by your grenade.\n", ent_name_list);
-
-	// Stats for fun, tracks the highest amount of players hit by a single grenade
-	// if (ent_count > attacker->client->resp.grenSplash)
-	// 	attacker->client->resp.grenSplash = ent_count;
+	// Grenade splash damage messaging
+	// Checks for attacker being NULL (this causes a cprintf segfault if NULL), and if the attacker is a client
+	// Also checks if the mod is a grenade splash.  The game uses T_RadiusDamage for a variety of damaging effects
+	// so we only want to print the grenade splash messages if the mod is a grenade splash
+	if (attacker && attacker->client && mod == MOD_HG_SPLASH){
+		if (ent_count > 3)
+			gi.cprintf(attacker, PRINT_HIGH, "You nailed several players with that grenade, nicely done!\n");
+		else if (selfharm && ent_count > 0)
+			gi.cprintf(attacker, PRINT_HIGH, "You were blasted by your own grenade, along with %s\n", ent_name_list);
+		else if (selfharm)
+			gi.cprintf(attacker, PRINT_HIGH, "You were blasted by your own grenade, throw farther next time?\n");
+		else if (ent_count > 0)
+			gi.cprintf(attacker, PRINT_HIGH, "%s was blasted by your grenade.\n", ent_name_list);
+	}
 }
