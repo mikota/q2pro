@@ -1047,6 +1047,7 @@ typedef enum {
 
 //KEX
 #define PMF_IGNORE_PLAYER_COLLISION     BIT(7)
+#define PMF_ON_LADDER                   BIT(8)
 //KEX
 
 
@@ -1071,12 +1072,30 @@ typedef struct {
     short       gravity;
     short       delta_angles[3];    // add to command angles to get view direction
                                     // changed by spawns, rotating objects, and teleporters
+<<<<<<< HEAD
 #if AQTION_EXTENSION
 	short       pm_aq2_flags;   // limping, bandaging, etc
 	unsigned short pm_timestamp; // timestamp, resets every 60 seconds
 	byte		pm_aq2_leghits;		 // number of leg hits
 #endif
 } pmove_state_t;
+=======
+} pmove_state_old_t;
+
+#if USE_NEW_GAME_API
+typedef struct {
+    pmtype_t    pm_type;
+
+    int32_t     origin[3];      // 19.3
+    int32_t     velocity[3];    // 19.3
+    uint16_t    pm_flags;       // ducked, jump_held, etc
+    uint16_t    pm_time;        // in msec
+    int16_t     gravity;
+    int16_t     delta_angles[3];    // add to command angles to get view direction
+                                    // changed by spawns, rotating objects, and teleporters
+} pmove_state_new_t;
+#endif
+>>>>>>> 9b15c229 (Support more protocol extensions.)
 
 //
 // button bits
@@ -1096,16 +1115,17 @@ typedef struct {
 } usercmd_t;
 
 #define MAXTOUCH    32
+
 typedef struct {
     // state (in / out)
-    pmove_state_t   s;
+    pmove_state_old_t   s;
 
     // command (in)
     usercmd_t       cmd;
     qboolean        snapinitial;    // if s has been changed outside pmove
 
     // results (out)
-    int         numtouch;
+    int             numtouch;
     struct edict_s  *touchents[MAXTOUCH];
 
     vec3_t      viewangles;         // clamped
@@ -1114,13 +1134,41 @@ typedef struct {
     vec3_t      mins, maxs;         // bounding box size
 
     struct edict_s  *groundentity;
-    int         watertype;
-    int         waterlevel;
+    int             watertype;
+    int             waterlevel;
 
     // callbacks to test the world
     trace_t     (* q_gameabi trace)(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end);
     int         (*pointcontents)(const vec3_t point);
-} pmove_t;
+} pmove_old_t;
+
+#if USE_NEW_GAME_API
+typedef struct {
+    // state (in / out)
+    pmove_state_new_t   s;
+
+    // command (in)
+    usercmd_t       cmd;
+    qboolean        snapinitial;    // if s has been changed outside pmove
+
+    // results (out)
+    int             numtouch;
+    struct edict_s  *touchents[MAXTOUCH];
+
+    vec3_t      viewangles;         // clamped
+    float       viewheight;
+
+    vec3_t      mins, maxs;         // bounding box size
+
+    struct edict_s  *groundentity;
+    int             watertype;
+    int             waterlevel;
+
+    // callbacks to test the world
+    trace_t     (* q_gameabi trace)(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end);
+    int         (*pointcontents)(const vec3_t point);
+} pmove_new_t;
+#endif
 
 // entity_state_t->effects
 // Effects are things handled on the client side (lights, particles, frame animations)
@@ -1409,6 +1457,7 @@ enum {
     STAT_LAYOUTS,
     STAT_FRAGS,
     STAT_FLASHES,           // cleared each frame, 1 = health, 2 = armor
+<<<<<<< HEAD
     STAT_CLIP_ICON,
     STAT_CLIP,
     STAT_SNIPER_ICON,
@@ -1431,6 +1480,14 @@ enum {
 
 #define STAT_TEAM1_HEADER  30
 #define STAT_TEAM2_HEADER  31
+=======
+    STAT_CHASE,
+    STAT_SPECTATOR,
+};
+
+#define MAX_STATS_OLD   32
+#define MAX_STATS_NEW   64
+>>>>>>> 9b15c229 (Support more protocol extensions.)
 
 // STAT_LAYOUTS flags
 #define LAYOUTS_LAYOUT          BIT(0)
@@ -1648,7 +1705,7 @@ typedef struct {
 // but the number of pmove_state_t changes will be reletive to client
 // frame rates
 typedef struct {
-    pmove_state_t   pmove;      // for prediction
+    pmove_state_old_t   pmove;  // for prediction
 
     // these fields do not need to be communicated bit-precise
 
@@ -1668,8 +1725,37 @@ typedef struct {
 
     int         rdflags;        // refdef flags
 
-    short       stats[MAX_STATS];       // fast status bar updates
-} player_state_t;
+    short       stats[MAX_STATS_OLD];   // fast status bar updates
+} player_state_old_t;
+
+#if USE_NEW_GAME_API
+typedef struct {
+    pmove_state_new_t   pmove;  // for prediction
+
+    // these fields do not need to be communicated bit-precise
+
+    vec3_t      viewangles;     // for fixed views
+    vec3_t      viewoffset;     // add to pmovestate->origin
+    vec3_t      kick_angles;    // add to view direction to get render angles
+                                // set by weapon kicks, pain effects, etc
+
+    vec3_t      gunangles;
+    vec3_t      gunoffset;
+    int         gunindex;
+    int         gunframe;
+
+    vec4_t      blend;          // rgba full screen effect
+    vec4_t      damage_blend;
+
+    float       fov;            // horizontal field of view
+
+    int         rdflags;        // refdef flags
+
+    int         reserved[4];
+
+    int16_t     stats[MAX_STATS_NEW];   // fast status bar updates
+} player_state_new_t;
+#endif
 
 
 // Reki : Cvar Sync info shared between engine and game
@@ -1698,5 +1784,21 @@ typedef struct {
     float       loop_volume;
     float       loop_attenuation;
 } entity_state_extension_t;
+
+#endif
+
+#if USE_NEW_GAME_API
+
+#define MAX_STATS           MAX_STATS_NEW
+typedef pmove_new_t         pmove_t;
+typedef pmove_state_new_t   pmove_state_t;
+typedef player_state_new_t  player_state_t;
+
+#else
+
+#define MAX_STATS           MAX_STATS_OLD
+typedef pmove_old_t         pmove_t;
+typedef pmove_state_old_t   pmove_state_t;
+typedef player_state_old_t  player_state_t;
 
 #endif
