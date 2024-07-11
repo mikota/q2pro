@@ -131,7 +131,6 @@ qboolean	AntStartSearch(edict_t* ent, int from, int to, qboolean path_randomizat
 		}
 		//else
 		{
-			//BOTLIB_THREADED_DijkstraPath(ent, from, to);
 			if (BOTLIB_DijkstraPath(ent, from, to, path_randomization))
 			//if (BOTLIB_DijkstraHeightPath(ent, from, to, path_randomization))
 			//if (BOTLIB_HighestPath(ent, from, to, path_randomization))
@@ -823,7 +822,7 @@ qboolean BOTLIB_CanGotoNode(edict_t* self, int goal_node, qboolean path_randomiz
 	else // Fallback to old pathing
 	{
 		self->bot.goal_node = INVALID;
-		//gi.dprintf("BOTLIB_CanVisitNode? %d\n", BOTLIB_CanVisitNode(self, nodes[goal_node].nodenum, path_randomization, INVALID, false));
+		gi.dprintf("BOTLIB_CanVisitNode? %d\n", BOTLIB_CanVisitNode(self, nodes[goal_node].nodenum, path_randomization, INVALID, false));
 		if (BOTLIB_CanVisitNode(self, nodes[goal_node].nodenum, path_randomization, INVALID, false))
 		{
 
@@ -1936,10 +1935,11 @@ qboolean BOTLIB_DijkstraAreaPath(edict_t* ent, int from, int to, qboolean path_r
 // BOTLIB_DijkstraPath() is run again with path_randomization turned off
 qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_randomization)
 {
-	//Com_Printf("%s from[%d] to[%d]\n", __func__, from, to);
+	Com_Printf("%s from[%d] to[%d] for %s, random: %d\n", __func__, from, to, ent->client->pers.netname, path_randomization);
 
 	// Sanity check
 	if (from == INVALID || to == INVALID)
+		gi.dprintf("both from and to nodes were invalid\n");
 		return false;
 
 	AntInitSearch(ent); // Clear out the path storage
@@ -1957,13 +1957,12 @@ qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_rando
 	//nodeused[atNode] = true; // Add the starting node to the visited CLOSED list
 	SLLpush_back(&openList, from); // Store it
 
-
 	while (!SLLempty(&openList) && newNode != to) // While there are nodes on the OPEN list
 	{
 		atNode = SLLfront(&openList); // Get the next node
 		if (atNode == to) // If the next node is the goal node
 		{
-			//Com_Printf("%s [%d] next node found a path\n", __func__, level.framenum);
+			Com_Printf("%s [%d] next node found a path\n", __func__, level.framenum);
 			break; // We found a path
 		}
 
@@ -2103,12 +2102,12 @@ qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_rando
 				nodeweight[lowest_node] = weight; // Update the weight
 				nodefrom[lowest_node] = atNode; // Update the parent node (open list)
 				SLLpush_back(&openList, lowest_node); // Store it
-				//Com_Printf("%s lowest_node[%d]\n", __func__, lowest_node);
+				Com_Printf("%s lowest_node[%d]\n", __func__, lowest_node);
 			}
 
 			if (lowest_node == to) // If node being linked is the goal node
 			{
-				//Com_Printf("%s [%d] lowest_node found a path\n", __func__, level.framenum);
+				Com_Printf("%s [%d] lowest_node found a path\n", __func__, level.framenum);
 				break; // We found a path
 			}
 		}
@@ -2154,7 +2153,7 @@ qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_rando
 
 				if (newNode == to) // If node being linked is the goal node
 				{
-					//Com_Printf("%s [%d] normal found a path\n", __func__, level.framenum);
+					Com_Printf("%s [%d] normal found a path\n", __func__, level.framenum);
 					break; // We found a path
 				}
 
@@ -2215,7 +2214,7 @@ qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_rando
 			//Com_Printf("%s path_table[ nodefrom[%d] ] [%d] = %d\n", __func__, newNode, newNode, newNode);
 		}
 
-		//Com_Printf("%s path_table[ nodefrom[%d] ] [%d] = %d\n", __func__, newNode, newNode, newNode);
+		Com_Printf("%s path_table[ nodefrom[%d] ] [%d] = %d\n", __func__, newNode, newNode, newNode);
 		//int prev_newNode = newNode;
 
 		// We earlier set our start node to INVALID to set up the termination
@@ -2238,10 +2237,10 @@ qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_rando
 			SLLpush_front(&ent->pathList, newNode); // Push it onto the pathlist
 			////path_table[nodefrom[newNode]][to] = newNode; // Set the path in the node array to match this shortest path
 
-			//Com_Printf("%s path_table[ nodefrom[%d][%d] = %d\n", __func__, newNode, to, newNode);
+			Com_Printf("%s path_table[ nodefrom[%d][%d] = %d\n", __func__, newNode, to, newNode);
 		}
 
-		//Com_Printf("%s EXIT PATH\n\n", __func__);
+		Com_Printf("%s EXIT PATH\n\n", __func__);
 
 		// Each time a path is found, make a copy
 		//ent->bot.node_list_count = 0;
@@ -2258,21 +2257,23 @@ qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_rando
 		{
 			if (1)
 			{
-				Com_Printf("%s s[%d] g[%d] node_list[", __func__, from, to);
+				gi.dprintf("%s s[%d] g[%d] node_list[", __func__, from, to);
 				for (int i = 0; i < ent->bot.node_list_count; i++)
 				{
-					//Com_Printf(" %d[%.1f] ", ent->bot.node_list[i], nodes[ent->bot.node_list[i]].weight);
-					Com_Printf(" %d ", ent->bot.node_list[i]);
+					//gi.dprintf(" %d[%.1f] ", ent->bot.node_list[i], nodes[ent->bot.node_list[i]].weight);
+					gi.dprintf(" %d ", ent->bot.node_list[i]);
 				}
-				Com_Printf(" ]\n");
+				gi.dprintf(" ]\n");
 			}
 			else
-				Com_Printf("%s from[%d] to[%d]\n", __func__, from, to);
-			//Com_Printf("%s found a path\n", __func__);
+				gi.dprintf("%s from[%d] to[%d]\n", __func__, from, to);
+			//gi.dprintf("%s found a path\n", __func__);
 		}
 
-		if (SLLempty(&ent->pathList))
+		if (SLLempty(&ent->pathList)){
+			gi.dprintf("SLLempty: %s failed to find a path from %d to %d\n", __func__, from, to);
 			return false; // Failure
+		}
 
 		return true; // Success
 	}
@@ -2281,11 +2282,12 @@ qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_rando
 	// If path_randomization was true, then try again without it
 	if (path_randomization) //If using rand pathing, and it fails, try again *ONCE* without it
 	{
+		gi.dprintf("Trying again without path randomization\n");
 		BOTLIB_DijkstraPath(ent, from, to, false);
 	}
 	// Else: just fail it completely
 	{
-		//Com_Printf("%s failed to find a path from %d to %d\n", __func__, from, to);
+		gi.dprintf("Complete failure: %s failed to find a path from %d to %d\n", __func__, from, to);
 		return false; // Failure
 	}
 }
@@ -2922,719 +2924,3 @@ void SLLdelete(botlib_sll_t* list)
 		gi.TagFree(temp);
 	}
 }
-
-//===============================
-// Quake 3 Multithreading Code
-//===============================
-
-/*
-   ================
-   I_FloatTime
-   ================
- */
-double I_FloatTime(void) {
-	time_t t;
-
-	time(&t);
-
-	return t;
-#if 0
-	// more precise, less portable
-	struct timeval tp;
-	struct timezone tzp;
-	static int secbase;
-
-	gettimeofday(&tp, &tzp);
-
-	if (!secbase) {
-		secbase = tp.tv_sec;
-		return tp.tv_usec / 1000000.0;
-	}
-
-	return (tp.tv_sec - secbase) + tp.tv_usec / 1000000.0;
-#endif
-}
-
-
-// Threads.c -- https://github.com/DaemonEngine/daemonmap/blob/d91a0d828e27f75c74e5c3398b2778036e8544f6/tools/quake3/common/threads.c
-#define GDEF_OS_WINDOWS 1
-#if !GDEF_OS_WINDOWS
-// The below define is necessary to use
-// pthreads extensions like pthread_mutexattr_settype
-#define _GNU_SOURCE
-#endif // !GDEF_OS_WINDOWS
-
-#define MAX_THREADS 64
-
-int dispatch;
-int workcount;
-int oldf;
-qboolean pacifier;
-
-qboolean threaded;
-
-/*
-   =============
-   GetThreadWork
-
-   =============
- */
-int GetThreadWork(void) {
-	int r;
-	int f;
-
-	ThreadLock();
-
-	if (dispatch == workcount) {
-		ThreadUnlock();
-		return -1;
-	}
-
-	f = 40 * dispatch / workcount;
-	if (f < oldf) {
-		Com_Printf("%s WARNING: progress went backwards (should never happen)\n", __func__);
-		oldf = f;
-	}
-	Com_Printf("%s ", __func__);
-	while (f > oldf)
-	{
-		++oldf;
-		if (pacifier) {
-			if (oldf % 4 == 0) {
-				Com_Printf("%i", f / 4);
-			}
-			else {
-				Com_Printf(".");
-			}
-			fflush(stdout);   /* ydnar */
-		}
-	}
-	Com_Printf("\n");
-
-	r = dispatch;
-	dispatch++;
-	ThreadUnlock();
-
-	return r;
-}
-
-
-void (*workfunction)(int);
-
-void ThreadWorkerFunction(int threadnum) {
-	int work;
-
-	while (1)
-	{
-		work = GetThreadWork();
-		if (work == -1) {
-			break;
-		}
-		//Com_Printf("%s thread %i, work %i\n", __func__, threadnum, work);
-		workfunction(work);
-	}
-}
-
-//void RunThreadsOnIndividual(int workcnt, qboolean showpacifier, void (*func)(int)) {
-// void RunThreadsOnIndividual(int workcnt, qboolean showpacifier, void(*func), void* param) {
-// 	if (numthreads == -1) {
-// 		ThreadSetDefault();
-// 	}
-// 	workfunction = func;
-// 	RunThreadsOn(workcnt, showpacifier, ThreadWorkerFunction, param);
-// }
-
-
-#if _WIN32
-
-/*
-   ===================================================================
-
-   WIN32
-
-   ===================================================================
- */
-
-#include <windows.h>
-
-int numthreads = -1;
-CRITICAL_SECTION crit;
-static int enter;
-
-void ThreadSetDefault(void) {
-	SYSTEM_INFO info;
-
-	if (numthreads == -1) { // not set manually
-		GetSystemInfo(&info);
-		numthreads = info.dwNumberOfProcessors;
-		if (numthreads < 1 || numthreads > 32) {
-			numthreads = 1;
-		}
-	}
-
-	Com_Printf("%s %i threads\n", __func__, numthreads);
-}
-
-
-void ThreadLock(void) {
-	if (!threaded) {
-		return;
-	}
-	EnterCriticalSection(&crit);
-	if (enter) {
-		Com_Printf("%s Recursive ThreadLock\n", __func__);
-	}
-	enter = 1;
-}
-
-void ThreadUnlock(void) {
-	if (!threaded) {
-		return;
-	}
-	if (!enter) {
-		Com_Printf("%s ThreadUnlock without lock\n", __func__);
-	}
-	enter = 0;
-	LeaveCriticalSection(&crit);
-}
-
-// Init and and run the threaded version
-void BOTLIB_THREAD_LOADAAS(qboolean force)
-{
-	loadaas_t loadaas;
-	loadaas.force = force;
-	//RunThreadsOnIndividual(2, true, TestThreadedFunc, &loadaas);
-	//if (numthreads == -1) {
-	//	ThreadSetDefault();
-	//}
-	numthreads = 1;
-	GetThreadWork();
-	RunThreadsOn(1, true, BOTLIB_THREADING_LOADAAS, &loadaas);
-}
-
-// Threaded version
-void BOTLIB_THREADING_LOADAAS(void *param)
-{
-	// Sleep while map fully loads and is ready, otherwise we'll get a crash
-	while (level.framenum < 50)
-	{
-		Sleep(100);
-	}
-
-	//https://search.brave.com/search?q=windows+CreateThread+passing+parameter&source=web
-	//https://stackoverflow.com/questions/5654015/windows-c-thread-parameter-passing
-	loadaas_t* params = (loadaas_t*)param;
-	if (params != NULL)
-	{
-		//Com_Printf("%s param:0x%x force = %d\n", __func__, &param, params->force);
-		ACEND_LoadAAS(params->force);
-	}
-}
-
-// =====================================================================================
-// Init and and run the threaded version
-void BOTLIB_THREADED_DijkstraPath(edict_t* ent, int from, int to)
-{
-	dijkstra_path_t dpath;
-	dpath.ent = ent;
-	dpath.from = from;
-	dpath.to = to;
-
-	numthreads = 1;
-	GetThreadWork();
-	//RunThreadsOn(1, true, BOTLIB_THREADING_DijkstraPath, &dpath);
-
-	HANDLE thdHandle = CreateThread(NULL, 0, BOTLIB_THREADING_DijkstraPath, &dpath, 0, NULL);
-	if (thdHandle != NULL)
-		WaitForSingleObject(thdHandle, INFINITE);
-}
-
-// Threaded version
-void BOTLIB_THREADING_DijkstraPath(void* param)
-{
-	//https://search.brave.com/search?q=windows+CreateThread+passing+parameter&source=web
-	//https://stackoverflow.com/questions/5654015/windows-c-thread-parameter-passing
-	dijkstra_path_t* dpath = (dijkstra_path_t*)param;
-	if (dpath != NULL)
-	{
-		//Com_Printf("%s dpath:0x%x from[%d] to[%d]\n", __func__, &dpath, dpath->from, dpath->to);
-		BOTLIB_DijkstraPath(dpath->ent, dpath->from, dpath->to, true);
-	}
-}
-// =====================================================================================
-
-/*
-   =============
-   RunThreadsOn
-   =============
- */
-//void RunThreadsOn(int workcnt, qboolean showpacifier, void (*func)(int)) {
-void RunThreadsOn(int workcnt, qboolean showpacifier, void (*func), void *param) {
-	int threadid[MAX_THREADS];
-	HANDLE threadhandle[MAX_THREADS];
-	int i;
-	int start, end;
-
-	start = I_FloatTime();
-	dispatch = 0;
-	workcount = workcnt;
-	oldf = -1;
-	pacifier = showpacifier;
-	threaded = qtrue;
-
-	//
-	// run threads in parallel
-	//
-	InitializeCriticalSection(&crit);
-
-	if (numthreads < 1)
-		return;
-
-	//if (numthreads == 1) { // use same thread
-	//	func(0);
-	//}
-	//else
-	{
-		for (i = 0; i < numthreads; i++)
-		{
-			threadhandle[i] = CreateThread(
-				NULL,   // LPSECURITY_ATTRIBUTES lpsa,
-				//0,		// DWORD cbStack,
-
-				/* ydnar: cranking stack size to eliminate radiosity crash with 1MB stack on win32 */
-				(4096 * 1024),
-
-				(LPTHREAD_START_ROUTINE)func,   // LPTHREAD_START_ROUTINE lpStartAddr,
-				(LPVOID)param,
-				//(LPVOID)i,  // LPVOID lpvThreadParm,
-				0,          //   DWORD fdwCreate,
-				&threadid[i]);
-		}
-
-		//for (i = 0; i < numthreads; i++)
-		//	WaitForSingleObject(threadhandle[i], INFINITE);
-	}
-	DeleteCriticalSection(&crit);
-
-	threaded = qfalse;
-	end = I_FloatTime();
-	if (pacifier) {
-		Com_Printf("%s  (%i)\n", __func__, end - start);
-	}
-}
-
-
-#elif GDEF_OS_OSF1
-
-/*
-   ===================================================================
-
-   OSF1
-
-   ===================================================================
- */
-
-int numthreads = 4;
-
-void ThreadSetDefault(void) {
-	if (numthreads == -1) { // not set manually
-		numthreads = 4;
-	}
-}
-
-#include <pthread.h>
-
-pthread_mutex_t* my_mutex;
-
-void ThreadLock(void) {
-	if (my_mutex) {
-		pthread_mutex_lock(my_mutex);
-	}
-}
-
-void ThreadUnlock(void) {
-	if (my_mutex) {
-		pthread_mutex_unlock(my_mutex);
-	}
-}
-
-
-/*
-   =============
-   RunThreadsOn
-   =============
- */
-void RunThreadsOn(int workcnt, qboolean showpacifier, void (*func)(int)) {
-	int i;
-	pthread_t work_threads[MAX_THREADS];
-	pthread_addr_t status;
-	pthread_attr_t attrib;
-	pthread_mutexattr_t mattrib;
-	int start, end;
-
-	start = I_FloatTime();
-	dispatch = 0;
-	workcount = workcnt;
-	oldf = -1;
-	pacifier = showpacifier;
-	threaded = qtrue;
-
-	if (pacifier) {
-		setbuf(stdout, NULL);
-	}
-
-	if (!my_mutex) {
-		my_mutex = safe_malloc(sizeof(*my_mutex));
-		if (pthread_mutexattr_create(&mattrib) == -1) {
-			Error("pthread_mutex_attr_create failed");
-		}
-		if (pthread_mutexattr_setkind_np(&mattrib, MUTEX_FAST_NP) == -1) {
-			Error("pthread_mutexattr_setkind_np failed");
-		}
-		if (pthread_mutex_init(my_mutex, mattrib) == -1) {
-			Error("pthread_mutex_init failed");
-		}
-	}
-
-	if (pthread_attr_create(&attrib) == -1) {
-		Error("pthread_attr_create failed");
-	}
-	if (pthread_attr_setstacksize(&attrib, 0x100000) == -1) {
-		Error("pthread_attr_setstacksize failed");
-	}
-
-	for (i = 0; i < numthreads; i++)
-	{
-		if (pthread_create(&work_threads[i], attrib
-			, (pthread_startroutine_t)func, (pthread_addr_t)i) == -1) {
-			Error("pthread_create failed");
-		}
-	}
-
-	for (i = 0; i < numthreads; i++)
-	{
-		if (pthread_join(work_threads[i], &status) == -1) {
-			Error("pthread_join failed");
-		}
-	}
-
-	threaded = qfalse;
-
-	end = I_FloatTime();
-	if (pacifier) {
-		Sys_Printf(" (%i)\n", end - start);
-	}
-}
-
-
-#elif GDEF_OS_IRIX
-
-/*
-   ===================================================================
-
-   IRIX
-
-   ===================================================================
- */
-
-#define USED
-
-#include <task.h>
-#include <abi_mutex.h>
-#include <sys/types.h>
-#include <sys/prctl.h>
-
-int numthreads = -1;
-abilock_t lck;
-
-void ThreadSetDefault(void) {
-	if (numthreads == -1) {
-		numthreads = prctl(PR_MAXPPROCS);
-	}
-	Sys_Printf("%i threads\n", numthreads);
-	usconfig(CONF_INITUSERS, numthreads);
-}
-
-
-void ThreadLock(void) {
-	spin_lock(&lck);
-}
-
-void ThreadUnlock(void) {
-	release_lock(&lck);
-}
-
-
-/*
-   =============
-   RunThreadsOn
-   =============
- */
-void RunThreadsOn(int workcnt, qboolean showpacifier, void (*func)(int)) {
-	int i;
-	int pid[MAX_THREADS];
-	int start, end;
-
-	start = I_FloatTime();
-	dispatch = 0;
-	workcount = workcnt;
-	oldf = -1;
-	pacifier = showpacifier;
-	threaded = qtrue;
-
-	if (pacifier) {
-		setbuf(stdout, NULL);
-	}
-
-	init_lock(&lck);
-
-	for (i = 0; i < numthreads - 1; i++)
-	{
-		pid[i] = sprocsp((void (*)(void*, size_t))func, PR_SALL, (void*)i
-			, NULL, 0x200000); // 2 meg stacks
-		if (pid[i] == -1) {
-			perror("sproc");
-			Error("sproc failed");
-		}
-	}
-
-	func(i);
-
-	for (i = 0; i < numthreads - 1; i++)
-		wait(NULL);
-
-	threaded = qfalse;
-
-	end = I_FloatTime();
-	if (pacifier) {
-		Sys_Printf(" (%i)\n", end - start);
-	}
-}
-
-
-#elif GDEF_OS_LINUX || GDEF_OS_BSD || GDEF_OS_MACOS
-
-/*
-   =======================================================================
-
-   Linux pthreads
-
-   =======================================================================
- */
-
-#include <unistd.h>
-
-int numthreads = -1;
-
-void ThreadSetDefault(void) {
-	if (numthreads == -1) { // not set manually
-#ifdef _SC_NPROCESSORS_ONLN
-		long cpus = sysconf(_SC_NPROCESSORS_ONLN);
-		if (cpus > 0) {
-			numthreads = cpus;
-		}
-		else
-#endif
-			/* can't detect, so default to four threads */
-			numthreads = 4;
-	}
-
-	if (numthreads > 1) {
-		Sys_Printf("threads: %d\n", numthreads);
-	}
-}
-
-#include <pthread.h>
-
-typedef struct pt_mutex_s
-{
-	pthread_t* owner;
-	pthread_mutex_t a_mutex;
-	pthread_cond_t cond;
-	unsigned int lock;
-} pt_mutex_t;
-
-pt_mutex_t global_lock;
-
-void ThreadLock(void) {
-	pt_mutex_t* pt_mutex = &global_lock;
-
-	if (!threaded) {
-		return;
-	}
-
-	pthread_mutex_lock(&pt_mutex->a_mutex);
-	if (pthread_equal(pthread_self(), (pthread_t)&pt_mutex->owner)) {
-		pt_mutex->lock++;
-	}
-	else
-	{
-		if ((!pt_mutex->owner) && (pt_mutex->lock == 0)) {
-			pt_mutex->owner = (pthread_t*)pthread_self();
-			pt_mutex->lock = 1;
-		}
-		else
-		{
-			while (1)
-			{
-				pthread_cond_wait(&pt_mutex->cond, &pt_mutex->a_mutex);
-				if ((!pt_mutex->owner) && (pt_mutex->lock == 0)) {
-					pt_mutex->owner = (pthread_t*)pthread_self();
-					pt_mutex->lock = 1;
-					break;
-				}
-			}
-		}
-	}
-	pthread_mutex_unlock(&pt_mutex->a_mutex);
-}
-
-void ThreadUnlock(void) {
-	pt_mutex_t* pt_mutex = &global_lock;
-
-	if (!threaded) {
-		return;
-	}
-
-	pthread_mutex_lock(&pt_mutex->a_mutex);
-	pt_mutex->lock--;
-
-	if (pt_mutex->lock == 0) {
-		pt_mutex->owner = NULL;
-		pthread_cond_signal(&pt_mutex->cond);
-	}
-
-	pthread_mutex_unlock(&pt_mutex->a_mutex);
-}
-
-void recursive_mutex_init(pthread_mutexattr_t attribs) {
-	pt_mutex_t* pt_mutex = &global_lock;
-
-	pt_mutex->owner = NULL;
-	if (pthread_mutex_init(&pt_mutex->a_mutex, &attribs) != 0) {
-		Error("pthread_mutex_init failed\n");
-	}
-	if (pthread_cond_init(&pt_mutex->cond, NULL) != 0) {
-		Error("pthread_cond_init failed\n");
-	}
-
-	pt_mutex->lock = 0;
-}
-
-/*
-   =============
-   RunThreadsOn
-   =============
- */
-void RunThreadsOn(int workcnt, qboolean showpacifier, void (*func)(int)) {
-	pthread_mutexattr_t mattrib;
-	pthread_attr_t attr;
-	pthread_t work_threads[MAX_THREADS];
-	size_t stacksize;
-
-	int start, end;
-	int i = 0;
-
-	start = I_FloatTime();
-	pacifier = showpacifier;
-
-	dispatch = 0;
-	oldf = -1;
-	workcount = workcnt;
-
-	pthread_attr_init(&attr);
-	if (pthread_attr_setstacksize(&attr, 8388608) != 0) {
-		stacksize = 0;
-		pthread_attr_getstacksize(&attr, &stacksize);
-		Sys_Printf("Could not set a per-thread stack size of 8 MB, using only %.2f MB\n", stacksize / 1048576.0);
-	}
-
-	if (numthreads == 1) {
-		func(0);
-	}
-	else
-	{
-		threaded = qtrue;
-
-		if (pacifier) {
-			setbuf(stdout, NULL);
-		}
-
-		if (pthread_mutexattr_init(&mattrib) != 0) {
-			Error("pthread_mutexattr_init failed");
-		}
-		if (pthread_mutexattr_settype(&mattrib, PTHREAD_MUTEX_ERRORCHECK) != 0) {
-			Error("pthread_mutexattr_settype failed");
-		}
-		recursive_mutex_init(mattrib);
-
-		for (i = 0; i < numthreads; i++)
-		{
-			/* Default pthread attributes: joinable & non-realtime scheduling */
-			if (pthread_create(&work_threads[i], &attr, (void* (*)(void*)) func, (void*)(uintptr_t)i) != 0) {
-				Error("pthread_create failed");
-			}
-		}
-		for (i = 0; i < numthreads; i++)
-		{
-			if (pthread_join(work_threads[i], NULL) != 0) {
-				Error("pthread_join failed");
-			}
-		}
-		pthread_mutexattr_destroy(&mattrib);
-		threaded = qfalse;
-	}
-
-	end = I_FloatTime();
-	if (pacifier) {
-		Sys_Printf(" (%i)\n", end - start);
-	}
-}
-
-
-#else // UNKNOWN OS
-
-/*
-   =======================================================================
-
-   SINGLE THREAD
-
-   =======================================================================
- */
-
-int numthreads = 1;
-
-void ThreadSetDefault(void) {
-	numthreads = 1;
-}
-
-void ThreadLock(void) {
-}
-
-void ThreadUnlock(void) {
-}
-
-/*
-   =============
-   RunThreadsOn
-   =============
- */
-void RunThreadsOn(int workcnt, qboolean showpacifier, void (*func)(int)) {
-	int start, end;
-
-	dispatch = 0;
-	workcount = workcnt;
-	oldf = -1;
-	pacifier = showpacifier;
-	start = I_FloatTime();
-	func(0);
-
-	end = I_FloatTime();
-	if (pacifier) {
-		Com_Printf("%s  (%i)\n", __func__, end - start);
-	}
-}
-
-#endif // UNKNOWN OS
-
-

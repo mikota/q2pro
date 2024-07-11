@@ -826,32 +826,8 @@ void	 DC_LoadRandomBotName(char* userinfo);
 // Quake 3 Multithreading Code
 //===============================
 // qthreads.h -- https://github.com/DaemonEngine/daemonmap/blob/d91a0d828e27f75c74e5c3398b2778036e8544f6/tools/quake3/common/qthreads.h
-void BOTLIB_THREAD_LOADAAS(qboolean force);		// Init and run this function threaded
-void BOTLIB_THREADING_LOADAAS(void* param);		// Running in a thread
-typedef struct loadaas_s // Struct used to send parameters to the threaded function
-{
-	qboolean force;
-} loadaas_t;
 
-void BOTLIB_THREADED_DijkstraPath(edict_t* ent, int from, int to);
-void BOTLIB_THREADING_DijkstraPath(void* param);
-typedef struct dijkstra_path_s // Struct used to send parameters to the threaded function
-{
-	edict_t *ent;
-	int from;
-	int to;
-} dijkstra_path_t;
 //
 extern int numthreads;
-void ThreadSetDefault(void);
-int GetThreadWork(void);
-//void RunThreadsOnIndividual(int workcnt, qboolean showpacifier, void (*func)(int));
-//void RunThreadsOnIndividual(int workcnt, qboolean showpacifier, void (*func), void *param);
-//void RunThreadsOn(int workcnt, qboolean showpacifier, void (*func)(int));
-void RunThreadsOn(int workcnt, qboolean showpacifier, void (*func)(int));
-//void RunThreadsOn(int workcnt, qboolean showpacifier, void(*func), void* param);
-void ThreadLock(void);
-void ThreadUnlock(void);
-//rekkie -- Quake3 -- e
 
 #endif

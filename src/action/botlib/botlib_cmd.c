@@ -109,20 +109,6 @@ qboolean BOTLIB_SV_Cmds(void)
 		ACESP_RemoveBot("all");
 		return true;
 	}
-	//rekkie -- BSP -- s
-	// else if (Q_stricmp(cmd, "loadaas") == 0) // Load AAS
-	// {
-	// 	BOTLIB_THREAD_LOADAAS(true); // Threaded version -- this will also generate AAS if it doesn't exist
-	// 	//ACEND_LoadAAS(true); // This will also generate AAS if it doesn't exist
-	// 	return true;
-	// }
-	// // Process BSP and generate AAS reachability with nodes
-	// else if (Q_stricmp(cmd, "aas") == 0)
-	// {
-	// 	ACEND_BSP(NULL);
-	// 	return true;
-	// }
-	//rekkie -- BSP -- e
 
 	//rekkie -- python chatbot -- s
 #if 0
@@ -259,15 +245,6 @@ qboolean BOTLIB_SV_Cmds(void)
 qboolean BOTLIB_Commands(edict_t* ent)
 {
 	char* cmd = gi.argv(0);
-
-	//rekkie -- BSP -- s
-	// if (Q_stricmp(cmd, "loadaas") == 0) // Load AAS
-	// {
-	// 	BOTLIB_THREAD_LOADAAS(true); // Threaded version -- this will also generate AAS if it doesn't exist
-	// 	//ACEND_LoadAAS(true); // This will also generate AAS if it doesn't exist
-	// 	return true;
-	// }
-	// else 
 	if (Q_stricmp(cmd, "dc_save_aas") == 0) // Save AAS
 	{
 		ACEND_SaveAAS(true);
