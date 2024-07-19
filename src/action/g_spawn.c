@@ -1575,10 +1575,7 @@ void SpawnEntities (const char *mapname, const char *entities, const char *spawn
 
 //rekkie -- s
 #ifndef NO_BOTS
-	
-	//BOTLIB_THREAD_LOADAAS(false); // Threaded version -- this will also generate AAS if it doesn't exist
 	BOTLIB_InitNavigation(NULL);
-
 #ifdef USE_ZLIB
 	BOTLIB_LoadNavCompressed();
 #else
