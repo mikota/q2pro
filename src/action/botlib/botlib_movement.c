@@ -31,123 +31,99 @@ qboolean NodeTypeToString(edict_t* self, int type, char *string, const int max_s
 	switch (type)
 	{
 	case NODE_MOVE:
-		len = strlen("MOVE"); // Get the length of the string
-		len = len < max_string_size ? len : max_string_size - 1; // If the string is too long, truncate it
-		strncpy(string, "MOVE", len); // Copy the string
+		strncpy(string, "MOVE", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_CROUCH:
-		len = strlen("CROUCH");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "CROUCH", len);
+		strncpy(string, "CROUCH", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_BOXJUMP:
-		len = strlen("NODE_BOXJUMP");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "NODE_BOXJUMP", len);
+		strncpy(string, "NODE_BOXJUMP", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_JUMP:
-		len = strlen("JUMP");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "JUMP", len);
+		strncpy(string, "JUMP", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_JUMPPAD:
-		len = strlen("JUMPPAD");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "JUMPPAD", len);
+		strncpy(string, "JUMPPAD", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_LADDER:
-		len = strlen("LADDER");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "LADDER", len);
+		strncpy(string, "LADDER", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_POI:
-		len = strlen("POI");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "POI", len);
+		strncpy(string, "POI", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_POI_LOOKAT:
-		len = strlen("NODE_POI_LOOKAT");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "NODE_POI_LOOKAT", len);
+		strncpy(string, "NODE_POI_LOOKAT", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_WATER:
-		len = strlen("WATER");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "WATER", len);
+		strncpy(string, "WATER", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 
 
 
 	case NODE_STEP:
-		len = strlen("STEP");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "STEP", len);
+		strncpy(string, "STEP", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_STAND_DROP:
-		len = strlen("STAND_DROP");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "STAND_DROP", len);
+		strncpy(string, "STAND_DROP", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_CROUCH_DROP:
-		len = strlen("CROUCH_DROP");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "CROUCH_DROP", len);
+		strncpy(string, "CROUCH_DROP", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_UNSAFE_DROP:
-		len = strlen("UNSAFE_DROP");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "UNSAFE_DROP", len);
+		strncpy(string, "UNSAFE_DROP", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_LADDER_UP:
-		len = strlen("LADDER_UP");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "LADDER_UP", len);
+		strncpy(string, "LADDER_UP", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_LADDER_DOWN:
-		len = strlen("LADDER_DOWN");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "LADDER_DOWN", len);
+		strncpy(string, "LADDER_DOWN", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_DOOR:
-		len = strlen("DOOR");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "DOOR", len);
+		strncpy(string, "DOOR", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_PLATFORM:
-		len = strlen("PLATFORM");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "PLATFORM", len);
+		strncpy(string, "PLATFORM", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_TELEPORTER:
-		len = strlen("TELEPORTER");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "TELEPORTER", len); 
+		strncpy(string, "TELEPORTER", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_ITEM:
-		len = strlen("ITEM");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "ITEM", len); 
+		strncpy(string, "ITEM", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_GRAPPLE:
-		len = strlen("GRAPPLE");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "GRAPPLE", len); 
+		strncpy(string, "GRAPPLE", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_SPAWNPOINT:
-		len = strlen("SPAWNPOINT");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "SPAWNPOINT", len); 
+		strncpy(string, "SPAWNPOINT", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	case NODE_LEARN:
-		len = strlen("LEARN");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "LEARN", len); 
+		strncpy(string, "LEARN", max_string_size - 1);
+		string[max_string_size - 1] = '\0';
 		break;
 	default:
-		len = strlen("UNKNOWN");
-		len = len < max_string_size ? len : max_string_size - 1;
-		strncpy(string, "UNKNOWN", len);
-		string[len] = '\0'; // Terminate string
+		strncpy(string, "UNKNOWN", max_string_size - 1);
+		string[max_string_size - 1] = '\0'; // Ensure null-termination for all paths
 		return false; // Unknown node type
 	}
 
@@ -5366,7 +5342,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 			if (item_dist < 128)
 				self->bot.bi.speed = SPEED_ROAM; // Slow down when close
 
-			if (self->bot.get_item->solid == SOLID_NOT); // picked up
+			if (self->bot.get_item->solid == SOLID_NOT) // picked up
 			{
 				//Com_Printf("%s %s grabbed item %s [%f]\n", __func__, self->client->pers.netname, self->bot.get_item->classname, item_dist);
 				self->bot.get_item = NULL;
@@ -5906,9 +5882,9 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 				// Otherwise pick from various wait times before moving out
 				int rnd_rng = rand() % 4;
 				if (rnd_rng == 0)
-					self->just_spawned_timeout = level.framenum + (random() * 10) * HZ;	// Long wait
+					self->just_spawned_timeout = level.framenum + (random() * 6) * HZ;	// Long wait
 				else if (rnd_rng == 1)
-					self->just_spawned_timeout = level.framenum + (random() * 5) * HZ;	// Medium wait
+					self->just_spawned_timeout = level.framenum + (random() * 4) * HZ;	// Medium wait
 				else if (rnd_rng == 2)
 					self->just_spawned_timeout = level.framenum + (random() * 2) * HZ;  // Short wait
 				else
@@ -5949,13 +5925,13 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 		//self->bot.bi.speed = 0;
 		//return;
 
-		Com_Printf("%s %s on ground and current_node is invalid; try to wander\n", __func__, self->client->pers.netname);
+		Com_Printf("%s %s on ground and current_node (%i) is invalid; try to wander\n", __func__, self->client->pers.netname, self->bot.current_node);
 		self->bot.bi.speed = 0;
 		self->bot.stuck_wander_time = 1;
 	}
 	if (self->groundentity && self->bot.goal_node == INVALID)// && self->bot.node_travel_time >= 15)
 	{
-		Com_Printf("%s %s on ground and goal_node is invalid; find a new path\n", __func__, self->client->pers.netname);
+		Com_Printf("%s %s on ground and goal_node (%i) is invalid; find a new path\n", __func__, self->client->pers.netname, self->bot.goal_node);
 		self->bot.bi.speed = 0;
 		self->bot.state = BOT_MOVE_STATE_NAV;
 		return;
@@ -5997,7 +5973,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 	}
 
 	// If travel time took too long, assume we're stuck
-	if (self->bot.node_travel_time >= 120) //60 // Bot failure to reach next node
+	if (self->bot.node_travel_time >= 60) //60 // Bot failure to reach next node
 	{
 		self->bot.stuck_wander_time = 1;
 		Com_Printf("%s %s node_travel_time was hit! cur[%d] nxt[%d] goal[%d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.next_node, self->bot.goal_node);

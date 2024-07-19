@@ -631,11 +631,14 @@ void BOTLIB_InitAreaConnections(void)
 				{
 					targetNode = nodes[n].links[l].targetNode;
 					targetArea = nodes[targetNode].area;
+
+					// ## darksaint: removed area check for creating adjacency matrix
+					//gi.dprintf("Node[%d] Area[%d] connects to Node[%d] Area[%d]\n", n, i, targetNode, targetArea);
 					//if (targetArea != INVALID && targetArea != i)
-					if (targetArea != i)
-					{
-						nav_area.adjacency_matrix[i][targetArea] = targetArea;
-					}
+					// if (targetArea != i)
+					// {
+					nav_area.adjacency_matrix[i][targetArea] = targetArea;
+					//}
 				}
 			}
 		}
@@ -796,37 +799,36 @@ qboolean BOTLIB_CanGotoNode(edict_t* self, int goal_node, qboolean path_randomiz
 	self->bot.node_list_count = 0;
 
 	// New pathing - if area nodes are supported
-	if (nav_area.total_areas > 0 && goal_node)
-	{
-		Com_Printf("%s %s goal_node[%i]\n", __func__, self->client->pers.netname, goal_node);
-		if (BOTLIB_CanVisitAreaNode(self, goal_node)) // Get area-to-area (low resolution) path
-		{
-			while (BOTLIB_GetNextAreaNode(self)) // Get node-to-node (full resolution) path using area-to-area path
-			{
-			}
+	// if (nav_area.total_areas > 0 && goal_node)
+	// {
+	// 	Com_Printf("%s %s goal_node[%i]\n", __func__, self->client->pers.netname, goal_node);
+	// 	if (BOTLIB_CanVisitAreaNode(self, goal_node)) // Get area-to-area (low resolution) path
+	// 	{
+	// 		while (BOTLIB_GetNextAreaNode(self)) // Get node-to-node (full resolution) path using area-to-area path
+	// 		{
+	// 		}
 
-			// Add the goal to the end of the node list + terminate
-			if (self->bot.node_list_count)
-			{
-				self->bot.node_list[self->bot.node_list_count++] = self->bot.goal_node; // Save goal node
-				self->bot.node_list[self->bot.node_list_count] = INVALID; // Terminate
-			}
+	// 		// Add the goal to the end of the node list + terminate
+	// 		if (self->bot.node_list_count)
+	// 		{
+	// 			self->bot.node_list[self->bot.node_list_count++] = self->bot.goal_node; // Save goal node
+	// 			self->bot.node_list[self->bot.node_list_count] = INVALID; // Terminate
+	// 		}
 
-			return true; // Success
-		}
-		else
-		{
-			Com_Printf("%s %s failed #1 \n", __func__, self->client->pers.netname);
-			return false; // Failure
-		}
-	}
-	else // Fallback to old pathing
-	{
+	// 		return true; // Success
+	// 	}
+	// 	else
+	// 	{
+	// 		Com_Printf("%s %s failed #1 \n", __func__, self->client->pers.netname);
+	// 		return false; // Failure
+	// 	}
+	// }
+	// else // Fallback to old pathing
+	// {
 		self->bot.goal_node = INVALID;
 		//gi.dprintf("BOTLIB_CanVisitNode? %d\n", BOTLIB_CanVisitNode(self, nodes[goal_node].nodenum, path_randomization, INVALID, false));
 		if (BOTLIB_CanVisitNode(self, nodes[goal_node].nodenum, path_randomization, INVALID, false))
 		{
-
 			// Add the goal to the end of the node list + terminate
 			if (self->bot.node_list_count)
 			{
@@ -836,7 +838,7 @@ qboolean BOTLIB_CanGotoNode(edict_t* self, int goal_node, qboolean path_randomiz
 
 			return true; // Success
 		}
-	}
+	//}
 
 	Com_Printf("%s %s failed #2 \n", __func__, self->client->pers.netname);
 	return false; // Failure to find path

@@ -75,7 +75,7 @@ typedef struct bot_input_s
 // ===========================================================================
 void BOTLIB_Init(edict_t* self); // Initializing... HAL9000 is online.
 void BOTLIB_Think(edict_t* self); // Thinking... I'm sorry Rekkie, I can't do that.
-void BOTLIB_BotInputToUserCommand(edict_t* ent, bot_input_t* bi, usercmd_t* ucmd, int delta_angles[3], int time); // Translates bot input to actual Q2 movement calls
+void BOTLIB_BotInputToUserCommand(edict_t* ent, bot_input_t* bi, usercmd_t* ucmd, vec3_t delta_angles, int time); // Translates bot input to actual Q2 movement calls
 qboolean BOTLIB_Infront(edict_t* self, edict_t* other, float amount); // I see everything... in front of me
 qboolean BOTLIB_OriginInfront(edict_t* self, vec3_t origin, float amount);
 qboolean BOTLIB_MovingToward(edict_t* self, vec3_t origin, float amount);

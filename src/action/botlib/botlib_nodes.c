@@ -7,7 +7,7 @@ int poi_nodes[MAX_POI_NODES];
 edict_t* node_ents[MAX_EDICTS]; // If the node is attached to an entity (such as a NODE_DOOR being attached to a func_door_rotating or func_door entity)
 int num_vis_nodes;
 int node_vis[10][10]; // Cached node visibily. node_vis[X][Y] <-- can X see Y? If Y == INVALID, then false. Otherwise Y == NODE NUM
-int node_vis_list[10][10]; // Cached node
+int node_vis_list[10][MAX_VIS_NODES]; // Cached node
 node_t *nodes;
 nmesh_t nmesh;
 
@@ -250,63 +250,6 @@ qboolean DAIC_Add_Node(vec3_t origin, vec3_t normal, byte type)
 	return true;
 }
 
-/*
-///////////////////////////////////////////////////////////////////////
-// Makes a duplicate copy into the unsorted_nodes[] array
-///////////////////////////////////////////////////////////////////////
-void ACEND_DuplicateNodes(int node_num)
-{
-	node_t* unsorted_node = (unsorted_nodes + node_num);		// Get our node by pointer arithmatic
-
-	VectorCopy(nodes[node_num].origin, unsorted_node->origin);	// Location
-	VectorCopy(nodes[node_num].normal, unsorted_node->normal);	// Surface Normal
-	unsorted_node->type = nodes[node_num].type;					// Node type
-	unsorted_node->nodenum = nodes[node_num].nodenum;			// Node number
-
-	for (int i = 0; i < MAXLINKS; i++)							// Init links
-	{
-		unsorted_node->links[i].targetNode = INVALID;			// Invalidate all links
-		unsorted_node->links[i].cost = INVALID;					// Invalidate all costs
-	}
-}
-void ACEND_AutoAddNode(vec3_t origin, vec3_t normal, byte type)
-{
-	// Sanity check
-	if (numnodes + 1 > MAX_NODES)
-	{
-		debug_printf("%s exceeded max nodes, the limit is %d\n", __func__, MAX_NODES);
-		return;
-	}
-
-	//Com_Printf("%s Adding node %i at [%f %f %f]\n", __func__, numnodes, origin[0], origin[1], origin[2]);
-
-	VectorCopy(origin, nodes[numnodes].origin); // Location
-	VectorCopy(normal, nodes[numnodes].normal); // Surface Normal
-	nodes[numnodes].type = type;				// Node type
-	nodes[numnodes].nodenum = numnodes;			// Node number
-
-	//node_ents[numnodes] = self;	// Add door as an entity reference	//rekkie -- DEV_1
-
-	// Init links
-	for (int i = 0; i < MAXLINKS; i++)
-	{
-		nodes[numnodes].links[i].targetNode = INVALID;		// Link
-		nodes[numnodes].links[i].targetNodeType = INVALID;	// Type
-		memset(nodes[numnodes].links[i].targetVelocity, 0, sizeof(vec3_t));	// Velocity
-		nodes[numnodes].links[i].cost = INVALID;			// Cost
-	}
-
-	// Make a duplicate copy of nodes[] to *unsorted_nodes
-	// We'll use this later to optimise links
-	ACEND_DuplicateNodes(numnodes);
-
-	// Show ever 10nth node
-	//if (numnodes % 10 == 0)
-	//	ACEND_ShowNode(numnodes);
-
-	numnodes++; // Update the node counter
-}
-*/
 
 ///////////////////////////////////////////////////////////////////////
 // Remove node by number, 
@@ -675,6 +618,7 @@ void BOTLIB_RemoveNodeLink(edict_t* self, int from, int to)
 // build_new_path: If we're building a new path or adding to an existing path
 qboolean BOTLIB_CanVisitNode(edict_t* self, int goal_node, qboolean path_randomization, int area, qboolean build_new_path)
 {
+	//gi.dprintf("All parameters: goal_node[%d] path_randomization[%d] area[%d] build_new_path[%d]\n", goal_node, path_randomization, area, build_new_path);
 	// Always update current node
 	self->bot.current_node = ACEND_FindClosestReachableNode(self, NODE_DENSITY, NODE_ALL);
 
@@ -4837,7 +4781,7 @@ void BOTLIB_Process_NMesh(edict_t* ent)
 			float pt1_to_pt2_dist = VectorLength(pt1_to_pt2_vec); // Distance between pt1 and pt2
 
 			// Skip excessively small edges
-			if (pt1_to_pt2_vec < 4)
+			if (pt1_to_pt2_dist < 4)
 			{
 				nmesh.face[f].edge[e].node = INVALID;
 				continue;
@@ -4881,17 +4825,12 @@ void BOTLIB_Process_NMesh(edict_t* ent)
 			nmesh.face[f].edge[e].center[1] += adjusted_height[1];
 			nmesh.face[f].edge[e].center[2] += adjusted_height[2];
 
-
-
-
-
 			// Test for edges
 			// Some edges are on a floor, others from a wall, therefore we test both here
 			if (0)
 			{
 				qboolean hit_step_left = false, hit_step_right = false;
 				vec3_t end_left, end_right;
-
 
 				BOTLIB_UTIL_ROTATE_CENTER(pt1, pt2, 90, 1, end_left);	// Turn 90 degrees left and move 1 unit
 				BOTLIB_UTIL_ROTATE_CENTER(pt1, pt2, -90, 1, end_right); // Turn 90 degrees right and move 1 unit
@@ -5071,10 +5010,6 @@ void BOTLIB_Process_NMesh(edict_t* ent)
 				nmesh.face[f].edge[e].node = INVALID;
 				continue;
 			}
-
-
-
-
 
 			// Find the middle between two points of an edge
 			//LerpVector(pt1, pt2, 0.50, center); // 50% (center)

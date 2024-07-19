@@ -2984,119 +2984,67 @@ void PutClientInServer(edict_t * ent)
 	for (i = 0; i < 3; i++)
 		client->ps.pmove.delta_angles[i] = ANGLE2SHORT(ent->s.angles[i] - client->resp.cmd_angles[i]);
 
+
 #ifndef NO_BOTS
-	ent->last_node = -1;
-	ent->is_jumping = false;
-	ent->is_triggering = false;
-	ent->grenadewait = 0;
-	ent->react = 0.f;
-	
-	if( ent->is_bot )
+
+	//rekkie -- s
+	if (ent->is_bot)
 	{
-		ent->classname = "bot";
-		
-		ent->enemy = NULL;
-		ent->movetarget = NULL;
-		if( ! teamplay->value )
+		if (ent->bot.bot_type == BOT_TYPE_BOTLIB) // BOTLIB
 		{
-			ent->state = STATE_MOVE;
-			ent->botState = BS_ROAM;
-			ent->nextState = BS_ROAM;
-			ent->secondaryState = BSS_NONE;
+			BOTLIB_Init(ent); // Initialize all the bot variables
+			BOTLIB_SmartWeaponSelection(ent);
 		}
-		else
+		else // LTK bots
 		{
-			ent->state = STATE_POSITION;
-			ent->botState = BS_ROAM;
-			ent->nextState = BS_ROAM;
-			ent->secondaryState = BSS_POSITION;
+			ent->bot.bot_type = BOT_TYPE_LTK; // Set LTK
+			//rekkie -- e
+			
+			ent->classname = "bot";
+
+			ent->last_node = -1;
+			ent->is_jumping = false;
+			ent->is_triggering = false;
+			ent->grenadewait = 0;
+			ent->react = 0.f;
+
+			ent->next_move_time = level.framenum;
+			ent->suicide_timeout = level.framenum + 15.0 * HZ;
+
+			ent->killchat = false;
+			VectorClear(ent->lastSeen);
+			ent->cansee = false;
+
+			ent->bot_speed = 0;
+			VectorClear(ent->lastPosition);
+
+			if (teamplay->value)
+			{
+				const char* s = Info_ValueForKey(ent->client->pers.userinfo, "skin");
+				AssignSkin(ent, s, false /* nickChanged */);
+				// Anti centipede timer
+				ent->teamPauseTime = level.framenum + (3.0 + (rand() % 7)) * HZ;
+				// Radio setup
+				ent->teamReportedIn = true;
+				ent->lastRadioTime = level.framenum;
+				// Change facing angle for each bot
+				if (numnodes)
+				{
+					int randomnode = (int)(num_players * random());
+					VectorSubtract(nodes[randomnode].origin, ent->s.origin, ent->move_vector);
+				}
+				ent->move_vector[2] = 0;
+			}
+			else
+				ent->teamPauseTime = level.framenum;
+
+			//RiEvEr - new node pathing system
+			memset(&(ent->pathList), 0, sizeof(ent->pathList));
+			ent->pathList.head = ent->pathList.tail = NULL;
+			//R
+
+			ent->client->resp.radio.gender = (ent->client->pers.gender == GENDER_FEMALE) ? 1 : 0;
 		}
-		
-		// Set the current node
-		ent->current_node = ACEND_FindClosestReachableNode( ent, NODE_DENSITY, NODE_ALL );
-		ent->goal_node = ent->current_node;
-		ent->next_node = ent->current_node;
-		ent->next_move_time = level.framenum;
-		ent->suicide_timeout = level.framenum + 15.0 * HZ;
-		
-		ent->killchat = false;
-		VectorClear( ent->lastSeen );
-		ent->cansee = false;
-		
-		ent->bot_strafe = SPEED_WALK;
-		ent->bot_speed = 0;
-		VectorClear( ent->lastPosition );
-		
-		// Choose Teamplay weapon
-		switch( ent->weaponchoice - 1 )  // Range is 1..5
-		{
-		case 0:
-			ACEAI_Cmd_Choose_Weapon_Num( ent, MP5_NUM );
-			break;
-		case 1:
-			ACEAI_Cmd_Choose_Weapon_Num( ent, M4_NUM );
-			break;
-		case 2:
-			ACEAI_Cmd_Choose_Weapon_Num( ent, M3_NUM );
-			break;
-		case 3:
-			ACEAI_Cmd_Choose_Weapon_Num( ent, HC_NUM );
-			break;
-		case 4:
-			ACEAI_Cmd_Choose_Weapon_Num( ent, SNIPER_NUM );
-			break;
-		default:
-			ACEAI_Cmd_Choose_Weapon_Num( ent, 0 );  // Random allowed.
-			break;
-		}
-		
-		// Choose Teamplay equipment
-		switch( ent->equipchoice - 1 )  // Range is 1..5
-		{
-		case 0:
-			ACEAI_Cmd_Choose_Item_Num( ent, SIL_NUM );
-			break;
-		case 1:
-			ACEAI_Cmd_Choose_Item_Num( ent, SLIP_NUM );
-			break;
-		case 2:
-			ACEAI_Cmd_Choose_Item_Num( ent, BAND_NUM );
-			break;
-		case 3:
-			ACEAI_Cmd_Choose_Item_Num( ent, KEV_NUM );
-			break;
-		case 4:
-			ACEAI_Cmd_Choose_Item_Num( ent, LASER_NUM );
-			break;
-		default:
-			ACEAI_Cmd_Choose_Item_Num( ent, 0 );  // Random allowed.
-			break;
-		}
-		
-		if( teamplay->value )
-		{
-			int randomnode = 0;
-			const char *s = Info_ValueForKey( ent->client->pers.userinfo, "skin" );
-			AssignSkin( ent, s, false /* nickChanged */ );
-			// Anti centipede timer
-			ent->teamPauseTime = level.framenum + (3.0 + (rand() % 7)) * HZ;
-			// Radio setup
-			ent->teamReportedIn = true;
-			ent->lastRadioTime = level.framenum;
-			// Change facing angle for each bot
-			randomnode = (int)( num_players * random() );
-			VectorSubtract( nodes[randomnode].origin, ent->s.origin, ent->move_vector );
-			ent->move_vector[2] = 0;
-		}
-		else
-			ent->teamPauseTime = level.framenum;
-		
-		//RiEvEr - new node pathing system
-		memset( &(ent->pathList), 0, sizeof(ent->pathList) );
-		ent->pathList.head = ent->pathList.tail = NULL;
-		//R
-		
-		ent->client->resp.radio.gender = (ent->client->pers.gender == GENDER_FEMALE) ? 1 : 0;
 	}
 	
 	if( (! ent->is_bot) || (ent->think != ACESP_HoldSpawn) )  // if( respawn )
@@ -5879,7 +5827,7 @@ void ClientThink(edict_t * ent, usercmd_t * ucmd)
 								else if (lower != 99999) // Node is lower than origin
 									Com_Printf("%s n[%i to %i] - t[%i to %i] - dist %f z_dn: %f\n", __func__, ent->show_node_links, targetNode, nodes[ent->show_node_links].type, nodes[targetNode].type, dist, lower);
 								else // Node at equal dist to origin
-									Com_Printf("%s n[%i to %i] - t[%i to %i] - dist %f z_eq: %f\n", __func__, ent->show_node_links, targetNode, nodes[ent->show_node_links].type, nodes[targetNode].type, dist, 0);
+									Com_Printf("%s n[%i to %i] - t[%i to %i] - dist %f z_eq: %d\n", __func__, ent->show_node_links, targetNode, nodes[ent->show_node_links].type, nodes[targetNode].type, dist, 0);
 							}
 						}
 					}

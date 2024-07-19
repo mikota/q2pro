@@ -104,7 +104,7 @@ void BOTLIB_Init(edict_t* self)
 // BOTLIB_BotInputToUserCommand
 // Translates bot input to actual Q2 movement calls
 //==============
-void BOTLIB_BotInputToUserCommand(edict_t* ent, bot_input_t* bi, usercmd_t* ucmd, int delta_angles[3], int time)
+void BOTLIB_BotInputToUserCommand(edict_t* ent, bot_input_t* bi, usercmd_t* ucmd, vec3_t delta_angles, int time)
 {
 	vec3_t angles, forward, right;
 	float f, r, u, m;
