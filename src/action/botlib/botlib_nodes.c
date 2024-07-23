@@ -624,7 +624,7 @@ qboolean BOTLIB_CanVisitNode(edict_t* self, int goal_node, qboolean path_randomi
 
 	// Invalid node
 	if (goal_node == INVALID || self->bot.current_node == INVALID || nodes[goal_node].inuse == false){
-		Com_Printf("%s %s invalid node set: current_node[%d] goal_node[%d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.goal_node);
+		//Com_Printf("%s %s invalid node set: current_node[%d] goal_node[%d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.goal_node);
 		return false;
 	}
 
@@ -633,19 +633,19 @@ qboolean BOTLIB_CanVisitNode(edict_t* self, int goal_node, qboolean path_randomi
 
 	// Already at node
 	if (goal_node == self->bot.current_node){
-		Com_Printf("%s %s invalid goal set: current_node[%d] goal_node[%d] inuse[%d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.goal_node, nodes[goal_node].inuse);
+		//Com_Printf("%s %s invalid goal set: current_node[%d] goal_node[%d] inuse[%d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.goal_node, nodes[goal_node].inuse);
 		return false;
 	}
 
 	// NEW PATHING: limit search to same area
 	if (area != INVALID && BOTLIB_DijkstraAreaPath(self, self->bot.current_node, goal_node, path_randomization, area, build_new_path) == false) {
-		gi.dprintf("NEW: %s %s failed to find path to node %d\n", __func__, self->client->pers.netname, goal_node);
+		//gi.dprintf("NEW: %s %s failed to find path to node %d\n", __func__, self->client->pers.netname, goal_node);
 		return false;
 	}
 	// OLD: searches all nodes
 	//else if (AntStartSearch(self, self->bot.current_node, goal_node, path_randomization) == false)
 	else if (BOTLIB_DijkstraPath(self, self->bot.current_node, goal_node, path_randomization) == false){
-		gi.dprintf("OLD: %s %s failed to find path to node %d\n", __func__, self->client->pers.netname, goal_node);
+		//gi.dprintf("OLD: %s %s failed to find path to node %d\n", __func__, self->client->pers.netname, goal_node);
 		return false;
 	}
 

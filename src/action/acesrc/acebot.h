@@ -100,32 +100,9 @@ typedef enum
 	NODE_SPAWNPOINT,	// Nodes tied to spawnpoint locations - these are auto generated for each map ready to be connected to user placed nodes
 	NODE_LEARN,			// Special node - Human learning
 	NODE_CTF_FLAG,		// CTF Flag
+	NODE_ESP_TARGET,	// ESP Target
 	NODE_ALL = 99		// For selecting all nodes
 } nodetype_t;
-/*
-#define NODE_MOVE			(1)							// Move (forward, left, right, back)
-#define NODE_CROUCH			(NODE_MOVE + 1)				// Crouching (-moveup)
-#define NODE_STEP			(NODE_CROUCH + 1)			// For steps / stairs
-#define NODE_JUMP			(NODE_STEP + 1)				// Small jumps (+moveup)
-#define NODE_JUMPPAD		(NODE_JUMP + 1)				// For large jumps across any distance
-#define NODE_STAND_DROP		(NODE_JUMPPAD + 1)			// For dropping down while standing
-#define NODE_CROUCH_DROP	(NODE_STAND_DROP + 1)		// For dropping down while crouching
-#define NODE_UNSAFE_DROP	(NODE_CROUCH_DROP + 1)		// For dropping down while crouching, but causing minimal leg damage
-#define NODE_LADDER			(NODE_UNSAFE_DROP + 1)		// Ladder
-#define NODE_LADDER_UP		(NODE_LADDER + 1)			// Ladder going up
-#define NODE_LADDER_DOWN	(NODE_LADDER_UP + 1)		// Ladder going down
-#define NODE_DOOR			(NODE_LADDER_DOWN + 1)		// Door node
-#define NODE_PLATFORM		(NODE_DOOR + 1)				// Moving platforms
-#define NODE_TELEPORTER		(NODE_PLATFORM + 1)			// Teleporters
-#define NODE_ITEM			(NODE_TELEPORTER + 1)		// Items
-#define NODE_WATER			(NODE_ITEM + 1)				// Water
-#define NODE_GRAPPLE		(NODE_WATER + 1)			// CTF grapple hook
-#define NODE_SPAWNPOINT		(NODE_GRAPPLE + 1)			// Nodes tied to spawnpoint locations - these are auto generated for each map ready to be connected to user placed nodes
-#define NODE_POI			(NODE_SPAWNPOINT + 1)		// Point of Interest (POI) specific locations that you wish bots to visit from time to time
-#define NODE_LEARN			(NODE_POI + 1)				// Special node - Human learning
-//
-#define NODE_ALL 99										// For selecting all nodes
-*/
 
 // Density setting for nodes
 #define NODE_DENSITY 96
@@ -564,6 +541,7 @@ extern cvar_t* bot_rush;
 extern cvar_t* bot_randvoice;
 extern cvar_t* bot_randskill;
 extern cvar_t* bot_randname;
+extern cvar_t* bot_chat;
 //extern cvar_t* bot_randteamskin;
 
 

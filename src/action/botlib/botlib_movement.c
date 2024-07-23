@@ -127,7 +127,6 @@ qboolean NodeTypeToString(edict_t* self, int type, char *string, const int max_s
 		return false; // Unknown node type
 	}
 
-	string[len] = '\0'; // Terminate string
 	return true; // Success
 }
 
@@ -5973,7 +5972,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 	}
 
 	// If travel time took too long, assume we're stuck
-	if (self->bot.node_travel_time >= 60) //60 // Bot failure to reach next node
+	if (self->bot.node_travel_time >= 120) //60 // Bot failure to reach next node
 	{
 		self->bot.stuck_wander_time = 1;
 		Com_Printf("%s %s node_travel_time was hit! cur[%d] nxt[%d] goal[%d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.next_node, self->bot.goal_node);
@@ -6471,7 +6470,9 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 			}
 			else if ((contents_feet & MASK_WATER) && nodes[self->bot.next_node].origin[2] > self->s.origin[2]) // Move up
 			{
-				self->bot.bi.actionflags |= ACTION_MOVEUP;
+				//self->bot.bi.actionflags |= ACTION_MOVEUP;
+				// darksaint: changed this to MOVEUP and MOVEFORWARD simultanously to get out of water
+				self->bot.bi.actionflags |= (ACTION_MOVEUP | ACTION_MOVEFORWARD);
 				//Com_Printf("%s %s [%d] water: move up\n", __func__, self->client->pers.netname, level.framenum);
 			}
 			else if (nodes[self->bot.next_node].origin[2] < self->s.origin[2]) // Move down

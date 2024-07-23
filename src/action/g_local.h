@@ -2748,6 +2748,7 @@ typedef struct team_s
 }team_t;
 
 extern team_t teams[TEAM_TOP];
+#define WEAP_ITM_NAME_LEN 32
 #define PARSE_BUFSIZE 256
 #define IS_ALIVE(ent) ((ent)->solid != SOLID_NOT && (ent)->deadflag != DEAD_DEAD)
 

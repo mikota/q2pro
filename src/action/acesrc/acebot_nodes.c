@@ -299,7 +299,7 @@ int ACEND_FindClosestReachableNode(edict_t *self, int range, int type)
 		}
 	}
 
-	//Com_Printf("%s [%s] node %d\n", __func__, self->client->pers.netname, node);
+	Com_Printf("%s [%s] node %d\n", __func__, self->client->pers.netname, node);
 	
 	return node;
 }

@@ -3,6 +3,87 @@
 #include "botlib.h"
 #include "../m_player.h" // For waving frame types, i.e: FRAME_flip01
 
+// Borrowed from LTK bots
+#define DBC_WELCOMES 4
+char *botchat_welcomes[DBC_WELCOMES] =
+{
+    "Hey %s, how's it going?",
+	"hey %s whats up",
+	"yo %s",
+	"aw yeah %s is here"
+};
+
+#define DBC_GOODBYES 5
+char *botchat_goodbyes[DBC_GOODBYES] =
+{
+    "welp gotta go",
+	"food time brb",
+	"ggs all",
+	"time for a j",
+	"sauna time"
+};
+
+#define DBC_KILLEDS 8
+char *botchat_killeds[DBC_KILLEDS] =
+{
+	"lol",
+	"welp..",
+	"aw come on",
+	"nice one",
+	"prkl",
+	"jajajaja",
+	"ffffffffff",
+	"woowwwww"
+};
+
+#define DBC_INSULTS 11
+char *botchat_insults[DBC_INSULTS] =
+{
+	"lol gottem",
+	"pow!",
+	"rip",
+	"can't hide from me",
+	"goteem",
+	"he he heee",
+	":D",
+	"heh",
+	"AHAHAHAHA",
+	">:)",
+	":>"
+};
+
+void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype) {
+	char* text = NULL;
+
+	switch (chattype) {
+		case CHAT_WELCOME:
+			text = botchat_welcomes[rand() % DBC_WELCOMES];
+			break;
+		case CHAT_KILLED:
+			text = botchat_killeds[rand() % DBC_KILLEDS];
+			break;
+		case CHAT_INSULTS:
+			text = botchat_insults[rand() % DBC_INSULTS];
+			break;
+		case CHAT_GOODBYE:
+			text = botchat_goodbyes[rand() % DBC_GOODBYES];
+			break;
+		default:
+			if (debug_mode)
+				gi.bprintf(PRINT_HIGH, "%s: Unknown chat type %d", __func__, chattype);
+			return; // Exit if chattype is unknown
+	}
+
+	// Ensure text is not NULL before proceeding
+	if (text == NULL) {
+		if (debug_mode)
+			gi.bprintf(PRINT_HIGH, "%s: text is NULL, cannot proceed with BOTLIB_Say.", __func__);
+		return; // Optionally, set text to a default value before calling BOTLIB_Say
+	}
+
+	BOTLIB_Say(bot, text, false);
+}
+
 // Bot wave gestures
 void BOTLIB_Wave(edict_t* ent, int type)
 {
@@ -168,8 +249,12 @@ void BOTLIB_Say(edict_t* ent, char* pMsg, qboolean team_message)
 	//gclient_t *cl;
 
 
-	if (!teamplay->value)
-		return;
+	if (!teamplay->value) {
+		if (!bot_chat->value)
+			return;
+		else
+			Q_snprintf(text, sizeof(text), pMsg); // Say all
+	}
 
 	if (ent->client->resp.team == NOTEAM)
 		return;
@@ -459,8 +544,8 @@ void BOTLIB_Radio(edict_t* self, usercmd_t* ucmd)
 				}
 				else
 				{
-					char weap_name[PARSE_BUFSIZE];
-					char item_name[PARSE_BUFSIZE];
+					char weap_name[WEAP_ITM_NAME_LEN];
+					char item_name[WEAP_ITM_NAME_LEN];
 					GetWeaponName(self, weap_name);
 					GetItemName(self, item_name);
 					sprintf(buffer, " %c Reporting in! [ %d%c ] Equipped with %c %s and %s", '\x0F', self->health, '\x05', '\x07', weap_name, item_name); // Build string

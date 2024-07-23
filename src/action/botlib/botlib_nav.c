@@ -825,7 +825,7 @@ qboolean BOTLIB_CanGotoNode(edict_t* self, int goal_node, qboolean path_randomiz
 	// else // Fallback to old pathing
 	// {
 		self->bot.goal_node = INVALID;
-		gi.dprintf("BOTLIB_CanVisitNode? %d\n", BOTLIB_CanVisitNode(self, nodes[goal_node].nodenum, path_randomization, INVALID, false));
+		//gi.dprintf("BOTLIB_CanVisitNode? %d\n", BOTLIB_CanVisitNode(self, nodes[goal_node].nodenum, path_randomization, INVALID, false));
 		if (BOTLIB_CanVisitNode(self, nodes[goal_node].nodenum, path_randomization, INVALID, false))
 		{
 			// Add the goal to the end of the node list + terminate
@@ -852,9 +852,9 @@ qboolean BOTLIB_CanVisitAreaNode(edict_t* self, int goal_node)
 		return false;
 	}
 
-	//Com_Printf("\n\n========================================================\n", __func__);
-	//Com_Printf("%s Heading for goal node[%d] area[%d]\n", __func__, goal_node, self->bot.goal_area);
-	//Com_Printf("========================================================\n", __func__);
+	// Com_Printf("\n\n========================================================\n", __func__);
+	// Com_Printf("%s Heading for goal node[%d] area[%d]\n", __func__, goal_node, self->bot.goal_area);
+	// Com_Printf("========================================================\n", __func__);
 
 	//BOTLIB_InitAreaConnections();
 
@@ -1937,12 +1937,13 @@ qboolean BOTLIB_DijkstraAreaPath(edict_t* ent, int from, int to, qboolean path_r
 // BOTLIB_DijkstraPath() is run again with path_randomization turned off
 qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_randomization)
 {
-	Com_Printf("%s from[%d] to[%d] for %s, random: %d\n", __func__, from, to, ent->client->pers.netname, path_randomization);
+	//Com_Printf("%s from[%d] to[%d] for %s, random: %d\n", __func__, from, to, ent->client->pers.netname, path_randomization);
 
 	// Sanity check
-	if (from == INVALID || to == INVALID)
+	if (from == INVALID || to == INVALID) {
 		gi.dprintf("both from and to nodes were invalid\n");
 		return false;
+	}
 
 	AntInitSearch(ent); // Clear out the path storage
 	for (int i = 0; i < numnodes; i++)
@@ -1964,7 +1965,7 @@ qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_rando
 		atNode = SLLfront(&openList); // Get the next node
 		if (atNode == to) // If the next node is the goal node
 		{
-			Com_Printf("%s [%d] next node found a path\n", __func__, level.framenum);
+			//Com_Printf("%s [%d] next node found a path\n", __func__, level.framenum);
 			break; // We found a path
 		}
 
@@ -2104,12 +2105,12 @@ qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_rando
 				nodeweight[lowest_node] = weight; // Update the weight
 				nodefrom[lowest_node] = atNode; // Update the parent node (open list)
 				SLLpush_back(&openList, lowest_node); // Store it
-				Com_Printf("%s lowest_node[%d]\n", __func__, lowest_node);
+				//Com_Printf("%s lowest_node[%d]\n", __func__, lowest_node);
 			}
 
 			if (lowest_node == to) // If node being linked is the goal node
 			{
-				Com_Printf("%s [%d] lowest_node found a path\n", __func__, level.framenum);
+				//Com_Printf("%s [%d] lowest_node found a path\n", __func__, level.framenum);
 				break; // We found a path
 			}
 		}
@@ -2155,7 +2156,7 @@ qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_rando
 
 				if (newNode == to) // If node being linked is the goal node
 				{
-					Com_Printf("%s [%d] normal found a path\n", __func__, level.framenum);
+					//Com_Printf("%s [%d] normal found a path\n", __func__, level.framenum);
 					break; // We found a path
 				}
 
@@ -2216,7 +2217,7 @@ qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_rando
 			//Com_Printf("%s path_table[ nodefrom[%d] ] [%d] = %d\n", __func__, newNode, newNode, newNode);
 		}
 
-		Com_Printf("%s path_table[ nodefrom[%d] ] [%d] = %d\n", __func__, newNode, newNode, newNode);
+		//Com_Printf("%s path_table[ nodefrom[%d] ] [%d] = %d\n", __func__, newNode, newNode, newNode);
 		//int prev_newNode = newNode;
 
 		// We earlier set our start node to INVALID to set up the termination
@@ -2239,10 +2240,10 @@ qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_rando
 			SLLpush_front(&ent->pathList, newNode); // Push it onto the pathlist
 			////path_table[nodefrom[newNode]][to] = newNode; // Set the path in the node array to match this shortest path
 
-			Com_Printf("%s path_table[ nodefrom[%d][%d] = %d\n", __func__, newNode, to, newNode);
+			//Com_Printf("%s path_table[ nodefrom[%d][%d] = %d\n", __func__, newNode, to, newNode);
 		}
 
-		Com_Printf("%s EXIT PATH\n\n", __func__);
+		//Com_Printf("%s EXIT PATH\n\n", __func__);
 
 		// Each time a path is found, make a copy
 		//ent->bot.node_list_count = 0;
@@ -2273,7 +2274,7 @@ qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_rando
 		}
 
 		if (SLLempty(&ent->pathList)){
-			gi.dprintf("SLLempty: %s failed to find a path from %d to %d\n", __func__, from, to);
+			//gi.dprintf("SLLempty: %s failed to find a path from %d to %d\n", __func__, from, to);
 			return false; // Failure
 		}
 
@@ -2284,12 +2285,12 @@ qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_rando
 	// If path_randomization was true, then try again without it
 	if (path_randomization) //If using rand pathing, and it fails, try again *ONCE* without it
 	{
-		gi.dprintf("Trying again without path randomization\n");
+		//gi.dprintf("Trying again without path randomization\n");
 		BOTLIB_DijkstraPath(ent, from, to, false);
 	}
 	// Else: just fail it completely
 	{
-		gi.dprintf("Complete failure: %s failed to find a path from %d to %d\n", __func__, from, to);
+		//gi.dprintf("Complete failure: %s failed to find a path from %d to %d\n", __func__, from, to);
 		return false; // Failure
 	}
 }

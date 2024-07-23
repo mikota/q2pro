@@ -108,31 +108,31 @@ typedef struct botlib_noises_s
 extern botlib_noises_t botlib_noises;
 
 // Actionable flags
-#define ACTION_NONE				0x00000000	// No action taken
-#define ACTION_ATTACK			0x00000001	// Tap the attack button
-#define ACTION_USE				0x00000002
-#define ACTION_RESPAWN			0x00000008
-#define ACTION_JUMP				0x00000010	// Small jumps - tapping the jump button
-#define ACTION_MOVEUP			0x00000020
-#define ACTION_CROUCH			0x00000080
-#define ACTION_MOVEDOWN			0x00000100
-#define ACTION_MOVEFORWARD		0x00000200
-#define ACTION_MOVEBACK			0x00000800
-#define ACTION_MOVELEFT			0x00001000
-#define ACTION_MOVERIGHT		0x00002000
-#define ACTION_BOXJUMP			0x00008000	// Higher jumps
-#define ACTION_TALK				0x00010000
-#define ACTION_GESTURE			0x00020000
-#define ACTION_WALK				0x00080000
-#define ACTION_AFFIRMATIVE		0x00100000
-#define ACTION_NEGATIVE			0x00200000
-#define ACTION_GETFLAG			0x00800000
-#define ACTION_GUARDBASE		0x01000000
-#define ACTION_PATROL			0x02000000
-#define ACTION_FOLLOWME			0x08000000
-#define ACTION_HOLDJUMP			0x10000000	// Hold the jump button and release when touching ground
-#define ACTION_HOLDPOS			0x20000000	// Hold position
-#define ACTION_JUMPPAD			0x40000000
+#define ACTION_NONE				BIT(0)	// No action taken
+#define ACTION_ATTACK			BIT(1)	// Tap the attack button
+#define ACTION_USE				BIT(2)
+#define ACTION_RESPAWN			BIT(3)
+#define ACTION_JUMP				BIT(4)	// Small jumps - tapping the jump button
+#define ACTION_MOVEUP			BIT(5)
+#define ACTION_CROUCH			BIT(7)
+#define ACTION_MOVEDOWN			BIT(8)
+#define ACTION_MOVEFORWARD		BIT(9)
+#define ACTION_MOVEBACK			BIT(11)
+#define ACTION_MOVELEFT			BIT(12)
+#define ACTION_MOVERIGHT		BIT(13)
+#define ACTION_BOXJUMP			BIT(15)	// Higher jumps
+#define ACTION_TALK				BIT(16)
+#define ACTION_GESTURE			BIT(17)
+#define ACTION_WALK				BIT(19)
+#define ACTION_AFFIRMATIVE		BIT(20)
+#define ACTION_NEGATIVE			BIT(21)
+#define ACTION_GETFLAG			BIT(23)
+#define ACTION_GUARDBASE		BIT(24)
+#define ACTION_PATROL			BIT(25)
+#define ACTION_FOLLOWME			BIT(27)
+#define ACTION_HOLDJUMP			BIT(28)	// Hold the jump button and release when touching ground
+#define ACTION_HOLDPOS			BIT(29)	// Hold position
+#define ACTION_JUMPPAD			BIT(30)
 
 
 // ===========================================================================
@@ -194,10 +194,20 @@ qboolean BOTLIB_Commands(edict_t* ent); // Client commands
 // ===========================================================================
 // botlib_communication.c
 // ===========================================================================
+typedef enum
+{
+	CHAT_WELCOME,
+	CHAT_KILLED,
+	CHAT_INSULTS,
+	CHAT_GOODBYE
+} bot_chat_types_t;
+
 void BOTLIB_Wave(edict_t* ent, int type);
 void BOTLIB_PrecacheRadioSounds(void);
 void BOTLIB_AddRadioMsg(radio_t* radio, int sndIndex, int len, edict_t* from_player);
 void BOTLIB_Radio(edict_t* self, usercmd_t* ucmd);
+void BOTLIB_Chat(edict_t *bot, bot_chat_types_t chattype);
+void BOTLIB_Say(edict_t* ent, char* pMsg, qboolean team_message);
 
 // Wave (gesture) types
 #define WAVE_FLIPOFF			1
@@ -207,31 +217,31 @@ void BOTLIB_Radio(edict_t* self, usercmd_t* ucmd);
 #define WAVE_POINT				5
 
 // Radio flags
-#define RADIO_1					0x00000001
-#define RADIO_2					0x00000002
-#define RADIO_3					0x00000003
-#define RADIO_4					0x00000004
-#define RADIO_5					0x00000005
-#define RADIO_6					0x00000006
-#define RADIO_7					0x00000007
-#define RADIO_8					0x00000008
-#define RADIO_9					0x00000009
-#define RADIO_10				0x00000010
-#define RADIO_BACK				0x00000011
-#define RADIO_COVER				0x00000012
-#define RADIO_DOWN				0x00000013
-#define RADIO_ENEMY_DOWN		0x00000014
-#define RADIO_ENEMY_SIGHTED		0x00000015
-#define RADIO_FORWARD			0x00000016
-#define RADIO_GO				0x00000017
-#define RADIO_IM_HIT			0x00000018
-#define RADIO_LEFT				0x00000019
-#define RADIO_REPORTIN			0x00000020
-#define RADIO_RIGHT				0x00000021
-#define RADIO_TAKING_FIRE		0x00000022
-#define RADIO_TEAMMATE_DOWN		0x00000023
-#define RADIO_TEAM_REPORT_IN	0x00000024
-#define RADIO_UP				0x00000025
+#define RADIO_1					BIT(0)
+#define RADIO_2					BIT(1)
+#define RADIO_3					BIT(2)
+#define RADIO_4					BIT(3)
+#define RADIO_5					BIT(4)
+#define RADIO_6					BIT(5)
+#define RADIO_7					BIT(6)
+#define RADIO_8					BIT(7)
+#define RADIO_9					BIT(8)
+#define RADIO_10				BIT(9)
+#define RADIO_BACK				BIT(10)
+#define RADIO_COVER				BIT(11)
+#define RADIO_DOWN				BIT(12)
+#define RADIO_ENEMY_DOWN		BIT(13)
+#define RADIO_ENEMY_SIGHTED		BIT(14)
+#define RADIO_FORWARD			BIT(15)
+#define RADIO_GO				BIT(16)
+#define RADIO_IM_HIT			BIT(17)
+#define RADIO_LEFT				BIT(18)
+#define RADIO_REPORTIN			BIT(19)
+#define RADIO_RIGHT				BIT(20)
+#define RADIO_TAKING_FIRE		BIT(21)
+#define RADIO_TEAMMATE_DOWN		BIT(22)
+#define RADIO_TEAM_REPORT_IN	BIT(23)
+#define RADIO_UP				BIT(24)
 
 // Each of the possible radio messages and their length
 typedef struct bot_radio_msg_s
