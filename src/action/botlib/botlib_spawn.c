@@ -1424,6 +1424,7 @@ edict_t* BOTLIB_SpawnBot(int team, int force_gender, char* force_name, char* for
 	else
 		bot->bot.bot_baseline_ping = (int)(7 + (random() * 227)); // High ping bastard
 	gi.SV_BotConnect(bot->client->pers.netname); // So the server can fake the bot as a 'client'
+	game.bot_count++;
 	//rekkie -- Fake Bot Client -- e
 
 	return bot;
@@ -1464,6 +1465,7 @@ void BOTLIB_RemoveBot(char* name)
 					//bot->inuse = false;
 					freed = true;
 					ClientDisconnect(bot);
+					game.bot_count--;
 					if (bot_chat->value && !remove_all)
 						BOTLIB_Chat(bot, CHAT_GOODBYE);
 					//gi.bprintf (PRINT_MEDIUM, "%s removed\n", bot->client->pers.netname);
@@ -1517,11 +1519,12 @@ void BOTLIB_RemoveBot(char* name)
 				//bot->inuse = false;
 				freed = true;
 				ClientDisconnect(bot);
+				game.bot_count--;
 				//gi.bprintf (PRINT_MEDIUM, "%s removed\n", bot->client->pers.netname);
 				break;
 			}
 			if (bot->is_bot)
-				bot_count++;
+				bot_count--;
 		}
 	}
 
@@ -1559,6 +1562,8 @@ void BOTLIB_RemoveTeamplayBot(int team)
 							bot_connections.total_team2--;
 						else if (team == TEAM3)
 							bot_connections.total_team3--;
+
+						game.bot_count--;
 
 						if (bot->health)
 							player_die(bot, bot, bot, 100000, vec3_origin);

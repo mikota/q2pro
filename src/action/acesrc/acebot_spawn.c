@@ -638,6 +638,7 @@ edict_t *ACESP_SpawnBot( char *team_str, char *name, char *skin, char *userinfo 
 	else
 		bot->bot.bot_baseline_ping = (int)(7 + (random() * 227)); // Country + overseas ping
 	gi.SV_BotConnect(bot->client->pers.netname); // So the server can fake the bot as a 'client'
+	game.bot_count++;
 	//rekkie -- Fake Bot Client -- e
 	
 	//bot->wander_timeout = level.framenum + 60.0 * HZ;
@@ -704,6 +705,7 @@ void ACESP_RemoveBot(char *name)
 //				bot->inuse = false;
 				freed = true;
 				ClientDisconnect( bot );
+				game.bot_count--;
 //				ACEIT_PlayerRemoved (bot);
 //				gi.bprintf (PRINT_MEDIUM, "%s removed\n", bot->client->pers.netname);
 				if( ! remove_all )
@@ -760,6 +762,7 @@ void ACESP_RemoveTeamplayBot(int team)
 						//rekkie -- Fake Bot Client -- s
 						gi.SV_BotDisconnect(bot->client->pers.netname); // So the server can remove the fake client
 						//rekkie -- Fake Bot Client -- e
+						game.bot_count--;
 
 						if (bot->health)
 							player_die(bot, bot, bot, 100000, vec3_origin);

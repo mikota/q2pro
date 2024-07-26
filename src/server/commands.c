@@ -555,7 +555,7 @@ static void dump_bot_clients(void)
         "num score ping name\n"
         "--- ----- ---- ---------------\n");
 
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < MAX_CLIENTS; i++) {
         if(bot_clients[i].in_use) {
             Com_Printf("%3i %5i ", bot_clients[i].number, bot_clients[i].score);
             Com_Printf("%4i ", bot_clients[i].ping);
