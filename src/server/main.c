@@ -1147,6 +1147,7 @@ void SV_BotInit(void)
         bot_clients[i].name[0] = 0;
         bot_clients[i].ping = 0;
         bot_clients[i].score = 0;
+        bot_clients[i].number = i;
     }
 }
 // Game DLL updates Server of bot info
@@ -1176,6 +1177,7 @@ void SV_BotConnect(char* name)
             Q_snprintf(bot_clients[i].name, sizeof(bot_clients[i].name), "%s", name);
             bot_clients[i].ping = 0;
             bot_clients[i].score = 0;
+            bot_clients[i].number = i;
             Com_Printf("%s Server added %s as a fake client\n", __func__, bot_clients[i].name);
             break;
         }

@@ -255,6 +255,9 @@ typedef struct {
 #define FOR_EACH_CLIENT(client) \
     LIST_FOR_EACH(client_t, client, &sv_clientlist, entry)
 
+#define FOR_EACH_BOT_CLIENT(bot_client) \
+    LIST_FOR_EACH_BOT_CLIENT(bot_client_t, bot_client, &sv_botclientlist)
+
 #define CLIENT_ACTIVE(cl) \
     ((cl)->state == cs_spawned && !(cl)->download && !(cl)->nodata)
 
@@ -898,5 +901,8 @@ typedef struct bot_client_s {
     char name[16];
     int ping;
     short score;
+    int number;
+    list_t *next; // Assuming this is the field used for list linkage
+
 } bot_client_t;
 //rekkie -- Fake Bot Client -- e

@@ -9,14 +9,17 @@
 #define BOT_NAV_VERSION_MAX BOT_NAV_VERSION_2
 
 // Bot move states
-#define BOT_MOVE_STATE_NONE		0	// Bot is booting up :-)
-#define BOT_MOVE_STATE_NAV		1	// Getting a navigational path
-//#define BOT_MOVE_STATE_NAV_NEXT	2	// Getting next navigational path (if any)
-#define BOT_MOVE_STATE_MOVE		3	// Standard movement
-#define BOT_MOVE_STATE_WANDER	4	// No navigation and no movement, try wandering around
-#define BOT_MOVE_STATE_STAND	5	// Stand still and hold a position
-#define BOT_MOVE_STATE_FLEE		6	// Running away from enemy force
-#define BOT_MOVE_STATE_COVER	7	// Under fire, take cover
+typedef enum
+{
+	BOT_MOVE_STATE_NONE = 0,    // Bot is booting up :-)
+	BOT_MOVE_STATE_NAV,         // Getting a navigational path
+	//BOT_MOVE_STATE_NAV_NEXT,  // Getting next navigational path (if any)
+	BOT_MOVE_STATE_MOVE,        // Standard movement
+	BOT_MOVE_STATE_WANDER,      // No navigation and no movement, try wandering around
+	BOT_MOVE_STATE_STAND,       // Stand still and hold a position
+	BOT_MOVE_STATE_FLEE,        // Running away from enemy force
+	BOT_MOVE_STATE_COVER        // Under fire, take cover
+} bot_move_state_t;
 
 
 typedef struct bot_connections_s
@@ -178,7 +181,6 @@ typedef struct esp_status_s
 	int esp_team1_leader_area; // ATL: Approximate area where team1 leader is (helps bots find the bad guy)
 	int esp_team2_leader_area; // ATL: Approximate area where team1 leader is (helps bots find the bad guy)
 	int esp_team3_leader_area; // ATL: Approximate area where team1 leader is (helps bots find the bad guy)
-
 } esp_status_t;
 extern esp_status_t bot_esp_status;
 

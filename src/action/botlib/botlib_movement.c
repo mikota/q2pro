@@ -5863,10 +5863,11 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 		}
 	}
 #endif
-
+	
+	// This only applies for teamplay
+	
 	// Do not follow path when teammates are still inside us.
-	if (OnTransparentList(self)) // Teamplay
-	{
+	if (OnTransparentList(self)) { // Teamplay
 		// If the bot has just spawned, then we need to wait a bit before we start moving.
 		if (self->just_spawned) // set by SpawnPlayers() in a_team.c
 		{
@@ -5885,7 +5886,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 				else if (rnd_rng == 1)
 					self->just_spawned_timeout = level.framenum + (random() * 2) * HZ;	// Medium wait
 				else if (rnd_rng == 2)
-					self->just_spawned_timeout = level.framenum + (random() * 1) * HZ;  // Short wait
+					self->just_spawned_timeout = level.framenum + (random() * HZ);  // Short wait
 				else
 					self->just_spawned_timeout = 0;										// No wait
 			}
@@ -5902,7 +5903,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 		// Go!
 		if (self->just_spawned_go || self->bot.see_enemies)
 		{
-			//BOTLIB_PickLongRangeGoal(self);
+			BOTLIB_PickLongRangeGoal(self);
 			self->just_spawned_go = false; // Now we can move!
 		}
 	}

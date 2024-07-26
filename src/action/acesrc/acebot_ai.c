@@ -71,6 +71,24 @@ void ACEAI_Think(edict_t* self)
 	//Com_Printf("%s\n", __func__);
 } // hehe I think not
 
+qboolean BOTLIB_ChooseRandomNode(edict_t* self, int iter)
+{
+	// Random node
+	for (int i = 0; i < iter; i++)
+	{
+		int n = rand() % numnodes; // pick a random node
+		//Com_Printf("%s %s RNG Node[%i]\n", __func__, self->client->pers.netname, nodes[n].nodenum);
+		if (BOTLIB_CanGotoNode(self, nodes[n].nodenum, rand() % 2))
+		{
+			Com_Printf("%s %s visiting [RNG] node[%i]\n", __func__, self->client->pers.netname, nodes[n].nodenum);
+			return true;
+		} else {
+			Com_Printf("%s %s visiting [RNG] node[%i] failed\n", __func__, self->client->pers.netname, nodes[n].nodenum);
+			return false;
+		}
+	}
+	return false;
+}
 
 void BOTLIB_PickLongRangeGoal(edict_t* self)
 {
@@ -81,6 +99,7 @@ void BOTLIB_PickLongRangeGoal(edict_t* self)
 	edict_t* goal_ent = NULL;
 	float cost = INVALID;
 	int counter = 0;
+	int max_random_retries = 10;
 
 	// Clear old Node -> Node movement types
 	//self->prev_to_curr_node_type = INVALID;
@@ -354,16 +373,15 @@ void BOTLIB_PickLongRangeGoal(edict_t* self)
 		}
 		
 		// Random node
-		for (int i = 0; i < 128; i++)
-		{
-			int n = rand() % numnodes; // pick a random node
-			//Com_Printf("%s %s RNG Node[%i]\n", __func__, self->client->pers.netname, nodes[n].nodenum);
-			if (BOTLIB_CanGotoNode(self, nodes[n].nodenum, rand() % 2))
+		int retries = 0;
+			while (retries < max_random_retries)
 			{
-				//Com_Printf("%s %s visiting [RNG] node[%i]\n", __func__, self->client->pers.netname, nodes[n].nodenum);
-				return;
+				if (BOTLIB_ChooseRandomNode(self, 128))
+				{
+					return true;
+				}
+				retries++;
 			}
-		}
 	}
 
 	Com_Printf("%s %s BOT_MOVE_STATE_NAV couldn't find a good path [%d]\n", __func__, self->client->pers.netname, level.framenum);

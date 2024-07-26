@@ -799,32 +799,32 @@ qboolean BOTLIB_CanGotoNode(edict_t* self, int goal_node, qboolean path_randomiz
 	self->bot.node_list_count = 0;
 
 	// New pathing - if area nodes are supported
-	// if (nav_area.total_areas > 0 && goal_node)
-	// {
-	// 	Com_Printf("%s %s goal_node[%i]\n", __func__, self->client->pers.netname, goal_node);
-	// 	if (BOTLIB_CanVisitAreaNode(self, goal_node)) // Get area-to-area (low resolution) path
-	// 	{
-	// 		while (BOTLIB_GetNextAreaNode(self)) // Get node-to-node (full resolution) path using area-to-area path
-	// 		{
-	// 		}
+	if (nav_area.total_areas > 0 && goal_node)
+	{
+		Com_Printf("%s %s goal_node[%i]\n", __func__, self->client->pers.netname, goal_node);
+		if (BOTLIB_CanVisitAreaNode(self, goal_node)) // Get area-to-area (low resolution) path
+		{
+			while (BOTLIB_GetNextAreaNode(self)) // Get node-to-node (full resolution) path using area-to-area path
+			{
+			}
 
-	// 		// Add the goal to the end of the node list + terminate
-	// 		if (self->bot.node_list_count)
-	// 		{
-	// 			self->bot.node_list[self->bot.node_list_count++] = self->bot.goal_node; // Save goal node
-	// 			self->bot.node_list[self->bot.node_list_count] = INVALID; // Terminate
-	// 		}
+			// Add the goal to the end of the node list + terminate
+			if (self->bot.node_list_count)
+			{
+				self->bot.node_list[self->bot.node_list_count++] = self->bot.goal_node; // Save goal node
+				self->bot.node_list[self->bot.node_list_count] = INVALID; // Terminate
+			}
 
-	// 		return true; // Success
-	// 	}
-	// 	else
-	// 	{
-	// 		Com_Printf("%s %s failed #1 \n", __func__, self->client->pers.netname);
-	// 		return false; // Failure
-	// 	}
-	// }
-	// else // Fallback to old pathing
-	// {
+			return true; // Success
+		}
+		else
+		{
+			Com_Printf("%s %s failed #1 \n", __func__, self->client->pers.netname);
+			return false; // Failure
+		}
+	}
+	else // Fallback to old pathing
+	{
 		self->bot.goal_node = INVALID;
 		//gi.dprintf("BOTLIB_CanVisitNode? %d\n", BOTLIB_CanVisitNode(self, nodes[goal_node].nodenum, path_randomization, INVALID, false));
 		if (BOTLIB_CanVisitNode(self, nodes[goal_node].nodenum, path_randomization, INVALID, false))
@@ -838,9 +838,9 @@ qboolean BOTLIB_CanGotoNode(edict_t* self, int goal_node, qboolean path_randomiz
 
 			return true; // Success
 		}
-	//}
+	}
 
-	Com_Printf("%s %s failed #2 \n", __func__, self->client->pers.netname);
+	//Com_Printf("%s %s failed #2 \n", __func__, self->client->pers.netname);
 	return false; // Failure to find path
 }
 
@@ -1942,7 +1942,7 @@ qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_rando
 
 	// Sanity check
 	if (from == INVALID || to == INVALID) {
-		gi.dprintf("both from and to nodes were invalid\n");
+		gi.dprintf("both from and to nodes were invalid, to: %i, from: %i\n", to, from);
 		return false;
 	}
 

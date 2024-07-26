@@ -701,7 +701,9 @@ void BOTLIB_Think(edict_t* self)
 		goto end_think; // Skip bot logic
 	}
 
-	if (level.framenum < 75) // Wait for a little before processing AI on a new map
+	// darksaint: reduced this to 15 because bots aren't moving quickly enough on spawn and telefrags are happening
+	// Original value was 75
+	if (level.framenum < 15) // Wait for a little before processing AI on a new map
 		goto end_think; // Skip bot logic
 
 	if (ctf->value) // CTF Goals
