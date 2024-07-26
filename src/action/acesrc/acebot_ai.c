@@ -376,11 +376,8 @@ void BOTLIB_PickLongRangeGoal(edict_t* self)
 		int retries = 0;
 			while (retries < max_random_retries)
 			{
-				if (BOTLIB_ChooseRandomNode(self, 128))
-				{
-					return true;
-				}
-				retries++;
+				if (!BOTLIB_ChooseRandomNode(self, 128))
+					retries++;
 			}
 	}
 
