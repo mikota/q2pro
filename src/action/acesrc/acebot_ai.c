@@ -381,7 +381,7 @@ void BOTLIB_PickLongRangeGoal(edict_t* self)
 			}
 	}
 
-	Com_Printf("%s %s BOT_MOVE_STATE_NAV couldn't find a good path [%d]\n", __func__, self->client->pers.netname, level.framenum);
+	//Com_Printf("%s %s BOT_MOVE_STATE_NAV couldn't find a good path [%d]\n", __func__, self->client->pers.netname, level.framenum);
 	self->bot.goal_node = INVALID;
 	self->bot.state = BOT_MOVE_STATE_NAV; // Get new nav
 	return; // no path? 
