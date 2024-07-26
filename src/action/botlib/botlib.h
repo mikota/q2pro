@@ -169,6 +169,29 @@ typedef struct ctf_status_s
 } ctf_status_t;
 extern ctf_status_t bot_ctf_status;
 
+typedef struct esp_status_s
+{
+	edict_t* esp_target; // ETV: target edict
+	int esp_target_node; // ETV: the closest node where the target resides
+	qboolean esp_target_captured; // ETV: if we've already captured the target this round
+	float esp_leader_dist_to_target; // ETV: how close team1 leader is from the target
+	int esp_team1_leader_area; // ATL: Approximate area where team1 leader is (helps bots find the bad guy)
+	int esp_team2_leader_area; // ATL: Approximate area where team1 leader is (helps bots find the bad guy)
+	int esp_team3_leader_area; // ATL: Approximate area where team1 leader is (helps bots find the bad guy)
+
+} esp_status_t;
+extern esp_status_t bot_esp_status;
+
+// Get flag, retrieve flag, intercept flag carrier, etc.
+typedef enum
+{
+	BOT_ESP_STATE_NONE, // No / Normal state (both teams actively attacking)
+	BOT_ESP_COVER_TEAM_LEADER, // Cover the team leader
+	BOT_ESP_ATTACK_TARGET, // Attack the target (enemy leader or target area)
+	BOT_ESP_DEFEND_TARGET, // Defend the target (team leader or target area)
+	BOT_ESP_RETREAT, // Retreat from the target (enemy leader or target area)
+} bot_esp_state_t;
+
 // Get flag, retrieve flag, intercept flag carrier, etc.
 typedef enum
 {

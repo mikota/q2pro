@@ -6437,6 +6437,21 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 			self->bot.bi.speed = move_speed; // Set our suggested speed
 		}
 
+		// Water!
+		/// Borrowed from P_WorldEffects
+		int waterlevel = self->waterlevel;
+		int old_waterlevel = self->client->old_waterlevel;
+		self->client->old_waterlevel = waterlevel;
+
+		if (current_node_type == NODE_WATER || waterlevel == 3){
+			gi.dprintf("I'm in the water %s and my air is %d\n", self->client->pers.netname, self->air_finished_framenum - level.framenum);
+			// Get out before you start drowning!
+			if (self->air_finished_framenum < level.framenum + 10) {
+				self->bot.bi.actionflags |= ACTION_MOVEUP;
+				self->bot.node_travel_time = 0;
+			}
+		}
+
 		// move, crouch, or jump
 		if (next_node_type == NODE_WATER)
 		{
@@ -6444,7 +6459,6 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 			self->bot.bi.actionflags &= ~ACTION_MOVEDOWN;
 			self->bot.bi.actionflags &= ~ACTION_CROUCH;
 
-			gi.dprintf("I'm in the water %s and my air is %d\n", self->client->pers.netname, self->air_finished_framenum - level.framenum);
 			//VectorClear(self->bot.bi.dir);
 			//self->bot.bi.speed = 0;
 
@@ -6473,7 +6487,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 			else if ((contents_feet & MASK_WATER) && nodes[self->bot.next_node].origin[2] > self->s.origin[2]) // Move up
 			{
 				//self->bot.bi.actionflags |= ACTION_MOVEUP;
-				// darksaint: changed this to MOVEUP and MOVEFORWARD simultanously to get out of water
+				// darksaint: changed this to MOVEUP and MOVEFORWARD simultanously to get out of water?
 				self->bot.bi.actionflags |= (ACTION_MOVEUP | ACTION_MOVEFORWARD);
 				//Com_Printf("%s %s [%d] water: move up\n", __func__, self->client->pers.netname, level.framenum);
 			}
@@ -6524,39 +6538,37 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 
 		if (next_node_type == NODE_MOVE)
 		{
-			/*
-			if (BOTLIB_CanMoveDir(self, walkdir) == false)
-			{
-				// We can't move in this direction
-				Com_Printf("%s %s can't move safely in direction\n", __func__, self->client->pers.netname);
-				self->bot.stuck_wander_time = 15;
-				self->bot.bi.actionflags |= ACTION_HOLDPOS; // Stop moving
-				return;
-			}
-			*/
-			/*
-			float fwd_distance = 32;
-			tr = gi.trace(self->s.origin, NULL, NULL, tv(self->s.origin[0], self->s.origin[1], self->s.origin[2] - 128), self, (MASK_PLAYERSOLID | MASK_OPAQUE));
-			if (tr.plane.normal[2] < 0.99) // If on a slope that makes the player 'bounce' when moving down the slope
-				fwd_distance = 128; // Extend the distance we check for a safe direction to move toward
+			
+			// if (BOTLIB_CanMoveDir(self, walkdir) == false)
+			// {
+			// 	// We can't move in this direction
+			// 	Com_Printf("%s %s can't move safely in direction\n", __func__, self->client->pers.netname);
+			// 	self->bot.stuck_wander_time = 15;
+			// 	self->bot.bi.actionflags |= ACTION_HOLDPOS; // Stop moving
+			// 	return;
+			// }
+			
+			// float fwd_distance = 32;
+			// tr = gi.trace(self->s.origin, NULL, NULL, tv(self->s.origin[0], self->s.origin[1], self->s.origin[2] - 128), self, (MASK_PLAYERSOLID | MASK_OPAQUE));
+			// if (tr.plane.normal[2] < 0.99) // If on a slope that makes the player 'bounce' when moving down the slope
+			// 	fwd_distance = 128; // Extend the distance we check for a safe direction to move toward
 
-			// Prevent bot from falling off a ledge by reversing its velocity, pulling it away from the ledge
-			if (BOTLIB_CanMoveInDirection(self, walkdir, fwd_distance, NODE_MAX_CROUCH_FALL_HEIGHT, false) == false);
-			{
-				if (level.framenum > self->bot.stuck_last_negate)
-				{
-					// Only allow this to happen once every 60 seconds
-					// It's reset after 60 seconds, death, or touching ground again
-					self->bot.stuck_last_negate = level.framenum + 60 * HZ;
+			// // Prevent bot from falling off a ledge by reversing its velocity, pulling it away from the ledge
+			// if (BOTLIB_CanMoveInDirection(self, walkdir, fwd_distance, NODE_MAX_CROUCH_FALL_HEIGHT, false) == false)
+			// {
+			// 	if (level.framenum > self->bot.stuck_last_negate)
+			// 	{
+			// 		// Only allow this to happen once every 60 seconds
+			// 		// It's reset after 60 seconds, death, or touching ground again
+			// 		self->bot.stuck_last_negate = level.framenum + 60 * HZ;
 
-					Com_Printf("%s %s stuck_last_negate N[%d] L[%d] \n", __func__, self->client->pers.netname, self->bot.stuck_last_negate, level.framenum);
+			// 		Com_Printf("%s %s stuck_last_negate N[%d] L[%d] \n", __func__, self->client->pers.netname, self->bot.stuck_last_negate, level.framenum);
 
-					// Reverse the direction
-					VectorNegate(self->velocity, self->velocity);
-					VectorClear(self->bot.bi.dir);
-				}
-			}
-			*/
+			// 		// Reverse the direction
+			// 		VectorNegate(self->velocity, self->velocity);
+			// 		VectorClear(self->bot.bi.dir);
+			// 	}
+			// }
 		}
 
 		//if (next_node_type == NODE_JUMPPAD || next_node_type == NODE_JUMP)
