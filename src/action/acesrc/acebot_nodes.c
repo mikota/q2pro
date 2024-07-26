@@ -77,6 +77,11 @@ int show_path_to = INVALID;
 // array for node data
 //rekkie -- DEV_1 -- s
 node_t *unsorted_nodes; // Used to generate all links, so they can be sorted, then copied to nodes
+edict_t *node_ents[MAX_EDICTS]; // Define the node_ents variable
+int num_vis_nodes = 0; // Number of visible nodes
+int node_vis[10][10]; // Cached node visibily. node_vis[X][Y] <-- can X see Y? If Y == INVALID, then false. Otherwise Y == NODE NUM
+int node_vis_list[10][MAX_VIS_NODES]; // Cached node visibility list. node_vis_list[X][list-of-nodes-x-can-see]  <-- All the nodes that X can see.
+
 //node_t *nodes = NULL; // Memory allocated nodes
 //node_t nodes[MAX_PNODES];
 //#define MAX_PNODES 65536 // Absolute max nodes 64k
@@ -299,7 +304,7 @@ int ACEND_FindClosestReachableNode(edict_t *self, int range, int type)
 		}
 	}
 
-	Com_Printf("%s [%s] node %d\n", __func__, self->client->pers.netname, node);
+	//Com_Printf("%s [%s] node %d\n", __func__, self->client->pers.netname, node);
 	
 	return node;
 }

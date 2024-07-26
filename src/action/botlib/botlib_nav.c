@@ -631,13 +631,14 @@ void BOTLIB_InitAreaConnections(void)
 					targetNode = nodes[n].links[l].targetNode;
 					targetArea = nodes[targetNode].area;
 
-					// ## darksaint: removed area check for creating adjacency matrix
+					//nav_area.adjacency_matrix[i][targetArea] = targetArea;
 					//gi.dprintf("Node[%d] Area[%d] connects to Node[%d] Area[%d]\n", n, i, targetNode, targetArea);
-					//if (targetArea != INVALID && targetArea != i)
-					// if (targetArea != i)
-					// {
-					nav_area.adjacency_matrix[i][targetArea] = targetArea;
-					//}
+					if (targetArea != INVALID && targetArea != i) {
+						if (targetArea != i)
+						{
+							nav_area.adjacency_matrix[i][targetArea] = targetArea;
+						}
+					}
 				}
 			}
 		}

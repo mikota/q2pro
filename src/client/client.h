@@ -729,6 +729,10 @@ typedef struct {
     int entity1;
     int entity2;
     int time;
+    //rekkie -- surface data -- s
+    unsigned int acolor; // arrow color
+    byte width; // line width
+    //rekkie -- surface data -- e
 } tent_params_t;
 
 typedef struct {

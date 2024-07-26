@@ -914,7 +914,8 @@ void ACEAI_PickSafeGoal(edict_t *self)
 		self->state = STATE_FLEE;
 		self->tries = 0; // Reset the count of how many times we tried this goal
 
-		// This func has been deprecated in favor of BOTLIB_CanVisitNode, but it's unusable here
+		// This func has been deprecated in favor of BOTLIB_CanVisitNode
+		BOTLIB_CanVisitNode(self, nodes[goal_node].nodenum, false, INVALID, false);
 		//BOTLIB_SetGoal(self,i);
 		self->wander_timeout = level.framenum + 2.0 * HZ;
 //		LTK_Say (self, "Under fire, extracting!");

@@ -480,7 +480,4 @@ int BOTLIB_GetEquipment(edict_t* self);
 //rekkie -- collecting weapons, items, ammo -- e
 
 
-
-
-
 #endif // _BOTLIB_H

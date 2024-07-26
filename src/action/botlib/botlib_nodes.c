@@ -2,14 +2,11 @@
 #include "../acesrc/acebot.h"
 #include "botlib.h"
 
-int num_poi_nodes;
-int poi_nodes[MAX_POI_NODES];
-edict_t* node_ents[MAX_EDICTS]; // If the node is attached to an entity (such as a NODE_DOOR being attached to a func_door_rotating or func_door entity)
-int num_vis_nodes;
-int node_vis[10][10]; // Cached node visibily. node_vis[X][Y] <-- can X see Y? If Y == INVALID, then false. Otherwise Y == NODE NUM
-int node_vis_list[10][MAX_VIS_NODES]; // Cached node
-node_t *nodes;
-nmesh_t nmesh;
+int num_poi_nodes = 0;
+int poi_nodes[MAX_POI_NODES] = { INVALID };
+// edict_t* node_ents[MAX_EDICTS]; // If the node is attached to an entity (such as a NODE_DOOR being attached to a func_door_rotating or func_door entity)
+node_t *nodes = NULL;
+nmesh_t nmesh = { 0 };
 
 // Free nodes
 void BOTLIB_FreeNodes(void)

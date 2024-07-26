@@ -832,4 +832,13 @@ void ThreadLock(void);
 void ThreadUnlock(void);
 //rekkie -- Quake3 -- e
 
+
+extern int num_poi_nodes;
+extern int poi_nodes[MAX_POI_NODES];
+extern edict_t* node_ents[MAX_EDICTS]; // If the node is attached to an entity (such as a NODE_DOOR being attached to a func_door_rotating or func_door entity)
+extern int num_vis_nodes;
+extern int node_vis[10][10]; // Cached node visibily. node_vis[X][Y] <-- can X see Y? If Y == INVALID, then false. Otherwise Y == NODE NUM
+extern int node_vis_list[10][MAX_VIS_NODES]; // Cached node
+extern node_t *nodes;
+extern nmesh_t nmesh;
 #endif

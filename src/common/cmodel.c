@@ -180,6 +180,23 @@ void CM_FreeMap(cm_t *cm)
 
     BSP_Free(cm->cache);
 
+    //rekkie -- surface data -- s
+    //nav_t* tmpnav = cm->nav; // Save nav pointer
+    //if (cm->nav != NULL)  cm->nav = NULL; // Unhook the nav pointer so it doesn't get cleared by memset
+    if (cm->nav)
+    {
+        if (cm->nav->surface_data_faces)
+		{
+            Z_Free(cm->nav->surface_data_faces);
+			//free(cm->nav->surface_data_faces);
+			//cm->nav->surface_data_faces = NULL;
+		}
+        Z_Free(cm->nav);
+        //free(cm->nav);
+        //cm->nav = NULL;
+    }
+    //rekkie -- surface data -- e
+
     memset(cm, 0, sizeof(*cm));
 }
 

@@ -5881,11 +5881,11 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 				// Otherwise pick from various wait times before moving out
 				int rnd_rng = rand() % 4;
 				if (rnd_rng == 0)
-					self->just_spawned_timeout = level.framenum + (random() * 6) * HZ;	// Long wait
+					self->just_spawned_timeout = level.framenum + (random() * 3) * HZ;	// Long wait
 				else if (rnd_rng == 1)
-					self->just_spawned_timeout = level.framenum + (random() * 4) * HZ;	// Medium wait
+					self->just_spawned_timeout = level.framenum + (random() * 2) * HZ;	// Medium wait
 				else if (rnd_rng == 2)
-					self->just_spawned_timeout = level.framenum + (random() * 2) * HZ;  // Short wait
+					self->just_spawned_timeout = level.framenum + (random() * 1) * HZ;  // Short wait
 				else
 					self->just_spawned_timeout = 0;										// No wait
 			}
@@ -6391,7 +6391,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 			//Com_Printf("%s %s invalid types node:curr/next/goal[%d %d %d]  type:curr/next[%d %d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.next_node, self->bot.goal_node, current_node_type, next_node_type);
 
 			// Path failed, so try again
-			//BOTLIB_CanVisitNode(self, self->bot.goal_node, false, nodes[self->bot.goal_node].area);
+			//BOTLIB_CanVisitNode(self, self->bot.goal_node, false, nodes[self->bot.goal_node].area, true);
 
 			/*
 			if (self->bot.goal_node != INVALID)
@@ -6444,6 +6444,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 			self->bot.bi.actionflags &= ~ACTION_MOVEDOWN;
 			self->bot.bi.actionflags &= ~ACTION_CROUCH;
 
+			gi.dprintf("I'm in the water %s and my air is %d\n", self->client->pers.netname, self->air_finished_framenum - level.framenum);
 			//VectorClear(self->bot.bi.dir);
 			//self->bot.bi.speed = 0;
 
@@ -6458,7 +6459,8 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 			int contents_feet = gi.pointcontents(temp);
 
 			// Almost out of air, start heading up to the surface
-			if ((contents_feet & MASK_WATER) && self->air_finished_framenum < level.framenum + 5) // Move up to get air
+			//if ((contents_feet & MASK_WATER) && self->air_finished_framenum < level.framenum + 5) // Move up to get air
+			if (self->air_finished_framenum < level.framenum + 5) // Move up to get air
 			{
 				self->bot.bi.actionflags |= ACTION_MOVEUP;
 				self->bot.node_travel_time = 0; // Ignore node travel time while we get some air
@@ -6496,7 +6498,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 				VectorSubtract(nodes[self->bot.next_node].origin, self->s.origin, bot_to_node);
 				bot_to_node[2] = 0;
 				float xy_bot_to_next_dist = VectorLength(bot_to_node); // Distance from bot to next node
-				if (xy_bot_to_next_dist > 32 && xy_bot_to_next_dist <= 128)
+				if (xy_bot_to_next_dist > 16 && xy_bot_to_next_dist <= 150)
 				{
 					// Line of sight
 					tr = gi.trace(self->s.origin, NULL, NULL, nodes[self->bot.next_node].origin, self, MASK_PLAYERSOLID);
