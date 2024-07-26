@@ -255,9 +255,6 @@ typedef struct {
 #define FOR_EACH_CLIENT(client) \
     LIST_FOR_EACH(client_t, client, &sv_clientlist, entry)
 
-#define FOR_EACH_BOT_CLIENT(bot_client) \
-    LIST_FOR_EACH_BOT_CLIENT(bot_client_t, bot_client, &sv_botclientlist)
-
 #define CLIENT_ACTIVE(cl) \
     ((cl)->state == cs_spawned && !(cl)->download && !(cl)->nodata)
 
@@ -589,7 +586,6 @@ extern cvar_t       *sv_ghostime;
 extern client_t     *sv_client;
 extern edict_t      *sv_player;
 
-
 //===========================================================
 
 //
@@ -902,7 +898,7 @@ typedef struct bot_client_s {
     int ping;
     short score;
     int number;
-    list_t *next; // Assuming this is the field used for list linkage
-
 } bot_client_t;
+extern bot_client_t bot_clients[MAX_CLIENTS];
+
 //rekkie -- Fake Bot Client -- e

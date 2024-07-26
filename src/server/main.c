@@ -19,9 +19,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "server.h"
 #include "client/input.h"
 
-pmoveParams_t   sv_pmp;
-
 bot_client_t bot_clients[MAX_CLIENTS];
+
+pmoveParams_t   sv_pmp;
 
 master_t    sv_masters[MAX_MASTERS];   // address of group servers
 

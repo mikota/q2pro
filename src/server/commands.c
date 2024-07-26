@@ -541,52 +541,29 @@ static void dump_clients(void)
     }
 }
 
-list_t sv_botclientlist;
 
 static void dump_bot_clients(void)
 {
-    bot_client_t *bot_client;
+    // Display nothing if no bots
+    if (!bot_clients[0].in_use) {
+        return;
+    }
 
     Com_Printf(
-        "num score ping name            lastmsg address                rate pr fps\n"
-        "--- ----- ---- --------------- ------- --------------------- ----- -- ---\n");
+        "\n"
+        "Bot Clients.\n"
+        "num score ping name\n"
+        "--- ----- ---- ---------------\n");
 
-    LIST_FOR_EACH_BOT_CLIENT(bot_client, &sv_botclientlist) {
-
-        Com_Printf("%3i %5i ", bot_client->number, bot_client->score);
-        Com_Printf("%4i ", bot_client->ping);
-        Com_Printf("%-15.15s ", bot_client->name);
-        Com_Printf("N/A     "); // Bots don't have lastmsg, address, rate, protocol, or fps
-        Com_Printf("N/A                     ");
-        Com_Printf("N/A   ");
-        Com_Printf("N/A ");
-        Com_Printf("N/A ");
-        Com_Printf("\n");
+    for (int i = 0; i < 32; i++) {
+        if(bot_clients[i].in_use) {
+            Com_Printf("%3i %5i ", bot_clients[i].number, bot_clients[i].score);
+            Com_Printf("%4i ", bot_clients[i].ping);
+            Com_Printf("%-15.15s ", bot_clients[i].name);
+            Com_Printf("\n");
+        }
     }
 }
-
-// static void dump_bot_clients(void)
-// {
-//     bot_client_t    *client;
-
-//     Com_Printf(
-//         "num score ping name            lastmsg address                rate pr fps\n"
-//         "--- ----- ---- --------------- ------- --------------------- ----- -- ---\n");
-//     FOR_EACH_CLIENT(client) {
-//         Com_Printf("%3i %5i ", client->number,
-//                    client->score);
-
-//         Com_Printf("BOT ");
-//         Com_Printf("%4i ", client->ping < 9999 ? client->ping : 9999);
-//         Com_Printf("%-15.15s ", client->name);
-//         Com_Printf("%7u ", 0);
-//         Com_Printf("%-21s ", "localhost");
-//         Com_Printf("%5i ", 0);
-//         Com_Printf("%2i ", 0);
-//         Com_Printf("%3i ", 0);
-//         Com_Printf("\n");
-//     }
-// }
 
 static void dump_versions(void)
 {
@@ -749,11 +726,10 @@ static void SV_Status_f(void)
     }
     Com_Printf("\n");
 
-    // darksaint: revisit someday, get bots popuate in 'status' command
-    // if (!LIST_EMPTY(&sv_botclientlist)) {
-    //     dump_bot_clients();
-    // }
-    // Com_Printf("\n");
+    #ifndef NO_BOTS
+    dump_bot_clients();
+    Com_Printf("\n");
+    #endif
 
     SV_MvdStatus_f();
 }

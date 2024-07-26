@@ -121,11 +121,6 @@ static inline void List_Remove(list_t *elem)
          !LIST_TERM(cursor, list, member); \
          cursor = LIST_NEXT(type, cursor, member))
 
-#define LIST_FOR_EACH_BOT_CLIENT(var, list) \
-    for (bot_client_t *var = (bot_client_t *)((char *)(list)->next - offsetof(bot_client_t, next)); \
-         (void *)&var->next != (void *)(list); \
-         var = (bot_client_t *)((char *)var->next - offsetof(bot_client_t, next)))
-
 #define LIST_FOR_EACH_SAFE(type, cursor, next, list, member) \
     for (cursor = LIST_FIRST(type, list, member); \
          next = LIST_NEXT(type, cursor, member), \
