@@ -4797,6 +4797,9 @@ void BOTLIB_Look(edict_t* self, usercmd_t* ucmd)
 	//float turn_speed = (MAX_BOTSKILL - self->bot.skill) * 3 / 9; // [Min:0 Max:10] skill "10" == 0, Skill "0" == 3
 	float turn_speed = 0.3;
 	qboolean reached_look_at = false;
+	// Declarations moved outside the labeled block
+	const int look_ahead = 5;
+	qboolean found_viable_node = false;	
 
 	if (VectorEmpty(self->bot.bi.look_at) == false)
 	{
@@ -5131,11 +5134,7 @@ void BOTLIB_Look(edict_t* self, usercmd_t* ucmd)
 	// If no enemy, look at nodes in front/behind, or look at map center
 	else // if (self->enemy == NULL)
 	{
-
 	LookAhead:
-
-		const int look_ahead = 5;
-		qboolean found_viable_node = false;
 		for (int i = self->bot.node_list_current; i < self->bot.node_list_count; i++) // Loop from current node until end of list
 		{
 			/*
