@@ -1043,7 +1043,7 @@ void DC_LoadRandomBotName(char *userinfo)
 	int		 curr_len;				// Current length of the line
 	char	 curr_line[1024];		// Accounts for reading lines that could be fairly long (comments)
 	curr_line[0] = '\0';
-#ifdef WIN32 
+#ifdef _WIN32
 	int		i; // Keep track where we are in the filename array
 #endif
 	
