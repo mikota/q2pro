@@ -80,10 +80,10 @@ qboolean BOTLIB_ChooseRandomNode(edict_t* self, int iter)
 		//Com_Printf("%s %s RNG Node[%i]\n", __func__, self->client->pers.netname, nodes[n].nodenum);
 		if (BOTLIB_CanGotoNode(self, nodes[n].nodenum, rand() % 2))
 		{
-			Com_Printf("%s %s visiting [RNG] node[%i]\n", __func__, self->client->pers.netname, nodes[n].nodenum);
+			//Com_Printf("%s %s visiting [RNG] node[%i]\n", __func__, self->client->pers.netname, nodes[n].nodenum);
 			return true;
 		} else {
-			Com_Printf("%s %s visiting [RNG] node[%i] failed\n", __func__, self->client->pers.netname, nodes[n].nodenum);
+			//Com_Printf("%s %s visiting [RNG] node[%i] failed\n", __func__, self->client->pers.netname, nodes[n].nodenum);
 			return false;
 		}
 	}

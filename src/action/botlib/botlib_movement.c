@@ -5911,7 +5911,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 
 	if (self->groundentity && self->bot.next_node == INVALID) // No next node, pick new nav
 	{
-		Com_Printf("%s %s next_node is invalid; find a new path\n", __func__, self->client->pers.netname);
+		//Com_Printf("%s %s next_node is invalid; find a new path\n", __func__, self->client->pers.netname);
 		self->bot.bi.speed = 0;
 		self->bot.state = BOT_MOVE_STATE_NAV;
 		return;
@@ -5925,13 +5925,13 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 		//self->bot.bi.speed = 0;
 		//return;
 
-		Com_Printf("%s %s on ground and current_node (%i) is invalid; try to wander\n", __func__, self->client->pers.netname, self->bot.current_node);
+		//Com_Printf("%s %s on ground and current_node (%i) is invalid; try to wander\n", __func__, self->client->pers.netname, self->bot.current_node);
 		self->bot.bi.speed = 0;
 		self->bot.stuck_wander_time = 1;
 	}
 	if (self->groundentity && self->bot.goal_node == INVALID)// && self->bot.node_travel_time >= 15)
 	{
-		Com_Printf("%s %s on ground and goal_node (%i) is invalid; find a new path\n", __func__, self->client->pers.netname, self->bot.goal_node);
+		//Com_Printf("%s %s on ground and goal_node (%i) is invalid; find a new path\n", __func__, self->client->pers.netname, self->bot.goal_node);
 		self->bot.bi.speed = 0;
 		self->bot.state = BOT_MOVE_STATE_NAV;
 		return;
@@ -5976,7 +5976,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 	if (self->bot.node_travel_time >= 120) //60 // Bot failure to reach next node
 	{
 		self->bot.stuck_wander_time = 1;
-		Com_Printf("%s %s node_travel_time was hit! cur[%d] nxt[%d] goal[%d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.next_node, self->bot.goal_node);
+		//Com_Printf("%s %s node_travel_time was hit! cur[%d] nxt[%d] goal[%d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.next_node, self->bot.goal_node);
 	}
 
 	//self->bot.stuck_wander_time = 0;
@@ -5993,7 +5993,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 		// Wander
 		//if (nav_area.total_areas <= 0)
 		{
-			Com_Printf("%s %s stuck_wander\n", __func__, self->client->pers.netname);
+			//Com_Printf("%s %s stuck_wander\n", __func__, self->client->pers.netname);
 			self->bot.state = BOT_MOVE_STATE_NAV;
 			self->bot.goal_node = INVALID;
 		}
