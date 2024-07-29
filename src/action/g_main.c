@@ -823,6 +823,9 @@ void ClientEndServerFrames (void)
 
 	if (timedmsgs->value)
 		FireTimedMessages();
+
+	// Botlib chat
+	UpdateBotChat();
 }
 
 /*

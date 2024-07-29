@@ -3,6 +3,56 @@
 #include "botlib.h"
 #include "../m_player.h" // For waving frame types, i.e: FRAME_flip01
 
+
+// Delayed chat, somewhat more realistic
+#define MAX_MESSAGES 100
+
+typedef struct {
+	edict_t* bot;
+    char text[256];
+    int frameReceived;
+} ChatMessage;
+
+typedef struct {
+    ChatMessage messages[MAX_MESSAGES];
+    int count;
+} MessageQueue;
+
+MessageQueue chatQueue = { .count = 0 };
+
+void AddMessageToQueue(edict_t* bot, const char* text, int frameReceived) {
+    if (chatQueue.count < MAX_MESSAGES) {
+        chatQueue.messages[chatQueue.count].bot = bot;
+        strncpy(chatQueue.messages[chatQueue.count].text, text, sizeof(chatQueue.messages[chatQueue.count].text) - 1);
+        chatQueue.messages[chatQueue.count].frameReceived = frameReceived;
+        chatQueue.count++;
+    } else {
+        gi.dprintf("Chat queue is full, message dropped\n");
+    }
+}
+
+void ProcessChatQueue(int currentFrame) {
+    for (int i = 0; i < chatQueue.count; i++) {
+        if (currentFrame > chatQueue.messages[i].frameReceived + 40) {
+            // Send the chat message from the correct bot
+            BOTLIB_Say(chatQueue.messages[i].bot, chatQueue.messages[i].text, false);
+            //gi.dprintf("Sending delayed chat message from bot: %s\n", chatQueue.messages[i].text);
+
+            // Remove the message from the queue
+            for (int j = i; j < chatQueue.count - 1; j++) {
+                chatQueue.messages[j] = chatQueue.messages[j + 1];
+            }
+            chatQueue.count--;
+            i--; // Adjust index to account for removed message
+        }
+    }
+}
+
+// Call this function periodically, e.g., in the main game loop
+void UpdateBotChat() {
+    ProcessChatQueue(level.framenum);
+}
+
 // Borrowed from LTK bots
 #define DBC_WELCOMES 4
 char *botchat_welcomes[DBC_WELCOMES] =
@@ -54,6 +104,7 @@ char *botchat_insults[DBC_INSULTS] =
 
 void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype) {
 	char* text = NULL;
+	qboolean delayed = true;
 
 	switch (chattype) {
 		case CHAT_WELCOME:
@@ -81,7 +132,37 @@ void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype) {
 		return; // Optionally, set text to a default value before calling BOTLIB_Say
 	}
 
-	BOTLIB_Say(bot, text, false);
+    // Define the chat interval (e.g., once per minute)
+    int chatInterval = 60 * HZ; // 60 seconds * HZ (game ticks per second)
+	float randval = random();
+
+    //Check if the bot should chat
+	// Only applies to insults and killed messages
+	if (chattype == CHAT_INSULTS || chattype == CHAT_KILLED) {
+		if (bot->bot.lastChatTime > level.framenum - chatInterval) {
+			//gi.dprintf("Skipping chat due to interval limit (%i) needs to be 0 or smaller\n", (bot->bot.lastChatTime - (level.framenum - chatInterval)));
+			return;
+		}
+	}
+	if (chattype == CHAT_GOODBYE)
+		randval = randval - 0.3; // Increase the chance of a goodbye message
+		delayed = false;
+	if (randval > 0.2) {
+		//gi.dprintf("Skipping chat due to random chance (%f)\n", randval);
+		return; // Don't chat too often
+	}
+
+    // Add the message to the queue if delayed
+	if (delayed)
+    	AddMessageToQueue(bot, text, level.framenum);
+	else // instant message, such as a goodbye before leaving
+		BOTLIB_Say(bot, text, false);
+
+    // Sets the current level time as the last chat time so the bot doesn't spam chat
+    bot->bot.lastChatTime = level.framenum;
+
+    //gi.dprintf("new LastChatTime: %d\n", bot->bot.lastChatTime);
+
 }
 
 // Bot wave gestures
@@ -246,30 +327,29 @@ void BOTLIB_Say(edict_t* ent, char* pMsg, qboolean team_message)
 	int     j, /*i,*/ offset_of_text;
 	edict_t* other;
 	char    text[2048];
-	//gclient_t *cl;
 
 
-	if (!teamplay->value) {
-		if (!bot_chat->value)
+	if (teamplay->value) {
+
+		if (ent->client->resp.team == NOTEAM)
 			return;
-		else
-			Q_snprintf(text, sizeof(text), pMsg); // Say all
-	}
 
-	if (ent->client->resp.team == NOTEAM)
-		return;
-
-	if (ent->solid == SOLID_NOT || ent->deadflag == DEAD_DEAD)
-	{
-		if (team_message)
-			Q_snprintf(text, sizeof(text), "[DEAD] (%s):", ent->client->pers.netname); // Dead, say team
+		if (ent->solid == SOLID_NOT || ent->deadflag == DEAD_DEAD)
+		{
+			if (team_message)
+				Q_snprintf(text, sizeof(text), "[DEAD] (%s): ", ent->client->pers.netname); // Dead, say team
+			else
+				Q_snprintf(text, sizeof(text), "[DEAD] %s: ", ent->client->pers.netname); // Dead, say all
+		}
+		else if (team_message)
+			Q_snprintf(text, sizeof(text), "(%s): ", ent->client->pers.netname); // Alive, say team
 		else
-			Q_snprintf(text, sizeof(text), "[DEAD] %s:", ent->client->pers.netname); // Dead, say all
+			Q_snprintf(text, sizeof(text), "%s: ", ent->client->pers.netname); // Alive, say all
+	} else { // non-teamplay
+		if (bot_chat->value) {
+			Q_snprintf(text, sizeof(text), "%s: ", ent->client->pers.netname);
+		}
 	}
-	else if (team_message)
-		Q_snprintf(text, sizeof(text), "(%s):", ent->client->pers.netname); // Alive, say team
-	else
-		Q_snprintf(text, sizeof(text), "%s:", ent->client->pers.netname); // Alive, say all
 
 	offset_of_text = strlen(text);  //FB 5/31/99
 

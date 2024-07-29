@@ -2265,6 +2265,9 @@ typedef struct bot_s
 	bot_ctf_state_t bot_ctf_state; // Get flag, retrieve flag, intercept flag carrier, etc.
 	float ctf_support_time; // Time between ally support checks
 
+	// Espionage
+	bot_esp_state_t bot_esp_state;
+
 	// Adding walk nodes
 	walknodes_t walknode; // Holds all the walk node data
 
@@ -2303,6 +2306,9 @@ typedef struct bot_s
 	char radioLastHumanMsg[48];		// Get the lastest radio call from a real player on our team
 	//
 	qboolean radioReportKills;		// Flag if the bot reports its kills in radio and chat
+	//
+	int lastChatTime;				// Last time the bot chatted
+
 } bot_t;
 #endif
 //rekkie -- e

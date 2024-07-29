@@ -227,6 +227,7 @@ typedef enum
 	CHAT_GOODBYE
 } bot_chat_types_t;
 
+void UpdateBotChat(void);
 void BOTLIB_Wave(edict_t* ent, int type);
 void BOTLIB_PrecacheRadioSounds(void);
 void BOTLIB_AddRadioMsg(radio_t* radio, int sndIndex, int len, edict_t* from_player);

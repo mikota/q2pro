@@ -766,7 +766,31 @@ void Add_Frag(edict_t * ent, int mod)
 				break;
 			}
 		}
+
+		// A little taunting...
+		int wavechoice = rand() % 5;
+		switch (wavechoice)
+		{
+		case 0:
+			BOTLIB_Wave(ent, WAVE_FLIPOFF);
+			break;
+		case 1:
+			BOTLIB_Wave(ent, WAVE_SALUTE);
+			break;
+		case 2:
+			BOTLIB_Wave(ent, WAVE_TAUNT);
+			break;
+		case 3:
+			BOTLIB_Wave(ent, WAVE_WAVE);
+			break;
+		case 4:
+			BOTLIB_Wave(ent, WAVE_POINT);
+			break;
+		default:
+			break;
+		}
 	}
+
 	// Announce kill streak to player if use_killcounts is enabled on server
 	if (use_killcounts->value) {
 		// Report only killstreak during that round
@@ -1542,6 +1566,16 @@ void ClientObituary(edict_t * self, edict_t * inflictor, edict_t * attacker)
 					Add_Death( self, true );
 				}
 			}
+
+			#ifndef NO_BOTS
+			//darksaint -- Bot Chat -- s
+			// Generates chat message if respawning (killed)
+			if (bot_chat->value && self->is_bot) {
+				BOTLIB_Chat(self, CHAT_KILLED);
+			}
+			#endif
+			//darksaint -- Bot Chat -- e
+
 
 			return;
 		}	// if(message)

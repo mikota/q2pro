@@ -1375,14 +1375,6 @@ void BOTLIB_PutClientInServer(edict_t* bot, qboolean respawn, int team)
 	bot->think = BOTLIB_Think;
 	bot->nextthink = level.framenum + 1;
 
-	//darksaint -- Bot Chat -- s
-	// Generates chat message if respawning (insults)
-	if (bot_chat->value && respawn) {
-		gi.dprintf("Firing off chat message---------------\n");
-		BOTLIB_Chat(bot, CHAT_INSULTS);
-	}
-	//darksaint -- Bot Chat -- e
-
 	PutClientInServer(bot);
 	JoinTeam(bot, team, true);
 }
@@ -1508,6 +1500,13 @@ void BOTLIB_RemoveBot(char* name)
 		{
 			if (bot->is_bot && bot_to_kick == bot_count)
 			{
+				//darksaint -- Bot Chat -- s
+				// Generates chat message if respawning (goodbyes)
+				if (bot_chat->value) {
+					BOTLIB_Chat(bot, CHAT_GOODBYE);
+				}
+				//darksaint -- Bot Chat -- e
+
 				//rekkie -- Fake Bot Client -- s
 				gi.SV_BotDisconnect(bot->client->pers.netname); // So the server can remove the fake client
 				//rekkie -- Fake Bot Client -- e
@@ -1520,6 +1519,7 @@ void BOTLIB_RemoveBot(char* name)
 				freed = true;
 				ClientDisconnect(bot);
 				game.bot_count--;
+
 				//gi.bprintf (PRINT_MEDIUM, "%s removed\n", bot->client->pers.netname);
 				break;
 			}
