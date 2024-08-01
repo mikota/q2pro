@@ -122,12 +122,10 @@ void BOTLIB_PickLongRangeGoal(edict_t* self)
 		if (nodelist[i] != INVALID) // Make sure we can visit the spawn point node
 		{
 			current_node = nodelist[i];
-			self->bot.current_node = nodelist[i];
 			break;
 		}
 	}
 	*/
-	//Com_Printf("%s %s [%d] self->bot.current_node[%d]\n", __func__, self->client->pers.netname, level.framenum, self->bot.current_node);
 	//current_node = ACEND_FindClosestReachableNode(self, NODE_DENSITY, NODE_ALL);
 	self->bot.current_node = ACEND_FindClosestReachableNode(self, NODE_DENSITY, NODE_ALL);
 
@@ -152,55 +150,11 @@ void BOTLIB_PickLongRangeGoal(edict_t* self)
 		return;
 	}
 
-	/*
-	if (self->bot.state == STATE_ATTACK)
-	{
-		if (self->enemy && ACEAI_IsEnemy(self, self->enemy)) // Are they our enemy
-		{
-			// Get enemy node
-			int n = self->enemy->bot.current_node;	// This is for bots and humans. For humans their current node is now updated in p_client.c ClientThink()
-			if (BOTLIB_CanVisitNode(self, n)) // Make sure we can visit the node they're at
-			{
-				//Com_Printf("%s %s visiting enemy %s node %i at %f %f %f\n", __func__, self->client->pers.netname, self->enemy->client->pers.netname, n, nodes[n].origin[0], nodes[n].origin[1], nodes[n].origin[2]);
-				BOTLIB_SetGoal(self, n);
-			}
-		}
-
-		self->bot.state = BOT_MOVE_STATE_MOVE;
-		return;
-	}
-	*/
-
 	//=======================
 	// Get navigation
 	//=======================
 	//if (self->bot.state == BOT_MOVE_STATE_NAV)
 	{
-		//Com_Printf("%s %s [%d] self->bot.state == BOT_MOVE_STATE_NAV\n", __func__, self->client->pers.netname, level.framenum);
-
-		/*
-		if (0 && random() < 0.1 || (teamplay->value && lights_camera_action)) // Greater than LCA!
-		{
-			i = rand() % numnodes; // pick a random node
-			if (BOTLIB_CanVisitNode(self, nodes[i].nodenum))
-			{
-				//Com_Printf("%s %s visiting [RNG] node[%i] counter[%d]\n", __func__, self->client->pers.netname, nodes[i].nodenum, counter);
-				self->bot.state = BOT_MOVE_STATE_MOVE;
-				//self->tries = 0; // Reset the count of how many times we tried this goal
-				BOTLIB_SetGoal(self, nodes[i].nodenum);
-				//self->wander_timeout = level.framenum + 1.0 * HZ;
-				return;
-			}
-
-			{
-				//Com_Printf("%s %s BOT_MOVE_STATE_NAV [%d]\n", __func__, self->client->pers.netname, level.framenum);
-				self->bot.goal_node = INVALID;
-				self->bot.state = BOT_MOVE_STATE_WANDER; // BOT_MOVE_STATE_WANDER
-				//self->wander_timeout = level.framenum + 1.0 * HZ;
-				return; // no path? 
-			}
-		}
-		*/
 
 		//self->bot.get_item = NULL;
 		//if (BOTLIB_NeedWeaponOrAmmo(self))
@@ -245,7 +199,6 @@ void BOTLIB_PickLongRangeGoal(edict_t* self)
 		{
 			if (players[p]->is_bot && players[p]->bot.goal_node == poi_nodes[i] && players[p]->solid == SOLID_BBOX)
 			{
-				//self->bot.goal_node = INVALID;
 				//self->bot.state = BOT_MOVE_STATE_NAV;
 			}
 		}
@@ -304,7 +257,7 @@ void BOTLIB_PickLongRangeGoal(edict_t* self)
 				byte spot_picked = rand() % sp_counter; // Pick a random spot
 
 				// Check if spawn point location touches any nodes
-				nodes_touched = BOTLIB_NodeTouchNodes(sp_origin[spot_picked], tv(0, 0, 0), 32, self->mins, self->maxs, nodelist, MAX_NODELIST, INVALID);
+				nodes_touched = BOTLIB_NodeTouchNodes(sp_origin[spot_picked], vec3_origin, 32, self->mins, self->maxs, nodelist, MAX_NODELIST, INVALID);
 				for (i = 0; i < nodes_touched; i++) // Cycle through all the nodes we touched
 				{
 					if (BOTLIB_CanGotoNode(self, nodelist[i], true)) // Make sure we can visit the spawn point node
@@ -358,7 +311,6 @@ void BOTLIB_PickLongRangeGoal(edict_t* self)
 					if (n == INVALID)
 						continue;
 
-					//if (BOTLIB_CanVisitNode(self, n, rand() % 2)) // Make sure we can visit the node they're at
 					if (BOTLIB_CanGotoNode(self, n, true))
 					{
 						//if (debug_mode)
@@ -372,13 +324,13 @@ void BOTLIB_PickLongRangeGoal(edict_t* self)
 			}
 		}
 		
-		// Random node
-		int retries = 0;
-			while (retries < max_random_retries)
-			{
-				if (!BOTLIB_ChooseRandomNode(self, 128))
-					retries++;
-			}
+		// // Random node
+		// int retries = 0;
+		// 	while (retries < max_random_retries)
+		// 	{
+		// 		if (!BOTLIB_ChooseRandomNode(self, 128))
+		// 			retries++;
+		// 	}
 	}
 
 	//Com_Printf("%s %s BOT_MOVE_STATE_NAV couldn't find a good path [%d]\n", __func__, self->client->pers.netname, level.framenum);
@@ -477,7 +429,6 @@ void ACEAI_PickLongRangeGoal(edict_t *self)
 				if (spot != NULL)
 				{
 					i = ACEND_FindClosestReachableNode(spot, NODE_DENSITY, NODE_ALL);
-					if (BOTLIB_CanVisitNode(self, i)) // Make sure we can visit the node they're at
 					{
 						if (debug_mode)
 							Com_Printf("%s %s visiting spawn spot node[%i] [%f %f %f]\n", __func__, self->client->pers.netname, i, nodes[i].origin[0], nodes[i].origin[1], nodes[i].origin[2]);
@@ -505,7 +456,6 @@ void ACEAI_PickLongRangeGoal(edict_t *self)
 					if (n == INVALID)
 						continue;
 
-					if (BOTLIB_CanVisitNode(self, n)) // Make sure we can visit the node they're at
 					{
 						if (debug_mode)
 							Com_Printf("%s %s visiting friendly %s node %i at %f %f %f\n", __func__, self->client->pers.netname, players[i]->client->pers.netname, n, nodes[n].origin[0], nodes[n].origin[1], nodes[n].origin[2]);
@@ -546,7 +496,6 @@ void ACEAI_PickLongRangeGoal(edict_t *self)
 					else if (num_vis_nodes) // Otherwise try to find a visibility node that has sight on the player node
 					{
 						int sn = ACEND_GetRandomVisibleNode(n);
-						if (BOTLIB_CanVisitNode(self, sn))
 						{
 							if (debug_mode)
 								Com_Printf("%s %s visiting enemy %s [LOS] to node %i from node %i at %f %f %f\n", __func__, self->client->pers.netname, players[i]->client->pers.netname, n, sn, nodes[sn].origin[0], nodes[sn].origin[1], nodes[sn].origin[2]);
@@ -569,7 +518,6 @@ void ACEAI_PickLongRangeGoal(edict_t *self)
 				i = (int)(random() * num_poi_nodes - 1);	// Any of the POI nodes will do
 				if (poi_nodes[i] != INVALID)
 				{
-					if (BOTLIB_CanVisitNode(self, i))
 					{
 						if (debug_mode)
 							debug_printf("%s %s visiting [POI] node %i at %f %f %f\n", __func__, self->client->pers.netname, i, nodes[i].origin[0], nodes[i].origin[1], nodes[i].origin[2]);
@@ -596,7 +544,6 @@ void ACEAI_PickLongRangeGoal(edict_t *self)
 			if (nodes[i].inuse == false) continue; // Don't go to nodes not in use
 
 			//rekkie -- DEV_1 -- s
-			if (BOTLIB_CanVisitNode(self, i) == false)
 			{
 				cost = INVALID;
 				i = INVALID;
@@ -797,7 +744,6 @@ void ACEAI_PickLongRangeGoal(edict_t *self)
 		while (tries < 256)
 		{
 			i = (int)(random() * numnodes - 1);	// Any of the POI nodes will do
-			if (BOTLIB_CanVisitNode(self, i))
 			{
 				if (debug_mode)
 					debug_printf("%s did not find a LR goal, visiting random node %i at %f %f %f\n", self->client->pers.netname, i, nodes[i].origin[0], nodes[i].origin[1], nodes[i].origin[2]);

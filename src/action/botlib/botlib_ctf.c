@@ -1028,7 +1028,6 @@ void BOTLIB_CTF_Goals(edict_t* self)
 		int item_node = BOTLIB_GetEquipment(self);
 		if (item_node != INVALID)
 		{
-			if (BOTLIB_CanVisitNode(self, nodes[item_node].nodenum, false))
 			{
 				self->bot.state = BOT_MOVE_STATE_MOVE;
 				BOTLIB_SetGoal(self, nodes[item_node].nodenum);

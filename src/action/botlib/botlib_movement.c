@@ -1581,7 +1581,6 @@ void BOTLIB_MOV_Move(edict_t* self, usercmd_t* ucmd)
 	}
 
 	// Get current and next node back from nav code.
-	if (!BOTLIB_FollowPath(self))
 	{
 		if (!teamplay->value || (teamplay->value && level.framenum >= self->teamPauseTime))
 		{
@@ -2084,7 +2083,6 @@ void BOTLIB_MOV_Move(edict_t* self, usercmd_t* ucmd)
 
 			// Try visit node near item
 			// Otherwise visit previous goal node
-			if (BOTLIB_CanVisitNode(self, self->bot.goal_node) == false) // If we cannot visit item node
 			{
 				self->bot.goal_node = self->bot.prev_node; // Restore previous goal
 				BOTLIB_CanVisitNode(self, self->bot.goal_node); // Try go back to previous goal
@@ -2180,7 +2178,6 @@ void BOTLIB_MOV_Move(edict_t* self, usercmd_t* ucmd)
 			else if (next_node_distance > 64 && next_node_distance >= self->next_node_distance + NODE_Z_HALF_HEIGHT) // If getting further away we failed the jump
 			{
 				self->bot.current_node = ACEND_FindClosestReachableNode(self, NODE_DENSITY, NODE_ALL); // Update the node we're near
-				if (BOTLIB_CanVisitNode(self, self->bot.goal_node)) // Try to find another way to our goal
 				{
 					Com_Printf("%s %s failed to jumppad up, trying alternative path to goal\n", __func__, self->client->pers.netname);
 					BOTLIB_SetGoal(self, self->bot.goal_node);
@@ -2240,7 +2237,6 @@ void BOTLIB_MOV_Move(edict_t* self, usercmd_t* ucmd)
 				self->wander_timeout = level.framenum + 0.1 * HZ;
 				return;
 			}
-			if (BOTLIB_CanVisitNode(self, self->bot.goal_node)) // Try to find another way to our goal
 			{
 				if (debug_mode) 
 					Com_Printf("%s (1) %s failed to jumppad. Trying alternative path to goal %d\n", __func__, self->client->pers.netname, self->bot.goal_node);
@@ -2434,7 +2430,6 @@ void BOTLIB_MOV_Move(edict_t* self, usercmd_t* ucmd)
 						self->wander_timeout = level.framenum + 0.1 * HZ;
 						return;
 					}
-					if (BOTLIB_CanVisitNode(self, self->bot.goal_node)) // Try to find another way to our goal
 					{
 						if (debug_mode) 
 							Com_Printf("%s (2) %s failed to jumppad. Trying alternative path to goal %d\n", __func__, self->client->pers.netname, self->bot.goal_node);
@@ -3348,7 +3343,6 @@ void BOTLIB_MOV_Move(edict_t* self, usercmd_t* ucmd)
 				self->wander_timeout = level.framenum + (random() + 0.5) * HZ;
 				return;
 			}
-			if (BOTLIB_CanVisitNode(self, self->bot.goal_node)) // Try to find another way to our goal
 			{
 				//Com_Printf("%s %s failed to drop down, trying alternative path to goal\n", __func__, self->client->pers.netname);
 				BOTLIB_SetGoal(self, self->bot.goal_node);
@@ -3733,7 +3727,6 @@ void BOTLIB_MOV_Move(edict_t* self, usercmd_t* ucmd)
 						//self->wander_timeout = level.framenum + 0.1 * HZ;
 						return;
 					}
-					if (BOTLIB_CanVisitNode(self, self->bot.goal_node)) // Try to find another way to our goal
 					{
 						Com_Printf("%s %s failed to move. Trying alternative path to goal %d\n", __func__, self->client->pers.netname, self->bot.goal_node);
 						return;
@@ -4046,7 +4039,7 @@ void BOTLIB_MOV_Move(edict_t* self, usercmd_t* ucmd)
 				//self->wander_timeout = level.framenum + 0.1 * HZ;
 				return;
 			}
-			if (BOTLIB_CanVisitNode(self, self->bot.goal_node)) // Try to find another way to our goal
+			if ((self, self->bot.goal_node)) // Try to find another way to our goal
 			{
 				if (debug_mode) 
 					Com_Printf("%s %s failed to move. Trying alternative path to goal %d\n", __func__, self->client->pers.netname, self->bot.goal_node);
@@ -4135,7 +4128,6 @@ void BOTLIB_MOV_Move(edict_t* self, usercmd_t* ucmd)
 			}
 			else
 			{
-				if (BOTLIB_CanVisitNode(self, self->bot.goal_node)) // Try to find another way to our goal
 				{
 					//if (debug_mode)
 					//Com_Printf("%s %s failed to move. Trying alternative path to goal %d\n", __func__, self->client->pers.netname, self->bot.goal_node);
@@ -5220,7 +5212,7 @@ void BOTLIB_Look(edict_t* self, usercmd_t* ucmd)
 					}
 				}
 				if (VectorEmpty(self->bot.bi.look_at))
-					VectorSubtract(tv(0, 0, 0), self->s.origin, lookdir); // Look at center of map
+					VectorSubtract(vec3_origin, self->s.origin, lookdir); // Look at center of map
 				else
 					VectorSubtract(self->bot.bi.look_at, self->s.origin, lookdir); // Look at random map item
 
@@ -5229,7 +5221,7 @@ void BOTLIB_Look(edict_t* self, usercmd_t* ucmd)
 			// If lookdir is empty, then look at map center
 			if (VectorEmpty(self->bot.bi.look_at))
 			{
-				VectorSubtract(tv(0, 0, 0), self->s.origin, lookdir);
+				VectorSubtract(vec3_origin, self->s.origin, lookdir);
 			}
 
 			BOTLIB_ChangeBotAngleYawPitch(self, lookdir, false, turn_speed, true, true);
@@ -5359,9 +5351,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 
 	/*
 	// Get current and next node back from nav code.
-	if (!BOTLIB_FollowPath(self))
 	{
-		//Com_Printf("%s %s BOTLIB_FollowPath == false\n", __func__, self->client->pers.netname);
 		//Com_Printf("%s %s next_node:%d current_node:%d goal_node:%d\n", __func__, self->client->pers.netname, self->bot.next_node, self->bot.current_node, self->bot.goal_node);
 
 		self->bot.bi.speed = 0;
@@ -5846,7 +5836,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 					}
 				}
 				if (VectorEmpty(self->bot.bi.look_at))
-					VectorSubtract(tv(0, 0, 0), self->s.origin, lookdir); // Look at center of map
+					VectorSubtract(vec3_origin, self->s.origin, lookdir); // Look at center of map
 				else
 					VectorSubtract(self->bot.bi.look_at, self->s.origin, lookdir); // Look at random map item
 
@@ -5855,7 +5845,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 			// If lookdir is empty, then look at map center
 			if (VectorEmpty(self->bot.bi.look_at))
 			{
-				VectorSubtract(tv(0, 0, 0), self->s.origin, lookdir);
+				VectorSubtract(vec3_origin, self->s.origin, lookdir);
 			}
 
 			BOTLIB_ChangeBotAngleYawPitch(self, lookdir, false, 1.0, true, true);
@@ -5964,7 +5954,6 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 	//if (self->bot.goal_node != INVALID && nav_area.total_areas > 0 && self->bot.node_travel_time >= 120)
 	{
 		//Com_Printf("%s %s ATTEMPTING TO FIX cur[%d] nxt[%d] goal[%d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.next_node, self->bot.goal_node);
-		//if (BOTLIB_CanVisitNode(self, self->bot.goal_node, false, INVALID))
 		{
 			//self->bot.node_travel_time = 0;
 			//Com_Printf("%s %s FIXED node_travel_time cur[%d] nxt[%d] goal[%d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.next_node, self->bot.goal_node);
@@ -7281,7 +7270,6 @@ void BOTLIB_MOV_Wander(edict_t* self, usercmd_t* ucmd)
 			self->wander_timeout = level.framenum + 0.1 * HZ;
 			return;
 		}
-		if (BOTLIB_CanVisitNode(self, self->bot.goal_node)) // Try to find another way to our goal
 		{
 			if (debug_mode) 
 				Com_Printf("%s %s Wander finding alternative path to goal %d\n", __func__, self->client->pers.netname, self->bot.goal_node);

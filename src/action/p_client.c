@@ -4057,7 +4057,7 @@ void ClientThink(edict_t * ent, usercmd_t * ucmd)
 			// Check if bot is touching a node that isn't on the path
 			int nodes_touched; // Number of nodes touched
 			int nodelist[MAX_NODELIST]; // Nodes touched
-			nodes_touched = BOTLIB_NodeTouchNodes(ent->s.origin, tv(0, 0, 0), 32, ent->mins, ent->maxs, nodelist, MAX_NODELIST, INVALID);
+			nodes_touched = BOTLIB_NodeTouchNodes(ent->s.origin, vec3_origin, 32, ent->mins, ent->maxs, nodelist, MAX_NODELIST, INVALID);
 			for (i = 0; i < nodes_touched; i++)
 			{
 				if (nodelist[i] != INVALID && nodes[nodelist[i]].inuse)
@@ -4903,7 +4903,7 @@ void ClientThink(edict_t * ent, usercmd_t * ucmd)
 		nodes_touched = BOTLIB_NodeTouchNodes(ent->s.origin, tr.plane.normal, walknode_dist, ent->mins, ent->maxs, nodelist, MAX_NODELIST, INVALID);
 		if (nodes_touched > 0)
 		{
-			if (0) // print node list
+			if (1) // print node list
 			{
 				Com_Printf("[%d] Nodes touched [%d] nodelist [", level.framenum, nodes_touched);
 				int count = 0;
@@ -5816,7 +5816,6 @@ void ClientThink(edict_t * ent, usercmd_t * ucmd)
 						{
 							if (players[i] && players[i]->is_bot && players[i]->health > 0)
 							{
-								//players[i]->bot.goal_node = closest_node;
 								//BOTLIB_SetGoal(players[i], closest_node);
 								if (BOTLIB_CanGotoNode(players[i], players[i]->bot.goal_node, false))
 								{

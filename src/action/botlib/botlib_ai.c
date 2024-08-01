@@ -300,7 +300,7 @@ void BOTLIB_BotInputToUserCommand(edict_t* ent, bot_input_t* bi, usercmd_t* ucmd
 	{
 		// Check the bot is touching a jump node before attempting to jump
 		int nodelist[MAX_NODELIST];
-		int nodes_touched = BOTLIB_NodeTouchNodes(ent->s.origin, tv(0, 0, 0), 8, ent->mins, ent->maxs, nodelist, MAX_NODELIST, INVALID);
+		int nodes_touched = BOTLIB_NodeTouchNodes(ent->s.origin, vec3_origin, 8, ent->mins, ent->maxs, nodelist, MAX_NODELIST, INVALID);
 		if (nodes_touched && ent->bot.current_node != INVALID && ent->bot.next_node != INVALID)
 		{
 			for (int i = 0; i < nodes_touched; i++)
@@ -311,7 +311,6 @@ void BOTLIB_BotInputToUserCommand(edict_t* ent, bot_input_t* bi, usercmd_t* ucmd
 				{
 					//Com_Printf("%s %s touched jump node %d\n", __func__, ent->client->pers.netname, nodelist[i]);
 					// Attempt jump
-					//BOTLIB_Jump_Takeoff(ent, NULL, nodes[ent->bot.next_node].origin, ent->viewheight, ent->velocity);
 					BOTLIB_DoParabolaJump(ent, nodes[ent->bot.next_node].origin);
 					bi->actionflags &= ~ACTION_JUMPPAD;
 					break;
@@ -337,7 +336,6 @@ void BOTLIB_BotInputToUserCommand(edict_t* ent, bot_input_t* bi, usercmd_t* ucmd
 		//Com_Printf("%s %s ladder down\n", __func__, ent->client->pers.netname);
 
 		//vec3_t dist;
-		//VectorSubtract(nodes[ent->bot.next_node].origin, ent->s.origin, dist);
 		//VectorNormalize(dist);
 		//VectorScale(dist, 20, ent->velocity); // Apply it
 	}
@@ -403,7 +401,6 @@ void BOTLIB_BotInputToUserCommand(edict_t* ent, bot_input_t* bi, usercmd_t* ucmd
 
 		/*
 		vec3_t dist;
-		VectorSubtract(nodes[ent->bot.next_node].origin, ent->s.origin, dist);
 		VectorNormalize(dist);
 		VectorScale(dist, 20, ent->velocity); // Apply it
 
@@ -750,6 +747,8 @@ void BOTLIB_Think(edict_t* self)
 			//Com_Printf("%s %s [%d] BOT_MOVE_STATE_NAV BOTLIB_PickLongRangeGoal()\n", __func__, self->client->pers.netname, level.framenum);
 			
 			//nav_area.total_areas = 0; // Turn off area based nav
+
+			// THIS IS WHERE THE bot.current_node is set //
 			BOTLIB_PickLongRangeGoal(self);
 
 			//Com_Printf("%s %s [%d] BOT_MOVE_STATE_NAV BOTLIB_PickLongRangeGoal() curr[%d] goal[%d] -------------------- \n", __func__, self->client->pers.netname, level.framenum, self->bot.current_node, self->bot.goal_node);
@@ -976,7 +975,6 @@ void BOTLIB_TouchingLadder(edict_t* self)
 {
 	//trace_t tr;
 
-	//if (nodes[self->bot.current_node].type == NODE_LADDER || nodes[self->bot.next_node].type == NODE_LADDER)
 	{
 		// Check if touching ladder
 		{

@@ -2,11 +2,10 @@
 #include "../acesrc/acebot.h"
 #include "botlib.h"
 
-int num_poi_nodes = 0;
-int poi_nodes[MAX_POI_NODES] = { INVALID };
-// edict_t* node_ents[MAX_EDICTS]; // If the node is attached to an entity (such as a NODE_DOOR being attached to a func_door_rotating or func_door entity)
-node_t *nodes = NULL;
-nmesh_t nmesh = { 0 };
+int num_poi_nodes;
+int poi_nodes[MAX_POI_NODES];
+node_t *nodes;
+static nmesh_t nmesh;
 
 // Free nodes
 void BOTLIB_FreeNodes(void)
@@ -656,7 +655,7 @@ qboolean BOTLIB_CanVisitNode(edict_t* self, int goal_node, qboolean path_randomi
 
 	int nodelist[MAX_NODELIST];
 	int nodes_touched;
-	nodes_touched = BOTLIB_NodeTouchNodes(self->s.origin, tv(0, 0, 0), 32, self->mins, self->maxs, nodelist, MAX_NODELIST, INVALID);
+	nodes_touched = BOTLIB_NodeTouchNodes(self->s.origin, vec3_origin, 32, self->mins, self->maxs, nodelist, MAX_NODELIST, INVALID);
 	for (int i = 0; i < nodes_touched; i++) // Cycle through all the nodes we touched
 	{
 		if (nodelist[i] != INVALID)

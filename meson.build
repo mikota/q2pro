@@ -4,7 +4,7 @@ project('q2pro', 'c',
   meson_version: '>= 0.59.0',
   default_options: [
     'c_std=c11',
-    'buildtype=debugoptimized',
+    'buildtype=debug',
   ],
 )
 
@@ -339,6 +339,8 @@ endif
 
 add_project_arguments(common_args, language: 'c')
 add_project_link_arguments(common_link_args, language: 'c')
+# add_project_arguments('-fsanitize=address', language: 'c')
+# add_project_link_arguments('-fsanitize=address', language: 'c')
 
 config = configuration_data()
 

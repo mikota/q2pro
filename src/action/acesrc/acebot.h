@@ -258,7 +258,7 @@ extern node_t *unsorted_nodes; // Used to generate all links, so they can be sor
 #define MAX_PNODES 8096 //8096
 //32768 Absolute max nodes
 //extern node_t *nodes;
-extern node_t *nodes;
+//extern node_t *nodes;
 //node_t *nodes[MAX_PNODES];
 //node_t nodes[MAX_PNODES];
 //extern node_t nodes[MAX_PNODES];
@@ -656,18 +656,7 @@ typedef struct nmesh_s {
 	unsigned bsp_checksum; // Map checksum
 
 } nmesh_t;
-extern nmesh_t nmesh;
-
-
-extern int num_poi_nodes;
-extern int poi_nodes[MAX_POI_NODES];
-extern edict_t* node_ents[MAX_EDICTS]; // If the node is attached to an entity (such as a NODE_DOOR being attached to a func_door_rotating or func_door entity)
-extern int num_vis_nodes;
-extern int node_vis[10][10]; // Cached node visibily. node_vis[X][Y] <-- can X see Y? If Y == INVALID, then false. Otherwise Y == NODE NUM
-extern int node_vis_list[10][MAX_VIS_NODES]; // Cached node visibility list. node_vis_list[X][list-of-nodes-x-can-see]  <-- All the nodes that X can see.
-//int node_vis[MAX_PNODES][MAX_PNODES]; // Cached node visibily. node_vis[X][Y] <-- can X see Y? If Y == INVALID, then false. Otherwise Y == NODE NUM
-//int node_vis_list[MAX_PNODES][MAX_VIS_NODES]; // Cached node visibility list. node_vis_list[X][list-of-nodes-x-can-see]  <-- All the nodes that X can see.
-
+//extern nmesh_t nmesh;
 
 // Botlib A_TEAM
 //void CheckBotRules(void);
@@ -836,9 +825,4 @@ void ThreadUnlock(void);
 extern int num_poi_nodes;
 extern int poi_nodes[MAX_POI_NODES];
 extern edict_t* node_ents[MAX_EDICTS]; // If the node is attached to an entity (such as a NODE_DOOR being attached to a func_door_rotating or func_door entity)
-extern int num_vis_nodes;
-extern int node_vis[10][10]; // Cached node visibily. node_vis[X][Y] <-- can X see Y? If Y == INVALID, then false. Otherwise Y == NODE NUM
-extern int node_vis_list[10][MAX_VIS_NODES]; // Cached node
-extern node_t *nodes;
-extern nmesh_t nmesh;
 #endif

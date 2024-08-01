@@ -643,7 +643,6 @@ void ACEMV_MoveToGoal(edict_t *self, usercmd_t *ucmd)
 	}
 	else
 	{
-		if (self->current_node != INVALID && self->bot.next_node != INVALID) // rekkie -- safey check because current / next node can be INVALID
 		{
 			// Are we there yet?
 			vec3_t v;
@@ -652,12 +651,7 @@ void ACEMV_MoveToGoal(edict_t *self, usercmd_t *ucmd)
 
 			if( nodes[self->bot.current_node].type == NODE_DOOR )
 			{
-				if( nodes[self->bot.next_node].type == NODE_DOOR )
-				{
-					VectorCopy( nodes[self->current_node].origin, vStart );
-					VectorCopy( nodes[self->next_node].origin, vDest );
-					VectorSubtract( self->s.origin, nodes[self->bot.next_node].origin, v );
-				}
+			
 				else
 				{
 					VectorCopy( self->s.origin, vStart );
@@ -716,9 +710,6 @@ void ACEMV_MoveToGoal(edict_t *self, usercmd_t *ucmd)
 					else
 					{
 						// If trace from bot to next node hits rotating door, it should just strafe toward the path.
-						VectorCopy( self->s.origin, vStart );
-						VectorCopy( nodes[self->bot.next_node].origin, vDest );
-						VectorSubtract( self->s.origin, nodes[self->next_node].origin, v );
 						if( VectorLength(v) < 32 )
 						{
 							PRETRACE();
@@ -945,7 +936,6 @@ void ACEMV_Move(edict_t *self, usercmd_t *ucmd)
 			}
 			if (self->groundentity && curr_node != self->next_node)
 			{
-				if (BOTLIB_CanVisitNode(self, self->goal_node)) // Try to find another way to our goal
 				{
 					Com_Printf("%s %s failed to jumppad up, trying alternative path to goal\n", __func__, self->client->pers.netname);
 					BOTLIB_SetGoal(self, self->goal_node);
@@ -1362,7 +1352,6 @@ void ACEMV_Move(edict_t *self, usercmd_t *ucmd)
 			else if (next_node_distance > 64 && next_node_distance >= self->next_node_distance + NODE_Z_HALF_HEIGHT) // If getting further away we failed the jump
 			{
 				self->current_node = ACEND_FindClosestReachableNode(self, NODE_DENSITY, NODE_ALL); // Update the node we're near
-				if (BOTLIB_CanVisitNode(self, self->goal_node)) // Try to find another way to our goal
 				{
 					Com_Printf("%s %s failed to jumppad up, trying alternative path to goal\n", __func__, self->client->pers.netname);
 					BOTLIB_SetGoal(self, self->goal_node);
@@ -1473,7 +1462,6 @@ void ACEMV_Move(edict_t *self, usercmd_t *ucmd)
 				self->wander_timeout = level.framenum + (random() + 0.5) * HZ;
 				return;
 			}
-			if (BOTLIB_CanVisitNode(self, self->goal_node)) // Try to find another way to our goal
 			{
 				if (debug_mode) Com_Printf("%s %s failed to jumppad up, trying alternative path to goal\n", __func__, self->client->pers.netname);
 				BOTLIB_SetGoal(self, self->goal_node);
@@ -2403,7 +2391,6 @@ void ACEMV_Move(edict_t *self, usercmd_t *ucmd)
 				self->wander_timeout = level.framenum + (random() + 0.5) * HZ;
 				return;
 			}
-			if (BOTLIB_CanVisitNode(self, self->goal_node)) // Try to find another way to our goal
 			{
 				Com_Printf("%s %s failed to drop down, trying alternative path to goal\n", __func__, self->client->pers.netname);
 				BOTLIB_SetGoal(self, self->goal_node);
@@ -2845,24 +2832,6 @@ void BOTLIB_GetWeaponsAndAmmo(edict_t* self)
 			if (item_node != INVALID)
 			{
 				self->goalentity = item;
-
-				//Com_Printf("%s %s heading for item: %s\n", __func__, self->client->pers.netname, self->goalentity->classname);
-
-				/*
-				if (self->bot.prev_node != self->bot.goal_node)
-					self->bot.prev_node = self->bot.goal_node; // Keep a copy of previous goal
-				self->bot.goal_node = item_node; // Make the item node our new goal
-
-				// Try visit node near item
-				// Otherwise visit previous goal node
-				if (BOTLIB_CanGotoNode(self, self->bot.goal_node) == false) // If we cannot visit item node
-				{
-					self->bot.goal_node = self->bot.prev_node; // Restore previous goal
-					BOTLIB_CanGotoNode(self, self->bot.goal_node); // Try go back to previous goal
-				}
-				*/
-
-				//BOTLIB_CanGotoNode(self, self->bot.goal_node, false); // Try go to item node
 			}
 		}
 	}
@@ -3096,7 +3065,6 @@ void ACEMV_Attack (edict_t *self, usercmd_t *ucmd)
 	// If player has no weapon, keep moving!
 	if (bHasWeapon == false)
 	{
-		//Com_Printf("%s %s bHasWeapon %d self->bot.goal_node %d\n", __func__, self->client->pers.netname, bHasWeapon, self->bot.goal_node);
 		BOTLIB_MOV_Move(self, ucmd); // Keep moving
 	}
 	//rekkie -- DEV_1 -- e
@@ -3327,7 +3295,6 @@ void ACEMV_Attack (edict_t *self, usercmd_t *ucmd)
 					c = random();
 					if (c < 0.01)
 					{
-						//if (BOTLIB_CanVisitNode(self, nodes[self->current_node].links[i].targetNode)) // Make sure we can visit node
 						{
 							self->state = STATE_MOVE;
 							self->tries = 0; // Reset the count of how many times we tried this goal
@@ -3548,7 +3515,6 @@ qboolean	AntPathMove( edict_t *self )
 		{
 			// Failed to find a path
 //			gi.bprintf(PRINT_HIGH,"%s: Target at(%i) - No Path \n",
-//				self->client->pers.netname, self->bot.goal_node, self->bot.next_node);
 			return false;
 		}
 		return true;

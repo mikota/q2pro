@@ -268,7 +268,6 @@ int ACEND_FindClosestReachableNode(edict_t *self, int range, int type)
 
 				/*
 				// Try to see if bot is close to the next node
-				if (self->bot.next_node != INVALID && self->bot.next_node == i && VectorDistance(nodes[i].origin, self->s.origin) <= 64)
 				{
 					tr = gi.trace(self->s.origin, tv(-16, -16, STEPSIZE), tv(16, 16, 32), nodes[i].origin, self, MASK_PLAYERSOLID); //rekkie
 					if ((tr.fraction == 1.0) ||
@@ -276,7 +275,6 @@ int ACEND_FindClosestReachableNode(edict_t *self, int range, int type)
 						&& (Q_stricmp(tr.ent->classname, "func_door_rotating") == 0))
 						)
 					{
-						//Com_Printf("%s -> [%s] is close to next_node[%d]\n", __func__, self->client->pers.netname, node);
 						//if (node != INVALID)
 							return node;
 					}
@@ -400,7 +398,7 @@ void ACEND_SetGoal(edict_t *self, int goal_node)
 	
 	int nodelist[MAX_NODELIST];
 	int nodes_touched;
-	nodes_touched = BOTLIB_NodeTouchNodes(self->s.origin, tv(0, 0, 0), 32, self->mins, self->maxs, nodelist, MAX_NODELIST, INVALID);
+	nodes_touched = BOTLIB_NodeTouchNodes(self->s.origin, vec3_origin, 32, self->mins, self->maxs, nodelist, MAX_NODELIST, INVALID);
 	for (int i = 0; i < nodes_touched; i++) // Cycle through all the nodes we touched
 	{
 		if (nodelist[i] != INVALID)
@@ -452,7 +450,6 @@ qboolean BOTLIB_AdvanceToSelectNode(edict_t* self, int node)
 		if (!SLLempty(&self->pathList))
 		{
 			self->bot.next_node = SLLfront(&self->pathList);
-			//Com_Printf("%s reached [n:%i t:%i] next [n:%i t:%i] goal [%i]\n", self->client->pers.netname, self->bot.current_node, nodes[self->bot.current_node].type, self->bot.next_node, nodes[self->bot.next_node].type, self->bot.goal_node);
 			//return true;
 
 			if (bot_hit_next_node) return true;
@@ -476,7 +473,6 @@ qboolean NODES_AdvanceToNextNode(edict_t* self)
 {
 	self->bot.prev_node = self->bot.current_node;
 	self->bot.current_node = self->bot.next_node;
-	//self->bot.next_node = path_table[self->bot.current_node][self->bot.goal_node];
 
 	// Remove the front entry from the list
 	if (self->bot.next_node == SLLfront(&self->pathList))
@@ -486,7 +482,6 @@ qboolean NODES_AdvanceToNextNode(edict_t* self)
 	if (!SLLempty(&self->pathList))
 	{
 		self->bot.next_node = SLLfront(&self->pathList);
-		//Com_Printf("%s reached [n:%i t:%i] next [n:%i t:%i] goal [%i]\n", self->client->pers.netname, self->bot.current_node, nodes[self->bot.current_node].type, self->bot.next_node, nodes[self->bot.next_node].type, self->bot.goal_node);
 		return true;
 	}
 	else
@@ -668,7 +663,7 @@ void BOTLIB_SelfExpandingNodes(edict_t* ent, int node)
 			if (0)
 			{
 				// Check if new location touches another node
-				nodes_touched = BOTLIB_NodeTouchNodes(exp, tv(0, 0, 0), 8, mins, maxs, nodelist, MAX_NODELIST, INVALID);
+				nodes_touched = BOTLIB_NodeTouchNodes(exp, vec3_origin, 8, mins, maxs, nodelist, MAX_NODELIST, INVALID);
 				if (nodes_touched == 0)
 				{
 					// Check if we fit
@@ -1155,7 +1150,7 @@ void BOTLIB_SelfExpandNodesFromSpawnpoints(edict_t *ent)
 				*/
 				{
 					// Check if new location touches another node
-					nodes_touched = BOTLIB_NodeTouchNodes(sp_origin[i], tv(0, 0, 0), 0, mins, maxs, nodelist, MAX_NODELIST, INVALID);
+					nodes_touched = BOTLIB_NodeTouchNodes(sp_origin[i], vec3_origin, 0, mins, maxs, nodelist, MAX_NODELIST, INVALID);
 					if (nodes_touched == 0)
 					{
 						// Contents check
@@ -1164,7 +1159,7 @@ void BOTLIB_SelfExpandNodesFromSpawnpoints(edict_t *ent)
 						if (contents & MASK_WATER)
 							type = NODE_WATER;
 
-						node_added = BOTLIB_AddNode(sp_origin[i], tv(0, 0, 0), type);
+						node_added = BOTLIB_AddNode(sp_origin[i], vec3_origin, type);
 						if (node_added != INVALID)
 							BOTLIB_SelfExpandingNodes(ent, node_added);
 					}
@@ -2295,10 +2290,8 @@ int BOTLIB_Reachability(int from, int to)
 // Move closer to goal by pointing the bot to the nearest next node that is closer to the goal
 qboolean BOTLIB_FollowPath(edict_t *self)
 {
-	//if (self->groundentity && (self->bot.current_node == INVALID || self->bot.next_node == INVALID || self->bot.goal_node == INVALID)) // Invalid pathing
 	if (self->bot.current_node == INVALID || self->bot.next_node == INVALID || self->bot.goal_node == INVALID) // Invalid pathing
 	{
-		//Com_Printf("%s [%s] invalid pathing current_node[%d] next_node[%d] goal[%d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.next_node, self->bot.goal_node);
 		self->bot.node_travel_time++;
 		return false;
 	}
@@ -2333,7 +2326,6 @@ qboolean BOTLIB_FollowPath(edict_t *self)
 							else
 								self->bot.node_poi_time = level.framenum + 7 * HZ; // Set the time to spend at the POI
 
-							//Com_Printf("%s [%s] reached POI, holding pos. current_node[%d] next_node[%d] goal[%d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.next_node, self->bot.goal_node);
 							break;
 						}
 					}
@@ -2448,18 +2440,15 @@ qboolean BOTLIB_FollowPath(edict_t *self)
 		if (!AntStartSearch(self, self->bot.current_node, self->bot.goal_node)) // Set up our pathList
 		{
 			// Failed to find a path
-			Com_Printf("%s %s: Target at(%i) - No Path \n", __func__, self->client->pers.netname, self->bot.goal_node, self->bot.next_node);
 			return false;
 		}
 		*/
 	}
-
-
-
+	
 	// Check if bot is touching a node that isn't on the path
-	int nodes_touched; // Number of nodes touched
 	int nodelist[MAX_NODELIST]; // Nodes touched
-	nodes_touched = BOTLIB_NodeTouchNodes(self->s.origin, tv(0, 0, 0), 0, self->mins, self->maxs, nodelist, MAX_NODELIST, INVALID);
+	int nodes_touched; // Number of nodes touched
+	nodes_touched = BOTLIB_NodeTouchNodes(self->s.origin, vec3_origin, 0, self->mins, self->maxs, nodelist, MAX_NODELIST, INVALID);
 	qboolean external_node_touched = true;
 	for (int i = 0; i < nodes_touched; i++)
 	{
@@ -2473,7 +2462,6 @@ qboolean BOTLIB_FollowPath(edict_t *self)
 		int node = self->bot.node_list[i];
 		for (int j = 0; j < nodes[node].num_links; j++)
 		{
-			if (nodes[j].nodenum == curr_node || self->bot.node_list[i] == self->bot.next_node)
 			{
 				external_node_touched = false;
 				break;
@@ -2665,7 +2653,7 @@ qboolean BOTLIB_FollowPath(edict_t *self)
 
 					return false;
 				}
-				else // Update current and next node
+				else // Update current and next node // THIS IS IT HERE!!!
 				{
 					self->bot.node_travel_time = 0;
 
@@ -2674,7 +2662,8 @@ qboolean BOTLIB_FollowPath(edict_t *self)
 					self->bot.prev_node = self->bot.current_node;
 
 					self->bot.current_node = self->bot.node_list[i];
-					self->bot.next_node = self->bot.node_list[i + 1];
+
+					self->bot.next_node = self->bot.node_list[0];
 				}
 			}
 		}
@@ -3680,24 +3669,29 @@ qboolean ACEND_IsNodeVisibleToNodes(short x, short y)
 ///////////////////////////////////////////////////////////////////////
 short ACEND_GetRandomVisibleNode(short x)
 {
-	short i;
-	short dn; // Destination node
-	short vis_size = 0;
+    short i;
+    short dn; // Destination node
+    short vis_size = 0;
 
-	if (x + 1 < numnodes) // Bounce check
-	{
-		// Work out the size of the vis list
-		for (i = 0; i < MAX_VIS_NODES; i++)
-		{
-			if (node_vis_list[x][i] != INVALID)
-				vis_size++;
-		}
+    if (x + 1 < numnodes) // Bounds check
+    {
+        // Work out the size of the vis list
+        for (i = 0; i < MAX_VIS_NODES; i++)
+        {
+            if (node_vis_list[x][i] != INVALID)
+                vis_size++;
+        }
 
-		dn = (int)(random() * vis_size); // Pick a random destination node
-		return node_vis_list[x][dn];
-	}
+        if (vis_size == 0) // No visible nodes
+            return INVALID;
 
-	return INVALID;
+        dn = (short)(random() * vis_size); // Pick a random destination node
+
+        if (dn >= 0 && dn < vis_size) // Ensure dn is within bounds
+            return node_vis_list[x][dn];
+    }
+
+    return INVALID;
 }
 //rekkie -- DEV_1 -- e
 
