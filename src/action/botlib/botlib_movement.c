@@ -6433,7 +6433,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 		self->client->old_waterlevel = waterlevel;
 
 		if (current_node_type == NODE_WATER || waterlevel == 3){
-			gi.dprintf("I'm in the water %s and my air is %d\n", self->client->pers.netname, self->air_finished_framenum - level.framenum);
+			//gi.dprintf("I'm in the water %s and my air is %d\n", self->client->pers.netname, self->air_finished_framenum - level.framenum);
 			// Get out before you start drowning!
 			if (self->air_finished_framenum < level.framenum + 10) {
 				self->bot.bi.actionflags |= ACTION_MOVEUP;
