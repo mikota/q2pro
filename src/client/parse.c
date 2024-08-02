@@ -341,7 +341,7 @@ static void CL_ParseFrame(int extrabits)
 	bits = MSG_ReadWord();
 	if (cls.serverProtocol == PROTOCOL_VERSION_AQTION) {
 		MSG_ParseDeltaPlayerstate_Aqtion(from, &frame.ps, bits, extraflags, cl.psFlags);
-#ifdef USE_DEBUG
+#if USE_DEBUG
 		if (cl_shownet->integer > 2 && (bits || extraflags)) {
 			MSG_ShowDeltaPlayerstateBits_Enhanced(bits, extraflags);
 			Com_LPrintf(PRINT_DEVELOPER, "\n");
