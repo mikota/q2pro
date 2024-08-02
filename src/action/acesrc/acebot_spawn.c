@@ -730,8 +730,11 @@ void ACESP_RemoveBot(char *name)
 		ClientDisconnect( bot );
 	}
 */
-	if(!freed)	
-		gi.bprintf (PRINT_MEDIUM, "No bot removed\n");
+	if (!freed) {
+		if (debug_mode) {
+			gi.bprintf(PRINT_MEDIUM, "No bot removed\n");
+		}
+	}
 
 //	ACESP_SaveBots(); // Save them again
 }

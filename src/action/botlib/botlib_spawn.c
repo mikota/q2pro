@@ -1528,8 +1528,11 @@ void BOTLIB_RemoveBot(char* name)
 		}
 	}
 
-	if (!freed)
-		gi.bprintf(PRINT_MEDIUM, "No bot removed\n");
+	if (!freed) {
+		if (debug_mode) {
+			gi.bprintf(PRINT_MEDIUM, "No bot removed\n");
+		}
+	}
 }
 
 // Remove a bot by team

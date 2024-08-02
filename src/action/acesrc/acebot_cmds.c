@@ -31,7 +31,7 @@
 #include "../g_local.h"
 
 
-qboolean debug_mode=true;
+qboolean debug_mode=false;
 qboolean shownodes_mode=false;	//RiEvEr - new node showing method
 
 ///////////////////////////////////////////////////////////////////////
