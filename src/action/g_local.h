@@ -2181,6 +2181,21 @@ typedef enum {
 	BOT_TYPE_BOTLIB,	// BOTLIB -- New bots
 } bot_type_t;
 
+// Most float values here are between -1 and 1
+typedef struct bot_personality_s
+{
+	// These are +1 because we're ignoring the first index [0]
+	// So that MK23_NUM (1) stays at 1 here as well
+	float weapon_prefs[WEAPON_COUNT + 1];  	//-1 = Will never choose, 1 = Will always choose
+	float item_prefs[ITEM_COUNT +1];      	//-1 = Will never choose, 1 = Will always choose
+
+	float map_prefs;						//-1 = Hate, 0 = Neutral, 1 = Love
+	float combat_demeanor;					//-1 = Timid | 1 = Aggressive
+	float chat_demeanor;					//-1 = Quiet | 1 = Chatty
+	int leave_percent; 						// Percentage calculated that the bot will leave the map.  Recalculated/increases every time the bot dies.
+
+} bot_personality_t;
+
 typedef struct bot_s
 {
 	int bot_type;
