@@ -826,8 +826,11 @@ qboolean BOTLIB_CanGotoNode(edict_t* self, int goal_node, qboolean path_randomiz
 	else // Fallback to old pathing
 	{
 		self->bot.goal_node = INVALID;
-		gi.dprintf("BOTLIB_CanVisitNode? %d\n", BOTLIB_CanVisitNode(self, nodes[goal_node].nodenum, path_randomization, INVALID, false));
-		if (BOTLIB_CanVisitNode(self, nodes[goal_node].nodenum, path_randomization, INVALID, false))
+		//self->bot.goal_node = goal_node;
+		qboolean canVisit = BOTLIB_CanVisitNode(self, goal_node, path_randomization, INVALID, false);
+
+		gi.dprintf("BOTLIB_CanVisitNode? %d\n", canVisit);
+		if (canVisit)
 		{
 			// Add the goal to the end of the node list + terminate
 			if (self->bot.node_list_count)
@@ -1898,38 +1901,6 @@ qboolean BOTLIB_DijkstraAreaPath(edict_t* ent, int from, int to, qboolean path_r
 }
 //rekkie -- Dijkstra Area Pathing -- e
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //rekkie -- Dijkstra pathing -- s
 // Currently if path_randomization is enabled and the bot fails to path to its target,
 // BOTLIB_DijkstraPath() is run again with path_randomization turned off
@@ -1944,9 +1915,9 @@ qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_rando
 	}
 
 	AntInitSearch(ent); // Clear out the path storage
-	for (int i = 0; i < numnodes; i++){
+	for (int i = 0; i < numnodes; i++)
 		nodeweight[i] = NAV_INFINITE;
-	}
+
 
 	int	newNode = INVALID; // Stores the node being tested
 	int atNode = from; // Current node we're visiting
@@ -2245,8 +2216,8 @@ qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_rando
 		//Com_Printf("%s EXIT PATH\n\n", __func__);
 
 		// Each time a path is found, make a copy
-		ent->bot.node_list_count = 0;
-		memset(ent->bot.node_list, 0, sizeof(ent->bot.node_list)); // Ensure the node list is cleared
+		// ent->bot.node_list_count = 0;
+		// memset(ent->bot.node_list, 0, sizeof(ent->bot.node_list)); // Ensure the node list is cleared
 		ent->bot.node_list_count = BOTLIB_SLL_Query_All_Nodes(ent, &ent->pathList, ent->bot.node_list, MAX_NODELIST); // Retrieve the nodes in the list
 		ent->bot.node_list_current = 0;
 		if (ent->bot.node_list_count) // Set the current and next nodes
@@ -2255,6 +2226,9 @@ qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_rando
 			ent->bot.current_node = from;
 			ent->bot.next_node = ent->bot.node_list[0];
 		}
+		if(from != ent->bot.node_list[0])
+			gi.dprintf("Deviation in provided `from` parameter (%i) and node_list[0] value (%i)!\n", from, ent->bot.node_list[0]);
+
 		ent->bot.node_random_path = path_randomization; // Note down if the bot was taking a random or direct path
 
 		if (1)

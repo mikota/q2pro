@@ -660,7 +660,7 @@ qboolean BOTLIB_CanVisitNode(edict_t* self, int goal_node, qboolean path_randomi
 	{
 		if (nodelist[i] != INVALID)
 		{
-			self->bot.current_node = nodelist[i];
+			//self->bot.current_node = nodelist[i];
 			break;
 		}
 	}
@@ -673,7 +673,7 @@ qboolean BOTLIB_CanVisitNode(edict_t* self, int goal_node, qboolean path_randomi
 		return false;
 	}
 
-	self->bot.next_node = self->bot.current_node; // make sure we get to the nearest node first
+	//self->bot.next_node = self->bot.current_node; // make sure we get to the nearest node first
 	self->node_timeout = 0;
 
 	self->bot.state = BOT_MOVE_STATE_MOVE;

@@ -5871,11 +5871,11 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 				// Otherwise pick from various wait times before moving out
 				int rnd_rng = rand() % 4;
 				if (rnd_rng == 0)
-					self->just_spawned_timeout = level.framenum + (random() * 3) * HZ;	// Long wait
+					self->just_spawned_timeout = level.framenum + (random() * 10) * HZ;	// Long wait
 				else if (rnd_rng == 1)
-					self->just_spawned_timeout = level.framenum + (random() * 2) * HZ;	// Medium wait
+					self->just_spawned_timeout = level.framenum + (random() * 5) * HZ;	// Medium wait
 				else if (rnd_rng == 2)
-					self->just_spawned_timeout = level.framenum + (random() * HZ);  // Short wait
+					self->just_spawned_timeout = level.framenum + (random() * 2) * HZ;  // Short wait
 				else
 					self->just_spawned_timeout = 0;										// No wait
 			}
@@ -5892,7 +5892,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 		// Go!
 		if (self->just_spawned_go || self->bot.see_enemies)
 		{
-			BOTLIB_PickLongRangeGoal(self);
+			//BOTLIB_PickLongRangeGoal(self);
 			self->just_spawned_go = false; // Now we can move!
 		}
 	}
@@ -5964,7 +5964,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 	if (self->bot.node_travel_time >= 120) //60 // Bot failure to reach next node
 	{
 		self->bot.stuck_wander_time = 1;
-		//Com_Printf("%s %s node_travel_time was hit! cur[%d] nxt[%d] goal[%d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.next_node, self->bot.goal_node);
+		Com_Printf("%s %s node_travel_time was hit! cur[%d] nxt[%d] goal[%d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.next_node, self->bot.goal_node);
 	}
 
 	//self->bot.stuck_wander_time = 0;
@@ -6260,8 +6260,8 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 
 	
 	if (1 & self->bot.node_list_count)
+	//if (self->bot.node_list_count > 0)
 	{
-		//for (int i = self->bot.node_list_current; i < self->bot.node_list_count; i++)
 		for (int i = 1; i < self->bot.node_list_count; i++)
 		{
 			if (self->bot.next_node == self->bot.node_list[i])
@@ -6501,7 +6501,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 				VectorSubtract(nodes[self->bot.next_node].origin, self->s.origin, bot_to_node);
 				bot_to_node[2] = 0;
 				float xy_bot_to_next_dist = VectorLength(bot_to_node); // Distance from bot to next node
-				if (xy_bot_to_next_dist > 16 && xy_bot_to_next_dist <= 150)
+				if (xy_bot_to_next_dist > 32 && xy_bot_to_next_dist <= 150)
 				{
 					// Line of sight
 					tr = gi.trace(self->s.origin, NULL, NULL, nodes[self->bot.next_node].origin, self, MASK_PLAYERSOLID);

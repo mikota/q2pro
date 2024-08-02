@@ -703,10 +703,12 @@ void BOTLIB_Think(edict_t* self)
 	if (level.framenum < 15) // Wait for a little before processing AI on a new map
 		goto end_think; // Skip bot logic
 
+	//gi.dprintf("%s: My bot state is %d\n", __func__, self->bot.state);
 	if (ctf->value) // CTF Goals
 	{
 		BOTLIB_CTF_Goals(self);
 	}
+	// Check if the bot is in a NAV state (I need a nav) or if NONE
 	else if (self->bot.state == BOT_MOVE_STATE_NAV || self->bot.state == BOT_MOVE_STATE_NONE)
 	{
 		/*
@@ -772,6 +774,7 @@ void BOTLIB_Think(edict_t* self)
 	//	killPlayer( self, true );
 
 	// Kill the bot if they've not moved between nodes in a timely manner, stuck!
+	gi.dprintf("%s is currently at node %i\n", self->client->pers.netname, self->bot.current_node);
 	if (self->bot.node_travel_time > 120)
 		killPlayer(self, true);
 

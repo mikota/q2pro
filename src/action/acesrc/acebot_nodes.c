@@ -2662,8 +2662,7 @@ qboolean BOTLIB_FollowPath(edict_t *self)
 					self->bot.prev_node = self->bot.current_node;
 
 					self->bot.current_node = self->bot.node_list[i];
-
-					self->bot.next_node = self->bot.node_list[0];
+					self->bot.next_node = self->bot.node_list[i + 1];
 				}
 			}
 		}

@@ -992,41 +992,13 @@ int BOTLIB_LocateFloorItem(edict_t* self, int* items_to_get, int items_counter)
 	vec3_t maxs = { 16, 16, 32 };
 	vec3_t bmins = { 0,0,0 };
 	vec3_t bmaxs = { 0,0,0 };
+	//qboolean outer_break = false; // Flag to break the outer loop
 
+	//for (int i = base; i < globals.num_edicts && !outer_break; i++, ent++)
 	for (int i = base; i < globals.num_edicts; i++, ent++)
 	{
 		if (ent->inuse == false) continue;
 		if (!ent->classname) continue;
-
-		/*
-		if (strcmp(ent->classname, "info_player_deathmatch") == 0) // Skip spawn points
-			continue;
-
-		if (strcmp(ent->classname, "dead_body") == 0) // Skip dead bodies
-			continue;
-
-		if (ent->solid == SOLID_NOT)
-			continue;
-
-		if (strcmp(ent->classname, "medkit") == 0)
-		{
-		}
-
-		//if (ent->spawnflags != 0) continue;
-		//if (ent->flags != 0) continue;
-
-		//Com_Printf("%s %s item %s [%f %f %f] - sf[0x%x] - f[0x%x]\n", __func__, self->client->pers.netname, ent->classname, ent->s.origin[0], ent->s.origin[1], ent->s.origin[2], ent->spawnflags, ent->flags);
-
-		// Ent->Spawnflags
-		// DROPPED_ITEM                    0x00010000		Item dropped by player
-		// DROPPED_PLAYER_ITEM             0x00020000		Item dropped when dead
-		// ITEM_TARGETS_USED               0x00040000		Item picked up from spawn spot
-		//
-		// Ent->Flags
-		// FL_RESPAWN                      0x80000000		used for item respawning
-		//if (ent->spawnflags == ITEM_TARGETS_USED && ent->flags == FL_RESPAWN) // Skip weapon spawn spot when weapon has been picked up
-		//	continue;
-		*/
 
 		switch (ent->typeNum) {
 		case MK23_NUM:
@@ -1072,11 +1044,12 @@ int BOTLIB_LocateFloorItem(edict_t* self, int* items_to_get, int items_counter)
 					{
 						//trace_t tr = gi.trace(nodes[j].origin, mins, maxs, tv(ent->s.origin[0], ent->s.origin[1], ent->s.origin[2] + 0), NULL, MASK_PLAYERSOLID);
 						trace_t tr = gi.trace(nodes[j].origin, NULL, NULL, tv(ent->s.origin[0], ent->s.origin[1], ent->s.origin[2] + 0), NULL, MASK_PLAYERSOLID);
-						if (tr.fraction == 1.0 && BOTLIB_CanGotoNode(self, nodes[j].nodenum, false)) // Check if bot can nav to item
+						if (tr.fraction == 1.0 && (self->bot.state == BOT_MOVE_STATE_NAV || self->bot.state == BOT_MOVE_STATE_NONE) && BOTLIB_CanGotoNode(self, nodes[j].nodenum, false)) // Check if bot can nav to item
 						{
 							items[item_count] = ent;
 							item_nodes[item_count] = nodes[j].nodenum;
 							item_count++;
+							//outer_break = true; // Set flag to break the outer loop
 							break;
 						}
 						else

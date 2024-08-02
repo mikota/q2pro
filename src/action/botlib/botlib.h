@@ -12,9 +12,9 @@
 typedef enum
 {
 	BOT_MOVE_STATE_NONE = 0,    // Bot is booting up :-)
-	BOT_MOVE_STATE_NAV,         // Getting a navigational path
+	BOT_MOVE_STATE_NAV = 1,         // Getting a navigational path
 	//BOT_MOVE_STATE_NAV_NEXT,  // Getting next navigational path (if any)
-	BOT_MOVE_STATE_MOVE,        // Standard movement
+	BOT_MOVE_STATE_MOVE = 3,        // Standard movement
 	BOT_MOVE_STATE_WANDER,      // No navigation and no movement, try wandering around
 	BOT_MOVE_STATE_STAND,       // Stand still and hold a position
 	BOT_MOVE_STATE_FLEE,        // Running away from enemy force

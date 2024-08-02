@@ -129,6 +129,7 @@ void BOTLIB_PickLongRangeGoal(edict_t* self)
 	//current_node = ACEND_FindClosestReachableNode(self, NODE_DENSITY, NODE_ALL);
 	self->bot.current_node = ACEND_FindClosestReachableNode(self, NODE_DENSITY, NODE_ALL);
 
+	gi.dprintf("%s is currently at node %d\n", self->client->pers.netname, self->bot.current_node);
 
 	if (ctf->value) // CTF has it's own goals
 		return;
@@ -153,9 +154,8 @@ void BOTLIB_PickLongRangeGoal(edict_t* self)
 	//=======================
 	// Get navigation
 	//=======================
-	//if (self->bot.state == BOT_MOVE_STATE_NAV)
+	if (self->bot.state == BOT_MOVE_STATE_NAV)
 	{
-
 		//self->bot.get_item = NULL;
 		//if (BOTLIB_NeedWeaponOrAmmo(self))
 		//if (random() < 0.75 && self->client->weapon == FindItem(MK23_NAME) || self->client->weapon == FindItem(DUAL_NAME))
@@ -166,13 +166,11 @@ void BOTLIB_PickLongRangeGoal(edict_t* self)
 			node = BOTLIB_GetEquipment(self);
 			if (node != INVALID)
 			{
-				if (BOTLIB_CanGotoNode(self, nodes[node].nodenum, rand() % 2))
-				{
-					//self->bot.state = BOT_MOVE_STATE_MOVE;
-					//BOTLIB_SetGoal(self, nodes[node].nodenum);
-					//Com_Printf("%s %s going for %s at node %d\n", __func__, self->client->pers.netname, self->bot.get_item->classname, nodes[node].nodenum);
+				//if (BOTLIB_CanGotoNode(self, nodes[node].nodenum, rand() % 2))
+				//{
+					Com_Printf("%s %s going for %s at node %d\n", __func__, self->client->pers.netname, self->bot.get_item->classname, nodes[node].nodenum);
 					return;
-				}
+				//}
 			}
 		}
 
@@ -187,7 +185,7 @@ void BOTLIB_PickLongRangeGoal(edict_t* self)
 			}
 			if (BOTLIB_CanGotoNode(self, nodes[i].nodenum, false))
 			{
-				//Com_Printf("%s %s visiting [RNG] node[%i] counter[%d]\n", __func__, self->client->pers.netname, nodes[i].nodenum, counter);
+				Com_Printf("%s %s visiting [RNG] node[%i] counter[%d]\n", __func__, self->client->pers.netname, nodes[i].nodenum, counter);
 				//self->bot.state = BOT_MOVE_STATE_MOVE;
 				//BOTLIB_SetGoal(self, nodes[i].nodenum);
 				return;
@@ -325,12 +323,12 @@ void BOTLIB_PickLongRangeGoal(edict_t* self)
 		}
 		
 		// // Random node
-		// int retries = 0;
-		// 	while (retries < max_random_retries)
-		// 	{
-		// 		if (!BOTLIB_ChooseRandomNode(self, 128))
-		// 			retries++;
-		// 	}
+		int retries = 0;
+			while (retries < max_random_retries)
+			{
+				if (!BOTLIB_ChooseRandomNode(self, 128))
+					retries++;
+			}
 	}
 
 	//Com_Printf("%s %s BOT_MOVE_STATE_NAV couldn't find a good path [%d]\n", __func__, self->client->pers.netname, level.framenum);
