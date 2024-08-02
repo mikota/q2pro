@@ -33,7 +33,7 @@ void AddMessageToQueue(edict_t* bot, const char* text, int frameReceived) {
 
 void ProcessChatQueue(int currentFrame) {
     for (int i = 0; i < chatQueue.count; i++) {
-        if (currentFrame > chatQueue.messages[i].frameReceived + 40) {
+        if (currentFrame > chatQueue.messages[i].frameReceived + 4 * HZ) {
             // Send the chat message from the correct bot
             BOTLIB_Say(chatQueue.messages[i].bot, chatQueue.messages[i].text, false);
             //gi.dprintf("Sending delayed chat message from bot: %s\n", chatQueue.messages[i].text);
