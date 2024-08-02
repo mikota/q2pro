@@ -498,6 +498,8 @@ void Add_Frag(edict_t * ent, int mod)
 
 //rekkie -- DEV_1 -- s
 	// Random bot voice sounds
+
+	// Debug this, sometimes bots will repeat this over and over again
 	if (use_voice->value && ent->is_bot && bot_randvoice->value > 0)
 	{
 		if (bot_randvoice->value > 100) bot_randvoice->value = 100;

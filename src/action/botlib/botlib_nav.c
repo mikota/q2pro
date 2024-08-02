@@ -829,7 +829,7 @@ qboolean BOTLIB_CanGotoNode(edict_t* self, int goal_node, qboolean path_randomiz
 		//self->bot.goal_node = goal_node;
 		qboolean canVisit = BOTLIB_CanVisitNode(self, goal_node, path_randomization, INVALID, false);
 
-		gi.dprintf("BOTLIB_CanVisitNode? %d\n", canVisit);
+		//gi.dprintf("BOTLIB_CanVisitNode? %d\n", canVisit);
 		if (canVisit)
 		{
 			// Add the goal to the end of the node list + terminate
@@ -843,7 +843,9 @@ qboolean BOTLIB_CanGotoNode(edict_t* self, int goal_node, qboolean path_randomiz
 		}
 	}
 
-	Com_Printf("%s %s failed #2 \n", __func__, self->client->pers.netname);
+	// Failed #2 is super common, it just means that the bot cannot reach the goal node within the
+	// bounds of how long distances can be calculated. It's not a failure, just a limitation.
+	//Com_Printf("%s %s failed #2 \n", __func__, self->client->pers.netname);
 	return false; // Failure to find path
 }
 
@@ -2226,12 +2228,13 @@ qboolean BOTLIB_DijkstraPath(edict_t* ent, int from, int to, qboolean path_rando
 			ent->bot.current_node = from;
 			ent->bot.next_node = ent->bot.node_list[0];
 		}
-		if(from != ent->bot.node_list[0])
-			gi.dprintf("Deviation in provided `from` parameter (%i) and node_list[0] value (%i)!\n", from, ent->bot.node_list[0]);
+		// if(from != ent->bot.node_list[0])
+		// 	gi.dprintf("Deviation in provided `from` parameter (%i) and node_list[0] value (%i)!\n", from, ent->bot.node_list[0]);
 
 		ent->bot.node_random_path = path_randomization; // Note down if the bot was taking a random or direct path
 
-		if (1)
+		// Huge help in debugging, change this to 1
+		if (0)
 		{
 			if (1)
 			{

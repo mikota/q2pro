@@ -774,7 +774,7 @@ void BOTLIB_Think(edict_t* self)
 	//	killPlayer( self, true );
 
 	// Kill the bot if they've not moved between nodes in a timely manner, stuck!
-	gi.dprintf("%s is currently at node %i\n", self->client->pers.netname, self->bot.current_node);
+	//gi.dprintf("%s is currently at node %i\n", self->client->pers.netname, self->bot.current_node);
 	if (self->bot.node_travel_time > 120)
 		killPlayer(self, true);
 

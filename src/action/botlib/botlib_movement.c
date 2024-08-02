@@ -5964,7 +5964,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 	if (self->bot.node_travel_time >= 120) //60 // Bot failure to reach next node
 	{
 		self->bot.stuck_wander_time = 1;
-		Com_Printf("%s %s node_travel_time was hit! cur[%d] nxt[%d] goal[%d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.next_node, self->bot.goal_node);
+		//Com_Printf("%s %s node_travel_time was hit! cur[%d] nxt[%d] goal[%d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.next_node, self->bot.goal_node);
 	}
 
 	//self->bot.stuck_wander_time = 0;
