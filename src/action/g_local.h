@@ -777,6 +777,11 @@ typedef struct
 
   // High Scores support from OpenFFA
   char        dir[MAX_OSPATH]; // where variable data is stored
+  
+  // Bot personalities loaded
+  #ifndef NO_BOTS
+  const char* bot_file_path;
+  #endif
 }
 game_locals_t;
 
@@ -2194,6 +2199,8 @@ typedef struct bot_personality_s
 	float chat_demeanor;					//-1 = Quiet | 1 = Chatty
 	int leave_percent; 						// Percentage calculated that the bot will leave the map.  Recalculated/increases every time the bot dies.
 
+	char name_pref;					// Name preference
+	char skin_pref;			// Skin preference, if DM mode
 } bot_personality_t;
 
 typedef struct bot_s
@@ -2323,6 +2330,8 @@ typedef struct bot_s
 	qboolean radioReportKills;		// Flag if the bot reports its kills in radio and chat
 	//
 	int lastChatTime;				// Last time the bot chatted
+
+	bot_personality_t personality;	// Personality struct
 
 } bot_t;
 #endif

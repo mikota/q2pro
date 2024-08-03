@@ -500,6 +500,7 @@ void Add_Frag(edict_t * ent, int mod)
 	// Random bot voice sounds
 
 	// Debug this, sometimes bots will repeat this over and over again
+	// TODO: Disable this if we get too close to the max sound limit
 	if (use_voice->value && ent->is_bot && bot_randvoice->value > 0)
 	{
 		if (bot_randvoice->value > 100) bot_randvoice->value = 100;
@@ -792,6 +793,14 @@ void Add_Frag(edict_t * ent, int mod)
 			break;
 		}
 	}
+
+	#ifndef NO_BOTS
+	//darksaint -- Bot Chat -- s
+	// Generates chat message if respawning (killed)
+	if (ent->is_bot)
+		BOTLIB_Chat(ent, CHAT_INSULTS);
+	#endif
+	//darksaint -- Bot Chat -- e
 
 	// Announce kill streak to player if use_killcounts is enabled on server
 	if (use_killcounts->value) {
@@ -1572,9 +1581,8 @@ void ClientObituary(edict_t * self, edict_t * inflictor, edict_t * attacker)
 			#ifndef NO_BOTS
 			//darksaint -- Bot Chat -- s
 			// Generates chat message if respawning (killed)
-			if (bot_chat->value && self->is_bot) {
+			if (self->is_bot)
 				BOTLIB_Chat(self, CHAT_KILLED);
-			}
 			#endif
 			//darksaint -- Bot Chat -- e
 

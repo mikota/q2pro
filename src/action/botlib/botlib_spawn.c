@@ -1254,7 +1254,7 @@ int BOTLIB_RandomSkin(edict_t* bot, char* skin, int force_gender)
 }
 
 // Set the bot's userinfo (name, skin, hand, etc)
-void BOTLIB_SetUserinfo(edict_t* bot, const int team, int force_gender, char* force_name, char* force_skin)
+void BOTLIB_SetUserinfo(edict_t* bot, const int team, int force_gender, char* force_name, char* force_skin, qboolean personality)
 {
 	int gender = INVALID;
 	char name[MAX_QPATH]; // Full bot name ( [prefix/clan/rng]  and/or  [name]  and/or  [postfix] )
@@ -1400,7 +1400,11 @@ edict_t* BOTLIB_SpawnBot(int team, int force_gender, char* force_name, char* for
 	else if (team == TEAM3)
 		bot_connections.total_team3++;
 
-	BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);  // includes ClientConnect
+	if(bot_personality->value) {// Load personality data
+		BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin, true);  // includes ClientConnect
+	} else { // Use random data
+		BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin, false);
+	}
 
 	ClientBeginDeathmatch(bot);
 
@@ -1458,9 +1462,7 @@ void BOTLIB_RemoveBot(char* name)
 					freed = true;
 					ClientDisconnect(bot);
 					game.bot_count--;
-					if (bot_chat->value && !remove_all)
-						BOTLIB_Chat(bot, CHAT_GOODBYE);
-					//gi.bprintf (PRINT_MEDIUM, "%s removed\n", bot->client->pers.netname);
+
 					if (!remove_all)
 						break;
 				}
@@ -1501,10 +1503,9 @@ void BOTLIB_RemoveBot(char* name)
 			if (bot->is_bot && bot_to_kick == bot_count)
 			{
 				//darksaint -- Bot Chat -- s
-				// Generates chat message if respawning (goodbyes)
-				if (bot_chat->value) {
+				// Generates chat message (goodbyes)
+				if (bot_chat->value)
 					BOTLIB_Chat(bot, CHAT_GOODBYE);
-				}
 				//darksaint -- Bot Chat -- e
 
 				//rekkie -- Fake Bot Client -- s

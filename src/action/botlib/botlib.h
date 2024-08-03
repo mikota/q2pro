@@ -505,5 +505,28 @@ int BOTLIB_LocateFloorItem(edict_t* self, int* items_to_get, int items_counter);
 int BOTLIB_GetEquipment(edict_t* self);
 //rekkie -- collecting weapons, items, ammo -- e
 
+// ===========================================================================
+// botlib_personality.c
+// ===========================================================================
+// Copy of bot_personality_t struct
+// Most float values here are between -1 and 1
+typedef struct temp_bot_personality_s
+{
+    float weapon_prefs[10];   //-1 = Will never choose, 1 = Will always choose
+    float item_prefs[6];       //-1 = Will never choose, 1 = Will always choose
+    float map_prefs;                        //-1 = Hate, 0 = Neutral, 1 = Love
+    float combat_demeanor;                  //-1 = Timid | 1 = Aggressive
+    float chat_demeanor;                    //-1 = Quiet | 1 = Chatty
+    int leave_percent;                      // Percentage calculated that the bot will leave the map.  Recalculated/increases every time the bot dies.
+    char* skin_pref;                         // Skin preference, if DM mode
+} temp_bot_personality_t;
 
+typedef struct {
+    char* name;
+    temp_bot_personality_t personality;
+} bot_mapping_t;
+
+
+size_t BOTLIB_PersonalityCount(void);
+bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename);
 #endif // _BOTLIB_H

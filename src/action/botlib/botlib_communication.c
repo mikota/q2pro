@@ -102,7 +102,20 @@ char *botchat_insults[DBC_INSULTS] =
 	":>"
 };
 
-void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype) {
+#define DBC_VICTORY 3
+char *botchat_victory[DBC_VICTORY] =
+{
+	"smoked!",
+	"whew",
+	"too ez"
+};
+
+void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype)
+{
+	// Do nothing if bot_chat is disabled
+	if(!bot_chat->value)
+		return;
+
 	char* text = NULL;
 	qboolean delayed = true;
 

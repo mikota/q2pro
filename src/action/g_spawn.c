@@ -1594,6 +1594,10 @@ void SpawnEntities (const char *mapname, const char *entities, const char *spawn
 	//rekkie -- Fake Bot Client -- s
 	gi.SV_BotClearClients(); // So the server can clear all fake bot clients
 	//rekkie -- Fake Bot Client -- e
+
+	if(bot_personality->value)
+		BOTLIB_PersonalityCount();
+		BOTLIB_LoadPersonalities(game.bot_file_path);
 #endif
 //rekkie -- e
 }

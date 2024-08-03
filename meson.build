@@ -244,6 +244,7 @@ botlib_src = [
   'src/action/botlib/botlib_spawn.c',
   'src/action/botlib/botlib_spawnpoints.c',
   'src/action/botlib/botlib_weapons.c',
+  'src/action/botlib/botlib_personality.c'
 ]
 
 cc = meson.get_compiler('c')
@@ -255,6 +256,8 @@ cpuremap = {
   'x86': win32 ? 'x86' : 'i386',
   'aarch64': 'arm64',
 }
+
+inc_dirs = ['inc']
 
 cpu = host_machine.cpu_family()
 if cpu in cpuremap
@@ -422,7 +425,25 @@ if not win32
     allow_fallback:  win32,
     default_options: fallback_opt,
   )
-  game_deps += uuid
+  
+  if uuid.found()
+    client_deps += uuid
+    config.set10('USE_UUID', true)
+    dll_link_args += '-luuid'
+  endif
+
+  jansson = dependency('jansson',
+    required:        get_option('jansson'),
+    allow_fallback:  win32,
+    default_options: fallback_opt,
+  )
+
+  if jansson.found()
+    client_deps += jansson
+    config.set10('USE_JANSSON', true)
+    dll_link_args += '-L/opt/homebrew/lib'
+    dll_link_args += '-ljansson'
+  endif
 endif
 
 if host_machine.system() == 'darwin'
@@ -433,6 +454,7 @@ if host_machine.system() == 'darwin'
     default_options: fallback_opt,
   )
   client_deps += opengl
+  inc_dirs += '/opt/homebrew/include'
 endif
 
 # require FFmpeg >= 5.1.3
@@ -553,7 +575,7 @@ endif
 
 executable('q2pro', common_src, client_src, refresh_src,
   dependencies:          common_deps + client_deps,
-  include_directories:   'inc',
+  include_directories:   inc_dirs,
   gnu_symbol_visibility: 'hidden',
   win_subsystem:         'windows,6.0',
   link_args:             exe_link_args,
@@ -563,7 +585,7 @@ executable('q2pro', common_src, client_src, refresh_src,
 
 executable('q2proded', common_src, server_src,
   dependencies:          common_deps + server_deps,
-  include_directories:   'inc',
+  include_directories:   inc_dirs,
   gnu_symbol_visibility: 'hidden',
   win_subsystem:         'console,6.0',
   link_args:             exe_link_args,
@@ -574,7 +596,7 @@ executable('q2proded', common_src, server_src,
 shared_library('game' + cpu, action_src,
   name_prefix:           '',
   dependencies:          game_deps,
-  include_directories:   'inc',
+  include_directories:   inc_dirs,
   gnu_symbol_visibility: 'hidden',
   link_args:             dll_link_args,
   install:               system_wide,

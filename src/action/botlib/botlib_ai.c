@@ -814,6 +814,8 @@ void BOTLIB_Think(edict_t* self)
 		self->bot.see_enemies = BOTLIB_FindEnemy(self); // Find visible enemies
 		BOTLIB_Reload(self); // Reload the weapon if needed
 
+		// This doesn't mean that the bot sees itself as an enemy
+		// self->enemy is which bot the current self->bot is targeting
 		if (self->enemy)
 		{
 			// Chase after the new enemy
