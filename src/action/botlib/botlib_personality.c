@@ -94,10 +94,17 @@ float validate_pref_numeric(json_t* value, const char* prefName) {
     return 0.0f; // Return 0 if validation fails
 }
 char* validate_pref_string(json_t* value, int stringtype) {
+    if (!value) { // Check if value is NULL
+        return NULL; // Early return if value is NULL
+    }
     const char* str = json_string_value(value);
+    if (!str) { // Check if str is NULL
+        return NULL; // Early return if str is NULL
+    }
     size_t len = strlen(str);
     int maxlen = 0;
-    char* valuename;
+    char* valuename = NULL;
+
     if (value && json_is_string(value)) {
         if (stringtype == 0) {
             maxlen = 16;
@@ -141,6 +148,14 @@ char* validate_pref_string(json_t* value, int stringtype) {
  map_prefs is < 0
 */
 
+// Function to create a new bot_mapping_t instance
+bot_mapping_t* create_new_bot(char* name) {
+    bot_mapping_t* newBot = (bot_mapping_t*)malloc(sizeof(bot_mapping_t));
+    newBot->name = strdup(name); // Duplicate the name
+    newBot->personality.skin_pref = NULL; // Initialize to NULL
+    return newBot;
+}
+
 qboolean BotRageQuit(edict_t* self, qboolean frag_or_death)
 {
     // Don't do anything if the map_prefs are 0 to positive
@@ -173,7 +188,7 @@ qboolean BotRageQuit(edict_t* self, qboolean frag_or_death)
 
 // Dynamically update the map preferences of the bot
 // Not all bots will have a preference, so we default to 0 for those
-void update_map_pref(json_t* root, char* map_name, temp_bot_personality_t* personality)
+void update_map_pref(json_t* root, char* map_name, bot_mapping_t* newBot)
 {
     // Get the "map_prefs" object from the root
     json_t* map_prefs = json_object_get(root, "map_prefs");
@@ -185,19 +200,19 @@ void update_map_pref(json_t* root, char* map_name, temp_bot_personality_t* perso
     // Fetch the value for the specified map name
     json_t* value = json_object_get(map_prefs, map_name);
     if (value && json_is_real(value)) {
-        // Update the personality struct with the fetched value
-        personality->map_prefs = (float)json_real_value(value);
-        gi.dprintf("Updated map preference for '%s' to %f.\n", map_name, personality->map_prefs);
+        // Update the newBot struct with the fetched value
+        newBot->personality.map_prefs = (float)json_real_value(value);
+        gi.dprintf("Updated map preference for '%s' to %f.\n", map_name, newBot->personality.map_prefs);
     } else {
         // If the map name is not found or the value is not a real number, default to 0.0f
-        personality->map_prefs = 0.0f;
-        gi.dprintf("Map '%s' not found or invalid. Defaulting to %f.\n", map_name, personality->map_prefs);
+        newBot->personality.map_prefs = 0.0f;
+        gi.dprintf("Map '%s' not found or invalid. Defaulting to %f.\n", map_name, newBot->personality.map_prefs);
     }
 }
 
 // Function to load a bot personality from a JSON file using libjansson
-bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename) {
-    
+bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename)
+{
     // Open the file
     FILE* file = fopen(filename, "r");
     if (!file) {
@@ -228,93 +243,167 @@ bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename) {
     //     return NULL;
     // }
 
-    bot_mapping_t* temp_bot = (bot_mapping_t*)malloc(sizeof(bot_mapping_t));
-    if (!temp_bot) {
-        json_decref(root);
-        return NULL;
-    }
+    const char* botName;
+    json_t* botDetails;
 
+    json_object_foreach(bots, botName, botDetails) {
+        bot_mapping_t* newBot = create_new_bot((char*)botName);
+
+        if (!newBot) {
+            json_decref(root);
+            return NULL;
+        }
+
+        // Extract weapon preferences
+        json_t* weapon_prefs = json_object_get(botDetails, "weapon_prefs");
+        for (size_t i = 0; i < WEAPON_COUNT; i++) {
+            json_t* wpref_value = json_array_get(weapon_prefs, i);
+            newBot->personality.weapon_prefs[i] = validate_pref_numeric(wpref_value, "weapon_prefs");
+        }
+
+        // Extract item preferences
+        json_t* item_prefs = json_object_get(botDetails, "item_prefs");
+        for (size_t i = 0; i < ITEM_COUNT; i++) {
+            json_t* ipref_value = json_array_get(item_prefs, i);
+            newBot->personality.item_prefs[i] = validate_pref_numeric(ipref_value, "item_prefs");
+        }
+
+        // Extract map preferences
+        json_t* map_prefs = json_object_get(botDetails, "map_prefs");
+        newBot->personality.map_prefs = validate_pref_numeric(map_prefs, "map_prefs");
+        update_map_pref(botDetails, level.mapname, newBot);
+
+        // Extract combat demeanor
+        json_t* combat_demeanor = json_object_get(botDetails, "combat_demeanor");
+        newBot->personality.combat_demeanor = validate_pref_numeric(combat_demeanor, "combat_demeanor");
+
+        // Extract chat demeanor
+        json_t* chat_demeanor = json_object_get(botDetails, "chat_demeanor");
+        newBot->personality.chat_demeanor = validate_pref_numeric(chat_demeanor, "chat_demeanor");
+
+        // Extract skin preference
+        json_t* skin_pref = json_object_get(botDetails, "skin");
+        if (skin_pref) {
+            char* validatedSkinPref = validate_pref_string(skin_pref, MAX_QPATH); // Assuming STRING_TYPE_SKIN is a defined constant for skin strings
+            if (validatedSkinPref) {
+                newBot->personality.skin_pref = validatedSkinPref;
+            } else { // Default skin
+                newBot->personality.skin_pref = "male/grunt";
+            }
+        }
+
+        // Add the newBot to your bot collection or array here
+        gi.dprintf("Loaded bot %s\n", newBot->name);
+        gi.dprintf("Weapon Preferences:\n");
+        for (size_t i = 0; i < WEAPON_COUNT; i++) {
+            gi.dprintf("  %.2f\n", newBot->personality.weapon_prefs[i]);
+        }
+        gi.dprintf("Item Preferences:\n");
+        for (size_t i = 0; i < ITEM_COUNT; i++) {
+            gi.dprintf("  %.2f\n", newBot->personality.item_prefs[i]);
+        }
+        gi.dprintf("Map Preferences: %.2f\n", newBot->personality.map_prefs);
+        gi.dprintf("Combat Demeanor: %.2f\n", newBot->personality.combat_demeanor);
+        gi.dprintf("Chat Demeanor: %.2f\n", newBot->personality.chat_demeanor);
+        gi.dprintf("Skin Preference: %s\n", newBot->personality.skin_pref);
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     // Extract and assign values from the JSON object
     // Define an array of weapon names corresponding to their preferences
-    const char* weaponNames[] = {
-        MK23_NAME, MP5_NAME, M4_NAME, M3_NAME, HC_NAME, 
-        SNIPER_NAME, DUAL_NAME, KNIFE_NAME, GRENADE_NAME
-    };
+    // const char* weaponNames[] = {
+    //     MK23_NAME, MP5_NAME, M4_NAME, M3_NAME, HC_NAME, 
+    //     SNIPER_NAME, DUAL_NAME, KNIFE_NAME, GRENADE_NAME
+    // };
 
-    json_t* weapon_prefs = json_object_get(root, "weapon_prefs");
-    for (size_t i = 0; i < json_array_size(weapon_prefs); i++) {
-        json_t* wpref_value = json_array_get(weapon_prefs, i);
-        // Ensure the index is within the bounds of weaponNames array
-        const char* weaponName = (i < sizeof(weaponNames)/sizeof(weaponNames[0])) ? weaponNames[i] : "Unknown Weapon";
-        float value = validate_pref_numeric(wpref_value, weaponName); // Updated function call with weapon name
+    // json_t* weapon_prefs = json_object_get(root, "weapon_prefs");
+    // for (size_t i = 0; i < json_array_size(weapon_prefs); i++) {
+    //     json_t* wpref_value = json_array_get(weapon_prefs, i);
+    //     // Ensure the index is within the bounds of weaponNames array
+    //     const char* weaponName = (i < sizeof(weaponNames)/sizeof(weaponNames[0])) ? weaponNames[i] : "Unknown Weapon";
+    //     float value = validate_pref_numeric(wpref_value, weaponName); // Updated function call with weapon name
 
-        // Proceed with assignment only if value is not 0.0 (assuming 0.0 indicates invalid or not set)
-        if (value != 0.0f) {
-            temp_bot->personality.weapon_prefs[i] = value; // Direct assignment using index, assuming array is properly sized and ordered
-        }
-    }
+    //     // Proceed with assignment only if value is not 0.0 (assuming 0.0 indicates invalid or not set)
+    //     if (value != 0.0f) {
+    //         temp_bot->personality.weapon_prefs[i] = value; // Direct assignment using index, assuming array is properly sized and ordered
+    //     }
+    // }
 
-    // Assuming you have an array of preference names corresponding to each index
-    // Define an array of item names corresponding to their preferences
-    const char* itemNames[] = {SIL_NAME, SLIP_NAME, BAND_NAME, KEV_NAME, HELM_NAME, LASER_NAME};
+    // // Assuming you have an array of preference names corresponding to each index
+    // // Define an array of item names corresponding to their preferences
+    // const char* itemNames[] = {SIL_NAME, SLIP_NAME, BAND_NAME, KEV_NAME, HELM_NAME, LASER_NAME};
 
-    json_t* item_prefs = json_object_get(root, "item_prefs");
-    for (size_t i = 0; i < json_array_size(item_prefs); i++) {
-        json_t* ipref_value = json_array_get(item_prefs, i);
-        // Ensure the index is within the bounds of itemNames array
-        const char* itemName = (i < sizeof(itemNames)/sizeof(itemNames[0])) ? itemNames[i] : "Unknown Item";
-        float value = validate_pref_numeric(ipref_value, itemName); // Pass the item name for detailed warnings
+    // json_t* item_prefs = json_object_get(root, "item_prefs");
+    // for (size_t i = 0; i < json_array_size(item_prefs); i++) {
+    //     json_t* ipref_value = json_array_get(item_prefs, i);
+    //     // Ensure the index is within the bounds of itemNames array
+    //     const char* itemName = (i < sizeof(itemNames)/sizeof(itemNames[0])) ? itemNames[i] : "Unknown Item";
+    //     float value = validate_pref_numeric(ipref_value, itemName); // Pass the item name for detailed warnings
 
-        // Assuming 0.0f indicates an invalid or out-of-bounds value, skip assignment in such cases
-        if (value != 0.0f) {
-            temp_bot->personality.item_prefs[i] = value;
-        }
-    }
+    //     // Assuming 0.0f indicates an invalid or out-of-bounds value, skip assignment in such cases
+    //     if (value != 0.0f) {
+    //         temp_bot->personality.item_prefs[i] = value;
+    //     }
+    // }
 
-    // Extract single float values, if they exist, else default to 0
-    json_t *checkval;
+    // // Extract single float values, if they exist, else default to 0
+    // json_t *checkval;
 
-    char* current_map_name = level.mapname;
-    //personality->map_prefs = validate_pref_numeric(json_object_get(root, "map_prefs"), "map_prefs");
-    update_map_pref(root, current_map_name, temp_bot);
+    // char* current_map_name = level.mapname;
+    // //personality->map_prefs = validate_pref_numeric(json_object_get(root, "map_prefs"), "map_prefs");
+    // update_map_pref(root, current_map_name, temp_bot);
 
-    temp_bot->personality.combat_demeanor = validate_pref_numeric(json_object_get(root, "combat_demeanor"), "combat_demeanor");
+    // temp_bot->personality.combat_demeanor = validate_pref_numeric(json_object_get(root, "combat_demeanor"), "combat_demeanor");
 
-    temp_bot->personality.chat_demeanor = validate_pref_numeric(json_object_get(root, "chat_demeanor"), "chat_demeanor");
+    // temp_bot->personality.chat_demeanor = validate_pref_numeric(json_object_get(root, "chat_demeanor"), "chat_demeanor");
     
-    // Extract integer value, every fresh personality load sets this to 0
-    temp_bot->personality.leave_percent = 0;
+    // // Extract integer value, every fresh personality load sets this to 0
+    // temp_bot->personality.leave_percent = 0;
 
-    // Set the skin, if provided
-    char* defaultSkin = "male/grunt";
+    // // Set the skin, if provided
+    // char* defaultSkin = "male/grunt";
 
-    checkval = json_object_get(root, "skin");
-    char* validatedSkin = validate_pref_string(checkval, 1);
-    if (validatedSkin != NULL) {
-        // If skin value is valid, use it
-        temp_bot->personality.skin_pref = validatedSkin;
-    } else {
-        // If skin value is invalid, use defaultSkin and print a warning
-        temp_bot->personality.skin_pref = strdup(defaultSkin); // Use strdup to copy defaultSkin
-    }
+    // checkval = json_object_get(root, "skin");
+    // char* validatedSkin = validate_pref_string(checkval, 1);
+    // if (validatedSkin != NULL) {
+    //     // If skin value is valid, use it
+    //     temp_bot->personality.skin_pref = validatedSkin;
+    // } else {
+    //     // If skin value is invalid, use defaultSkin and print a warning
+    //     temp_bot->personality.skin_pref = strdup(defaultSkin); // Use strdup to copy defaultSkin
+    // }
 
-    // Set the name, if provided
-    char* defaultName = "AqtionBot";
+    // // Set the name, if provided
+    // char* defaultName = "AqtionBot";
 
-    checkval = json_object_get(root, "name");
-    char* validatedName = validate_pref_string(checkval, 0);
-    if (validatedName != NULL) {
-        // If name value is valid, use it
-        temp_bot->name = validatedName;
-    } else {
-        // If name value is invalid, use defaultName and print a warning
-        temp_bot->name = strdup(defaultName); // Use strdup to copy defaultName
-    }
+    // checkval = json_object_get(root, "bots");
+    // char* validatedName = validate_pref_string(checkval, 0);
+    // if (validatedName != NULL) {
+    //     // If name value is valid, use it
+    //     temp_bot->name = validatedName;
+    // } else {
+    //     // If name value is invalid, use defaultName and print a warning
+    //     temp_bot->name = strdup(defaultName); // Use strdup to copy defaultName
+    // }
 
+    
     // Clean up
     json_decref(root);
 
-    return temp_bot;
+    return 0;
 }
 
 // int main() {
@@ -410,7 +499,7 @@ size_t BOTLIB_PersonalityCount(void) {
     json_t* bots;
     size_t bot_count = 0;
     FILE* fIn;
-	char filename[128];
+	char filename[MAX_QPATH];
     cvar_t* game_dir = gi.cvar("game", "action", 0);
 	cvar_t* botdir = gi.cvar("botdir", "bots", 0);
 
@@ -435,6 +524,8 @@ size_t BOTLIB_PersonalityCount(void) {
 	{
 		return 0; // No file
 	}
+
+    BOTLIB_LoadPersonalities(filename);
 
     // Rewind the file pointer to the beginning of the file
     rewind(fIn);

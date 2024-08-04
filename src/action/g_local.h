@@ -780,7 +780,7 @@ typedef struct
   
   // Bot personalities loaded
   #ifndef NO_BOTS
-  const char* bot_file_path;
+  char* bot_file_path[MAX_QPATH];
   #endif
 }
 game_locals_t;
