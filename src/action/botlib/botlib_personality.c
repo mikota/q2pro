@@ -5,9 +5,9 @@
 
 // Count of bot personalities loaded
 char** botNames = NULL; // Global array of bot names
-size_t loadedBotCount = 0;
-
 bot_mapping_t bot_mappings[MAX_BOTS];
+
+qboolean pers_debug_mode = false;
 
 // #define WEAPON_COUNT 9
 // #define ITEM_COUNT 6
@@ -104,7 +104,6 @@ char* validate_pref_string(json_t* value, int stringtype) {
     size_t len = strlen(str);
     int maxlen = 0;
     char* valuename = NULL;
-
     if (value && json_is_string(value)) {
         if (stringtype == 0) {
             maxlen = 16;
@@ -117,9 +116,16 @@ char* validate_pref_string(json_t* value, int stringtype) {
             return strdup(str); // Return a copy of the string if valid
         }
     }
+    gi.dprintf("Value for skin was: %s %s\n", valuename, str);
     gi.dprintf("Warning: Invalid %s (%s). Using default value.\n", valuename, str);
     gi.dprintf("Future improvement: run it through the randomizer instead\n");
     return NULL; // Return NULL if validation fails
+}
+
+void DeactivateBotPersonality()
+{
+    gi.dprintf("Deactivating bot_personality\n");
+    gi.cvar_forceset("bot_personality", 0);
 }
 
 // qboolean json_load_check(const char* filename)
@@ -202,11 +208,13 @@ void update_map_pref(json_t* root, char* map_name, bot_mapping_t* newBot)
     if (value && json_is_real(value)) {
         // Update the newBot struct with the fetched value
         newBot->personality.map_prefs = (float)json_real_value(value);
-        gi.dprintf("Updated map preference for '%s' to %f.\n", map_name, newBot->personality.map_prefs);
+        if(pers_debug_mode)
+            gi.dprintf("Updated map preference for '%s' to %f.\n", map_name, newBot->personality.map_prefs);
     } else {
         // If the map name is not found or the value is not a real number, default to 0.0f
         newBot->personality.map_prefs = 0.0f;
-        gi.dprintf("Map '%s' not found or invalid. Defaulting to %f.\n", map_name, newBot->personality.map_prefs);
+        if(pers_debug_mode)
+            gi.dprintf("Map '%s' not found or invalid. Defaulting to %f.\n", map_name, newBot->personality.map_prefs);
     }
 }
 
@@ -217,6 +225,7 @@ bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename)
     FILE* file = fopen(filename, "r");
     if (!file) {
         perror("Failed to open file");
+        DeactivateBotPersonality();
         return NULL;
     }
 
@@ -226,12 +235,14 @@ bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename)
 
     if (!root) {
         gi.dprintf("bot_personality: Error parsing JSON: %s\n", error.text);
+        DeactivateBotPersonality();
         return NULL;
     }
 
     json_t* bots = json_object_get(root, "bots");
     if (!bots) {
         gi.dprintf("bot_personality: 'bots' object not found\n");
+        DeactivateBotPersonality();
         json_decref(root);
         return NULL;
     }
@@ -242,6 +253,17 @@ bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename)
     //     json_decref(root);
     //     return NULL;
     // }
+
+    // Get the "bots" object from the root of the JSON structure
+    bots = json_object_get(root, "bots");
+    if (!json_is_object(bots)) {
+        // Handle error: "bots" is not an object or not found
+        json_decref(root);
+        return 0; // Return 0 to indicate failure
+    }
+
+    // Count the number of keys (bots) in the "bots" object and store it
+    game.loaded_bot_personalities = json_object_size(bots);
 
     const char* botName;
     json_t* botDetails;
@@ -282,30 +304,40 @@ bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename)
         newBot->personality.chat_demeanor = validate_pref_numeric(chat_demeanor, "chat_demeanor");
 
         // Extract skin preference
+
+        // Setting safe default, only override if exists
         json_t* skin_pref = json_object_get(botDetails, "skin");
         if (skin_pref) {
             char* validatedSkinPref = validate_pref_string(skin_pref, MAX_QPATH); // Assuming STRING_TYPE_SKIN is a defined constant for skin strings
-            if (validatedSkinPref) {
+            if (validatedSkinPref != NULL) {
                 newBot->personality.skin_pref = validatedSkinPref;
-            } else { // Default skin
+            } else { // Default skin if validation fails
+                if(pers_debug_mode)
+                    gi.dprintf("%s: warning: skin object missing from %s\n", __func__, botName);
                 newBot->personality.skin_pref = "male/grunt";
             }
+        } else { // Default skin if 'skin' key is missing
+            if(pers_debug_mode)
+                gi.dprintf("%s: warning: skin object missing from %s\n", __func__, botName);
+            newBot->personality.skin_pref = "male/grunt";
         }
 
         // Add the newBot to your bot collection or array here
-        gi.dprintf("Loaded bot %s\n", newBot->name);
-        gi.dprintf("Weapon Preferences:\n");
-        for (size_t i = 0; i < WEAPON_COUNT; i++) {
-            gi.dprintf("  %.2f\n", newBot->personality.weapon_prefs[i]);
+        if(pers_debug_mode){
+            gi.dprintf("Loaded bot %s\n", newBot->name);
+            gi.dprintf("Weapon Preferences:\n");
+            for (size_t i = 0; i < WEAPON_COUNT; i++) {
+                gi.dprintf("  %.2f\n", newBot->personality.weapon_prefs[i]);
+            }
+            gi.dprintf("Item Preferences:\n");
+            for (size_t i = 0; i < ITEM_COUNT; i++) {
+                gi.dprintf("  %.2f\n", newBot->personality.item_prefs[i]);
+            }
+            gi.dprintf("Map Preferences: %.2f\n", newBot->personality.map_prefs);
+            gi.dprintf("Combat Demeanor: %.2f\n", newBot->personality.combat_demeanor);
+            gi.dprintf("Chat Demeanor: %.2f\n", newBot->personality.chat_demeanor);
+            gi.dprintf("Skin Preference: %s\n", newBot->personality.skin_pref);
         }
-        gi.dprintf("Item Preferences:\n");
-        for (size_t i = 0; i < ITEM_COUNT; i++) {
-            gi.dprintf("  %.2f\n", newBot->personality.item_prefs[i]);
-        }
-        gi.dprintf("Map Preferences: %.2f\n", newBot->personality.map_prefs);
-        gi.dprintf("Combat Demeanor: %.2f\n", newBot->personality.combat_demeanor);
-        gi.dprintf("Chat Demeanor: %.2f\n", newBot->personality.chat_demeanor);
-        gi.dprintf("Skin Preference: %s\n", newBot->personality.skin_pref);
     }
     
     
@@ -492,12 +524,8 @@ bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename)
 //     loadedBotCount = 0;
 // }
 
-// Function to count bots in the JSON file
-size_t BOTLIB_PersonalityCount(void) {
-    json_t* root;
-    json_error_t error;
-    json_t* bots;
-    size_t bot_count = 0;
+// Main function that will load other personality methods
+void BOTLIB_Personality(void) {
     FILE* fIn;
 	char filename[MAX_QPATH];
     cvar_t* game_dir = gi.cvar("game", "action", 0);
@@ -520,70 +548,12 @@ size_t BOTLIB_PersonalityCount(void) {
     // Save file path for later references
     strncpy(game.bot_file_path, filename, MAX_QPATH);
 
-	if ((fIn = fopen(filename, "rb")) == NULL) // See if .json file exists
-	{
-		return 0; // No file
-	}
+    // Validate file exists
+	if ((fIn = fopen(filename, "rb")) == NULL) {// See if .json file exists
+        DeactivateBotPersonality();
+		return; // No file
+    }
 
+    // Now that we have the file, let's load the bots
     BOTLIB_LoadPersonalities(filename);
-
-    // Rewind the file pointer to the beginning of the file
-    rewind(fIn);
-
-    // Load JSON from file
-    root = json_loadf(fIn, 0, &error);
-
-    if (!root) {
-        // Handle JSON parsing error
-        fprintf(stderr, "JSON error on line %d: %s\n", error.line, error.text);
-        json_decref(root);
-        return 0; // Return 0 to indicate failure
-    }
-
-    // Get the "bots" object from the root of the JSON structure
-    bots = json_object_get(root, "bots");
-    if (!json_is_object(bots)) {
-        // Handle error: "bots" is not an object or not found
-        json_decref(root);
-        return 0; // Return 0 to indicate failure
-    }
-
-    // Count the number of keys (bots) in the "bots" object
-    bot_count = json_object_size(bots);
-
-    // Clean up
-    json_decref(root);
-    fclose(fIn);
-
-    return bot_count; // Return the count of bots
 }
-
-// qboolean BOTLIB_LoadPersonality(char* botname)
-// {
-//     int maxclients = game.maxclients;
-//     FILE* fIn;
-// 	char tempfilename[128];
-// 	int fileSize = 0;
-// 	int f, n, l, p; // File, nodes, links, paths
-//     qboolean randomized;
-
-//     // Const-ify the filename
-//     const char* filename = strdup(game.bot_file_path);
-
-// 	if ((fIn = fopen(filename, "rb")) == NULL) // See if .json file exists
-// 	{
-// 		return false; // No file
-// 	}
-
-// 	fclose(fIn);
-
-// 	Com_Printf("%s Loaded %s from disk\n", __func__, filename);
-
-//     // If no botname provided, let's re-run with a random bot
-//     if(botname == NULL)
-//         BOTLIB_LoadPersonality(getRandomBotName());
-
-//     if(load_bot_personality()){
-
-//     }
-// }

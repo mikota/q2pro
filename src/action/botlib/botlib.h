@@ -527,6 +527,6 @@ typedef struct {
 } bot_mapping_t;
 
 
-size_t BOTLIB_PersonalityCount(void);
+void BOTLIB_Personality(void);
 bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename);
 #endif // _BOTLIB_H

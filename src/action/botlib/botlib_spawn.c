@@ -1400,7 +1400,11 @@ edict_t* BOTLIB_SpawnBot(int team, int force_gender, char* force_name, char* for
 	else if (team == TEAM3)
 		bot_connections.total_team3++;
 
-	if(bot_personality->value) {// Load personality data
+	if(bot_personality->value && (game.loaded_bot_personalities == game.used_bot_personalities)){
+		gi.dprintf("%s: Ran out of bot personalities, loading random bots now.\n");
+	}
+	// Load bots up, hard set and random alike
+	if(bot_personality->value && (game.loaded_bot_personalities < game.used_bot_personalities)) {// Load personality data
 		BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin, true);  // includes ClientConnect
 	} else { // Use random data
 		BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin, false);
