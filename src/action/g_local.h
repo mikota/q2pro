@@ -2201,8 +2201,10 @@ typedef struct bot_personality_s
 	float chat_demeanor;					//-1 = Quiet | 1 = Chatty
 	int leave_percent; 						// Percentage calculated that the bot will leave the map.  Recalculated/increases every time the bot dies.
 
-	char name_pref;					// Name preference
 	char skin_pref;			// Skin preference, if DM mode
+	int pId;                                // Personality id (used as an index)
+	qboolean isActive;                      // Determines if bot is active in game or not (avoid dupes)
+
 } bot_personality_t;
 
 typedef struct bot_s

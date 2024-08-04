@@ -5,9 +5,8 @@
 
 // Count of bot personalities loaded
 char** botNames = NULL; // Global array of bot names
-bot_mapping_t bot_mappings[MAX_BOTS];
-
-qboolean pers_debug_mode = false;
+int personality_count = 0;
+qboolean pers_debug_mode = true;
 
 // #define WEAPON_COUNT 9
 // #define ITEM_COUNT 6
@@ -122,9 +121,9 @@ char* validate_pref_string(json_t* value, int stringtype) {
     return NULL; // Return NULL if validation fails
 }
 
-void DeactivateBotPersonality()
+void DeactivateBotPersonality(void)
 {
-    gi.dprintf("Deactivating bot_personality\n");
+    gi.dprintf("INFO: Deactivating bot_personality.\n");
     gi.cvar_forceset("bot_personality", 0);
 }
 
@@ -155,35 +154,47 @@ void DeactivateBotPersonality()
 */
 
 // Function to create a new bot_mapping_t instance
-bot_mapping_t* create_new_bot(char* name) {
-    bot_mapping_t* newBot = (bot_mapping_t*)malloc(sizeof(bot_mapping_t));
+temp_bot_mapping_t* create_new_bot(char* name) {
+    temp_bot_mapping_t* newBot = (temp_bot_mapping_t*)malloc(sizeof(temp_bot_mapping_t));
+    if (newBot == NULL) {
+        // Handle memory allocation failure
+        return NULL;
+    }
     newBot->name = strdup(name); // Duplicate the name
+    if (newBot->name == NULL) {
+        // Handle strdup failure
+        free(newBot);
+        return NULL;
+    }
     newBot->personality.skin_pref = NULL; // Initialize to NULL
+    newBot->personality.pId = personality_count;  // Initialize ID for indexing, start at -1 because we're incrementing to 0
+    personality_count++;
     return newBot;
 }
 
 qboolean BotRageQuit(edict_t* self, qboolean frag_or_death)
 {
-    // Don't do anything if the map_prefs are 0 to positive
+    // Don't do anything if the map_prefs are 0 or positive
     if (self->bot.personality.map_prefs >= 0)
         return false;
 
     // Deaths are worth more than frags when you don't like the map you're on
     float fragplus = 0.05;
-    float deathplus = 0.07;
+    float deathminus = 0.07;
 
     // Death is true, Frag is false
     if (frag_or_death) {
         gi.dprintf("%s received a death, they're mad!\n", self->client->pers.netname);
-        self->bot.personality.map_prefs -= deathplus;
+        self->bot.personality.map_prefs -= deathminus;
     } else {
         gi.dprintf("%s received a frag, they're happy!\n", self->client->pers.netname);
         self->bot.personality.map_prefs += fragplus;
     }
 
-    float rage_quit_threshold = -1.0; // Example threshold value
+    float rage_quit_threshold = -1.0; // Max threshold value
     if (self->bot.personality.map_prefs <= rage_quit_threshold) {
         gi.dprintf("%s is rage quitting due to low map preference!\n", self->client->pers.netname);
+        BOTLIB_Chat(self, CHAT_RAGE);
         return true;
     }
 
@@ -194,7 +205,7 @@ qboolean BotRageQuit(edict_t* self, qboolean frag_or_death)
 
 // Dynamically update the map preferences of the bot
 // Not all bots will have a preference, so we default to 0 for those
-void update_map_pref(json_t* root, char* map_name, bot_mapping_t* newBot)
+void update_map_pref(json_t* root, char* map_name, temp_bot_mapping_t* newBot)
 {
     // Get the "map_prefs" object from the root
     json_t* map_prefs = json_object_get(root, "map_prefs");
@@ -219,9 +230,8 @@ void update_map_pref(json_t* root, char* map_name, bot_mapping_t* newBot)
 }
 
 // Function to load a bot personality from a JSON file using libjansson
-bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename)
+temp_bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename)
 {
-    // Open the file
     FILE* file = fopen(filename, "r");
     if (!file) {
         perror("Failed to open file");
@@ -240,90 +250,73 @@ bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename)
     }
 
     json_t* bots = json_object_get(root, "bots");
-    if (!bots) {
-        gi.dprintf("bot_personality: 'bots' object not found\n");
+    if (!bots || !json_is_object(bots)) {
+        gi.dprintf("bot_personality: 'bots' object not found or is not an object\n");
         DeactivateBotPersonality();
         json_decref(root);
         return NULL;
     }
 
-    // json_t* bot_data = json_object_get(bots, bot_name);
-    // if (!bot_data) {
-    //     gi.dprintf("bot_personality: Bot '%s' not found\n", bot_name);
-    //     json_decref(root);
-    //     return NULL;
-    // }
-
-    // Get the "bots" object from the root of the JSON structure
-    bots = json_object_get(root, "bots");
-    if (!json_is_object(bots)) {
-        // Handle error: "bots" is not an object or not found
-        json_decref(root);
-        return 0; // Return 0 to indicate failure
-    }
-
-    // Count the number of keys (bots) in the "bots" object and store it
     game.loaded_bot_personalities = json_object_size(bots);
+    if (game.loaded_bot_personalities == 0) {
+        gi.dprintf("bot_personality: No bots found in JSON\n");
+        DeactivateBotPersonality();
+        json_decref(root);
+        return NULL;
+    }
 
     const char* botName;
     json_t* botDetails;
+    int botIndex = 0;
 
     json_object_foreach(bots, botName, botDetails) {
-        bot_mapping_t* newBot = create_new_bot((char*)botName);
-
+        temp_bot_mapping_t* newBot = create_new_bot((char*)botName);
         if (!newBot) {
             json_decref(root);
             return NULL;
         }
 
-        // Extract weapon preferences
         json_t* weapon_prefs = json_object_get(botDetails, "weapon_prefs");
         for (size_t i = 0; i < WEAPON_COUNT; i++) {
             json_t* wpref_value = json_array_get(weapon_prefs, i);
             newBot->personality.weapon_prefs[i] = validate_pref_numeric(wpref_value, "weapon_prefs");
         }
 
-        // Extract item preferences
         json_t* item_prefs = json_object_get(botDetails, "item_prefs");
         for (size_t i = 0; i < ITEM_COUNT; i++) {
             json_t* ipref_value = json_array_get(item_prefs, i);
             newBot->personality.item_prefs[i] = validate_pref_numeric(ipref_value, "item_prefs");
         }
 
-        // Extract map preferences
         json_t* map_prefs = json_object_get(botDetails, "map_prefs");
         newBot->personality.map_prefs = validate_pref_numeric(map_prefs, "map_prefs");
         update_map_pref(botDetails, level.mapname, newBot);
 
-        // Extract combat demeanor
         json_t* combat_demeanor = json_object_get(botDetails, "combat_demeanor");
         newBot->personality.combat_demeanor = validate_pref_numeric(combat_demeanor, "combat_demeanor");
 
-        // Extract chat demeanor
         json_t* chat_demeanor = json_object_get(botDetails, "chat_demeanor");
         newBot->personality.chat_demeanor = validate_pref_numeric(chat_demeanor, "chat_demeanor");
 
-        // Extract skin preference
-
-        // Setting safe default, only override if exists
         json_t* skin_pref = json_object_get(botDetails, "skin");
         if (skin_pref) {
-            char* validatedSkinPref = validate_pref_string(skin_pref, MAX_QPATH); // Assuming STRING_TYPE_SKIN is a defined constant for skin strings
+            char* validatedSkinPref = validate_pref_string(skin_pref, MAX_QPATH);
             if (validatedSkinPref != NULL) {
                 newBot->personality.skin_pref = validatedSkinPref;
-            } else { // Default skin if validation fails
-                if(pers_debug_mode)
+            } else {
+                if (pers_debug_mode)
                     gi.dprintf("%s: warning: skin object missing from %s\n", __func__, botName);
                 newBot->personality.skin_pref = "male/grunt";
             }
-        } else { // Default skin if 'skin' key is missing
-            if(pers_debug_mode)
+        } else {
+            if (pers_debug_mode)
                 gi.dprintf("%s: warning: skin object missing from %s\n", __func__, botName);
             newBot->personality.skin_pref = "male/grunt";
         }
 
-        // Add the newBot to your bot collection or array here
-        if(pers_debug_mode){
+        bot_mappings[botIndex++] = *newBot;
+
+        if (pers_debug_mode) {
             gi.dprintf("Loaded bot %s\n", newBot->name);
             gi.dprintf("Weapon Preferences:\n");
             for (size_t i = 0; i < WEAPON_COUNT; i++) {
@@ -338,10 +331,14 @@ bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename)
             gi.dprintf("Chat Demeanor: %.2f\n", newBot->personality.chat_demeanor);
             gi.dprintf("Skin Preference: %s\n", newBot->personality.skin_pref);
         }
+
+        free(newBot); // Free the temporary newBot since it's now copied to bot_mappings
     }
-    
-    
-    
+
+    json_decref(root);
+    return bot_mappings;
+}
+
     
     
     
@@ -433,10 +430,10 @@ bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename)
 
     
     // Clean up
-    json_decref(root);
+//     json_decref(root);
 
-    return 0;
-}
+//     return 0;
+// }
 
 // int main() {
 //     // Example usage of load_bot_personality
@@ -553,7 +550,208 @@ void BOTLIB_Personality(void) {
         DeactivateBotPersonality();
 		return; // No file
     }
-
     // Now that we have the file, let's load the bots
     BOTLIB_LoadPersonalities(filename);
+}
+
+// void copy_temp_to_real(edict_t* bot, temp_bot_mapping_t *roster, bot_personality_t *personality) {
+//     // Copying array fields
+//     memcpy(personality->weapon_prefs, roster->personality.weapon_prefs, sizeof(personality->weapon_prefs));
+//     memcpy(personality->item_prefs, roster->personality.item_prefs, sizeof(personality->item_prefs));
+
+//     // Copying simple fields
+//     personality->map_prefs = roster->personality.map_prefs;
+//     personality->combat_demeanor = roster->personality.combat_demeanor;
+//     personality->chat_demeanor = roster->personality.chat_demeanor;
+//     personality->leave_percent = roster->personality.leave_percent;
+
+//     // Copying string fields, assuming they should be char* in bot_personality_t
+//     if (roster->name != NULL) {
+//         personality->name_pref = malloc(strlen(roster->name) + 1);
+//         Info_SetValueForKey(userinfo, "name", roster->name);
+//     } else {
+//         // Safe default
+//         personality->name_pref = "AqtionBot";
+//     }
+
+//     if (roster->personality.skin_pref != NULL) {
+//         personality->skin_pref = malloc(strlen(roster->personality.skin_pref) + 1);
+//         strcpy(personality->skin_pref, roster->personality.skin_pref);
+//     } else {
+//         // Safe default
+//         personality->skin_pref = "male/grunt";
+//     }
+
+
+// }
+
+// Return skin if false, return model if true
+char* _splitSkinChar(char *skinpathInput, qboolean returnSkin) {
+    char *skinpath;
+    char *saveptr = NULL;
+
+    // Ensure skinpath is modifiable by duplicating the input
+    if(skinpathInput == NULL || skinpathInput[0] == '\0') {
+        skinpath = strdup("male/grunt");
+    } else {
+        skinpath = strdup(skinpathInput);
+    }
+
+    if(skinpath == NULL) {
+        // Handle memory allocation failure
+        return NULL;
+    }
+
+    // Use strtok_r for a safer tokenization
+    char *token = strtok_r(skinpath, "/", &saveptr);
+    if (token == NULL) {
+        gi.dprintf("%s skin path provided is invalid\n", skinpath);
+        free(skinpath); // Clean up
+        return NULL;
+    }
+
+    if (!returnSkin) {
+        // Return model
+        return token;
+    } else {
+        // Get the second token (skin)
+        token = strtok(NULL, "/");
+        if (token == NULL) {
+            gi.dprintf("No skin part in the path: %s\n", skinpath);
+            return NULL;
+        }
+        // Return skin
+        return token;
+    }
+}
+
+qboolean LoadBotPersonality(edict_t* self, int team, int force_gender)
+{
+    if (game.loaded_bot_personalities <= 0) {
+        // Handle error: No bot personalities loaded
+        return false;
+    }
+
+    srand(time(NULL));
+    int randomIndex = rand() % game.loaded_bot_personalities;
+    int attempts = 0;
+    qboolean foundInactiveBot = false;
+
+    while (attempts < game.loaded_bot_personalities) {
+        randomIndex = rand() % game.loaded_bot_personalities;
+        if (!bot_mappings[randomIndex].personality.isActive) {
+            foundInactiveBot = true;
+            break;
+        }
+        attempts++;
+    }
+
+    if (!foundInactiveBot) {
+        // Unable to find an inactive bot
+        return false;
+    }
+
+    // Mark the selected bot as active
+    bot_mappings[randomIndex].personality.isActive = true;
+
+    temp_bot_mapping_t* selectedBot = &bot_mappings[randomIndex];
+
+    gi.dprintf("bot mappings name %s\n", bot_mappings[randomIndex].name);
+    gi.dprintf("bot name: %s\n", selectedBot->name);
+
+    // Copying array fields
+    memcpy(self->bot.personality.weapon_prefs, selectedBot->personality.weapon_prefs, sizeof(self->bot.personality.weapon_prefs));
+    memcpy(self->bot.personality.item_prefs, selectedBot->personality.item_prefs, sizeof(self->bot.personality.item_prefs));
+
+    // Copying simple fields
+    self->bot.personality.map_prefs = selectedBot->personality.map_prefs;
+    self->bot.personality.combat_demeanor = selectedBot->personality.combat_demeanor;
+    self->bot.personality.chat_demeanor = selectedBot->personality.chat_demeanor;
+    self->bot.personality.leave_percent = selectedBot->personality.leave_percent;
+
+    gi.dprintf("Trying to random bot %i add bot %s with skin %s\n", randomIndex, selectedBot->name, selectedBot->personality.skin_pref);
+
+    int gender = INVALID;
+	char name[MAX_QPATH]; // Full bot name ( [prefix/clan/rng]  and/or  [name]  and/or  [postfix] )
+	char skin[MAX_INFO_STRING];
+	char userinfo[MAX_INFO_STRING];
+	memset(userinfo, 0, sizeof(userinfo)); // Init userinfo
+
+	gi.cvar_forceset(stat_logs->name, "0"); // Turning off stat collection since bots are enabled
+
+    // Set bot name
+    Info_SetValueForKey(userinfo, "name", selectedBot->name);
+
+
+    char* femaleSkinDirs[] = { "actionrally", "female", "sydney" };
+    char* maleSkinsDirs[] = { "actionmale", "aqmarine", "male", "messiah", "sas", "terror" };
+    int femaleSkinDirsSize = sizeof(femaleSkinDirs) / sizeof(femaleSkinDirs[0]);
+    int maleSkinsDirsSize = sizeof(maleSkinsDirs) / sizeof(maleSkinsDirs[0]);
+
+	// Teamplay and 3TEAMS
+	if (teamplay->value && team) // TEAM1, TEAM2, or TEAM3
+	{
+		// Figure out the gender based on the team skins
+		for (int i = 0; i < sizeof(femaleSkinDirs) / sizeof(femaleSkinDirs[0]); ++i)
+		{
+			if (Q_strcasestr(teams[team].skin, femaleSkinDirs[i]) != NULL)
+			{
+				gender = GENDER_FEMALE;
+				break;
+			}
+		}
+		if (gender == INVALID)
+		{
+			for (int i = 0; i < sizeof(maleSkinsDirs) / sizeof(maleSkinsDirs[0]); ++i)
+			{
+				if (Q_strcasestr(teams[team].skin, maleSkinsDirs[i]) != NULL)
+				{
+					gender = GENDER_MALE;
+					break;
+				}
+			}
+		}
+		if (gender == INVALID) // Couldn't find skin gender (perhaps server is using custom skins)
+		{
+			if (rand() % 2 == 0) // So just randomize the skin gender
+				gender = GENDER_MALE;
+			else
+				gender = GENDER_FEMALE;
+		}
+	}
+	else // Deathmatch
+	{
+        // Set the skin
+        char* selectedSkin = selectedBot->personality.skin_pref;
+        // Assuming selectedBot is correctly initialized and contains the desired data
+        if (selectedSkin != NULL || selectedSkin == "") {
+            // Directly use the skin_pref from selectedBot
+            Info_SetValueForKey(userinfo, "skin", selectedSkin);
+        } else {
+            // Safe default
+            Info_SetValueForKey(userinfo, "skin", "male/grunt");
+        }
+
+        // Set the gender
+        char* modelName = _splitSkinChar(selectedSkin, false);
+        for (int i = 0; i < maleSkinsDirsSize; i++) {
+            if (strcmp(maleSkinsDirs[i], modelName) == 0) {
+                Info_SetValueForKey(userinfo, "gender", "male");
+            }
+        }
+        for (int i = 0; i < femaleSkinDirsSize; i++) {
+            if (strcmp(femaleSkinDirs[i], modelName) == 0) {
+                Info_SetValueForKey(userinfo, "gender", "female");
+            }
+        }
+	}
+
+	//Set userinfo: hand, spec
+	Info_SetValueForKey(userinfo, "hand", "2"); // bot is center handed for now!
+	Info_SetValueForKey(userinfo, "spectator", "0"); // NOT a spectator
+
+	ClientConnect(self, userinfo);
+
+    game.used_bot_personalities++;
+    return true;
 }

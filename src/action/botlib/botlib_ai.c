@@ -73,7 +73,6 @@ void BOTLIB_Init(edict_t* self)
 	self->bot.last_sniper_zoom_time = 0;
 	self->bot.last_weapon_change_time = 0;
 
-
 	if (teamplay->value) // Reset bot radio at the start of each round
 	{
 		// Radio

@@ -224,7 +224,8 @@ typedef enum
 	CHAT_WELCOME,
 	CHAT_KILLED,
 	CHAT_INSULTS,
-	CHAT_GOODBYE
+	CHAT_GOODBYE,
+	CHAT_RAGE,
 } bot_chat_types_t;
 
 void UpdateBotChat(void);
@@ -458,6 +459,7 @@ void BOTLIB_RemoveBot(char* name); // Remove bot by name or 'ALL' to remove all 
 void BOTLIB_RemoveTeamplayBot(int team); // Remove bot from team
 void BOTLIB_ChangeBotTeam(int from_team, int to_team); // Change a bot [from team] ==> [to team]
 void BOTLIB_CheckBotRules(void); // Adding/Removing/Auto-balance bots
+void BOTLIB_SetUserinfo(edict_t* bot, const int team, int force_gender, char* force_name, char* force_skin);
 
 // ===========================================================================
 // botlib_spawnpoints.c
@@ -512,21 +514,25 @@ int BOTLIB_GetEquipment(edict_t* self);
 // Most float values here are between -1 and 1
 typedef struct temp_bot_personality_s
 {
-    float weapon_prefs[10];   //-1 = Will never choose, 1 = Will always choose
-    float item_prefs[6];       //-1 = Will never choose, 1 = Will always choose
-    float map_prefs;                        //-1 = Hate, 0 = Neutral, 1 = Love
-    float combat_demeanor;                  //-1 = Timid | 1 = Aggressive
-    float chat_demeanor;                    //-1 = Quiet | 1 = Chatty
-    int leave_percent;                      // Percentage calculated that the bot will leave the map.  Recalculated/increases every time the bot dies.
-    char* skin_pref;                         // Skin preference, if DM mode
+	float weapon_prefs[10];   				//-1 = Will never choose, 1 = Will always choose
+	float item_prefs[6];       				//-1 = Will never choose, 1 = Will always choose
+	float map_prefs;                        //-1 = Hate, 0 = Neutral, 1 = Love
+	float combat_demeanor;                  //-1 = Timid | 1 = Aggressive
+	float chat_demeanor;                    //-1 = Quiet | 1 = Chatty
+	int leave_percent;                      // Percentage calculated that the bot will leave the map.  Recalculated/increases every time the bot dies.
+	char* skin_pref;                        // Skin preference, if DM mode
+	int pId;                                // Personality id (used as an index)
+	qboolean isActive;                      // Determines if bot is active in game or not (avoid dupes)
 } temp_bot_personality_t;
 
 typedef struct {
     char* name;
     temp_bot_personality_t personality;
-} bot_mapping_t;
-
+} temp_bot_mapping_t;
+temp_bot_mapping_t bot_mappings[100];
 
 void BOTLIB_Personality(void);
-bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename);
+temp_bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename);
+void DeactivateBotPersonality(void);
+qboolean LoadBotPersonality(edict_t* bot, int team, int force_gender);
 #endif // _BOTLIB_H

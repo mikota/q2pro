@@ -49,7 +49,7 @@ void ProcessChatQueue(int currentFrame) {
 }
 
 // Call this function periodically, e.g., in the main game loop
-void UpdateBotChat() {
+void UpdateBotChat(void) {
     ProcessChatQueue(level.framenum);
 }
 
@@ -110,6 +110,19 @@ char *botchat_victory[DBC_VICTORY] =
 	"too ez"
 };
 
+#define DBC_RAGE 8
+char *botchat_rage[DBC_RAGE] =
+{
+	"f this map",
+	"i never liked this map anyway gg",
+	"nope not today",
+	"I'm terrible at this map anyway",
+	"yeah gg",
+	"that's enough for me today",
+	"ASDKDDKJFJK",
+	"PERKELEEeeeee"
+};
+
 void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype)
 {
 	// Do nothing if bot_chat is disabled
@@ -157,10 +170,11 @@ void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype)
 			return;
 		}
 	}
-	if (chattype == CHAT_GOODBYE)
-		randval = randval - 0.3; // Increase the chance of a goodbye message
+	// Goodbyes and rages happen without delay
+	if (chattype == CHAT_GOODBYE || chattype == CHAT_RAGE)
+		randval = randval - 0.3; // Increase the chance of this type of message
 		delayed = false;
-	if (randval > 0.2) {
+	if (randval > 0.2) { // 80% do not chat
 		//gi.dprintf("Skipping chat due to random chance (%f)\n", randval);
 		return; // Don't chat too often
 	}
