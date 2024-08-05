@@ -708,6 +708,9 @@ void ACESP_RemoveBot(char *name)
 				game.bot_count--;
 //				ACEIT_PlayerRemoved (bot);
 //				gi.bprintf (PRINT_MEDIUM, "%s removed\n", bot->client->pers.netname);
+
+				if (bot_personality->value)
+					BOTLIB_FreeBotPersonality(bot);
 				if( ! remove_all )
 					break;
 			}

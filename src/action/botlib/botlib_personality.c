@@ -5,8 +5,8 @@
 
 // Count of bot personalities loaded
 char** botNames = NULL; // Global array of bot names
-int personality_count = 0;
 qboolean pers_debug_mode = true;
+int loaded_bot_personalities = 0;
 
 // #define WEAPON_COUNT 9
 // #define ITEM_COUNT 6
@@ -127,32 +127,6 @@ void DeactivateBotPersonality(void)
     gi.cvar_forceset("bot_personality", 0);
 }
 
-// qboolean json_load_check(const char* filename)
-// {
-//     json_error_t error;
-//     json_t* root = json_loadf(filename, 0, &error);
-//     fclose(filename);
-
-//     if (!root) {
-//         gi.dprintf("bot_personality: Error parsing JSON: %s\n", error.text);
-//         return NULL;
-//     }
-
-//     json_t* bots = json_object_get(root, "bots");
-//     if (!bots) {
-//         gi.dprintf("bot_personality: 'bots' object not found\n");
-//         json_decref(root);
-//         return NULL;
-//     }
-// }
-
-
-// Evaluate leave percentage
-/*
- We will call this on every bot death and kill if
- map_prefs is < 0
-*/
-
 // Function to create a new bot_mapping_t instance
 temp_bot_mapping_t* create_new_bot(char* name) {
     temp_bot_mapping_t* newBot = (temp_bot_mapping_t*)malloc(sizeof(temp_bot_mapping_t));
@@ -162,13 +136,13 @@ temp_bot_mapping_t* create_new_bot(char* name) {
     }
     newBot->name = strdup(name); // Duplicate the name
     if (newBot->name == NULL) {
-        // Handle strdup failure
+        gi.dprintf("%s: error, missing bot name in file\n", __func__);
         free(newBot);
         return NULL;
     }
     newBot->personality.skin_pref = NULL; // Initialize to NULL
-    newBot->personality.pId = personality_count;  // Initialize ID for indexing, start at -1 because we're incrementing to 0
-    personality_count++;
+    newBot->personality.pId = loaded_bot_personalities;  // Initialize ID for indexing
+    //loaded_bot_personalities++;
     return newBot;
 }
 
@@ -257,8 +231,8 @@ temp_bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename)
         return NULL;
     }
 
-    game.loaded_bot_personalities = json_object_size(bots);
-    if (game.loaded_bot_personalities == 0) {
+    loaded_bot_personalities = json_object_size(bots);
+    if (loaded_bot_personalities == 0) {
         gi.dprintf("bot_personality: No bots found in JSON\n");
         DeactivateBotPersonality();
         json_decref(root);
@@ -627,18 +601,18 @@ char* _splitSkinChar(char *skinpathInput, qboolean returnSkin) {
 
 qboolean LoadBotPersonality(edict_t* self, int team, int force_gender)
 {
-    if (game.loaded_bot_personalities <= 0) {
+    if (loaded_bot_personalities <= 0) {
         // Handle error: No bot personalities loaded
         return false;
     }
 
     srand(time(NULL));
-    int randomIndex = rand() % game.loaded_bot_personalities;
+    int randomIndex = rand() % loaded_bot_personalities;
     int attempts = 0;
     qboolean foundInactiveBot = false;
 
-    while (attempts < game.loaded_bot_personalities) {
-        randomIndex = rand() % game.loaded_bot_personalities;
+    while (attempts < loaded_bot_personalities) {
+        randomIndex = rand() % loaded_bot_personalities;
         if (!bot_mappings[randomIndex].personality.isActive) {
             foundInactiveBot = true;
             break;
@@ -656,8 +630,7 @@ qboolean LoadBotPersonality(edict_t* self, int team, int force_gender)
 
     temp_bot_mapping_t* selectedBot = &bot_mappings[randomIndex];
 
-    gi.dprintf("bot mappings name %s\n", bot_mappings[randomIndex].name);
-    gi.dprintf("bot name: %s\n", selectedBot->name);
+    gi.dprintf("Selected Bot %i - Weapon Pref[0]: %f, Item Pref[0]: %f, Map Pref: %f, Combat Demeanor: %f, Chat Demeanor: %f, Leave Percent: %d\n", randomIndex, selectedBot->personality.weapon_prefs[0], selectedBot->personality.item_prefs[0], selectedBot->personality.map_prefs, selectedBot->personality.combat_demeanor, selectedBot->personality.chat_demeanor, selectedBot->personality.leave_percent);
 
     // Copying array fields
     memcpy(self->bot.personality.weapon_prefs, selectedBot->personality.weapon_prefs, sizeof(self->bot.personality.weapon_prefs));
@@ -668,6 +641,8 @@ qboolean LoadBotPersonality(edict_t* self, int team, int force_gender)
     self->bot.personality.combat_demeanor = selectedBot->personality.combat_demeanor;
     self->bot.personality.chat_demeanor = selectedBot->personality.chat_demeanor;
     self->bot.personality.leave_percent = selectedBot->personality.leave_percent;
+
+    gi.dprintf("Selected Bot %i - Weapon Pref[0]: %f, Item Pref[0]: %f, Map Pref: %f, Combat Demeanor: %f, Chat Demeanor: %f, Leave Percent: %d\n", randomIndex, selectedBot->personality.weapon_prefs[0], selectedBot->personality.item_prefs[0], selectedBot->personality.map_prefs, selectedBot->personality.combat_demeanor, selectedBot->personality.chat_demeanor, selectedBot->personality.leave_percent);
 
     gi.dprintf("Trying to random bot %i add bot %s with skin %s\n", randomIndex, selectedBot->name, selectedBot->personality.skin_pref);
 
@@ -681,7 +656,6 @@ qboolean LoadBotPersonality(edict_t* self, int team, int force_gender)
 
     // Set bot name
     Info_SetValueForKey(userinfo, "name", selectedBot->name);
-
 
     char* femaleSkinDirs[] = { "actionrally", "female", "sydney" };
     char* maleSkinsDirs[] = { "actionmale", "aqmarine", "male", "messiah", "sas", "terror" };
@@ -754,4 +728,17 @@ qboolean LoadBotPersonality(edict_t* self, int team, int force_gender)
 
     game.used_bot_personalities++;
     return true;
+}
+
+void BOTLIB_FreeBotPersonality(edict_t* bot)
+{
+    // If this is a bot with personality, free it up
+    int bot_pId = bot->bot.personality.pId;
+    for (int i = 0; i < MAX_BOTS; i++) {
+        if (bot_mappings[i].personality.pId == bot_pId) {
+            bot_mappings[i].personality.isActive = false;
+            break; // Exit the loop once the bot is found and deactivated
+        }
+    }
+    game.used_bot_personalities--;
 }

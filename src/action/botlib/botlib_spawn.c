@@ -1400,18 +1400,24 @@ edict_t* BOTLIB_SpawnBot(int team, int force_gender, char* force_name, char* for
 	else if (team == TEAM3)
 		bot_connections.total_team3++;
 
-	if(bot_personality->value && (game.loaded_bot_personalities == game.used_bot_personalities)) {
+	if(bot_personality->value && (loaded_bot_personalities == game.used_bot_personalities)) {
 		gi.dprintf("%s: Ran out of bot personalities, loading random bots now.\n");
 		DeactivateBotPersonality();
 	}
-
-	gi.dprintf("%s: trying to load personalities, loaded: %i used: %i\n", __func__, game.loaded_bot_personalities, game.used_bot_personalities);
+	gi.dprintf("%s: trying to load personalities, loaded: %i used: %i\n", __func__, loaded_bot_personalities, game.used_bot_personalities);
 	
-	// Load bots up, hard set and random alike
-	if(bot_personality->value && (game.loaded_bot_personalities > game.used_bot_personalities)) {// Load personality data
-		if (!LoadBotPersonality(bot, team, force_gender))
-			BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
-	} else { // Use random data
+	if (bot_personality->value) {
+        if (loaded_bot_personalities > game.used_bot_personalities) {
+            if (!LoadBotPersonality(bot, team, force_gender)) {
+                gi.dprintf("Failed to load bot personality, using default userinfo.\n");
+                BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
+            }
+        } else {
+            gi.dprintf("Ran out of bot personalities, loading random bots now.\n");
+            // Potentially deactivate a bot personality here, but need an ID or criteria
+            BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
+        }
+    } else { // Use random data
 		gi.dprintf("%s: trying to load random bots\n", __func__);
 		BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
 	}
@@ -1473,18 +1479,8 @@ void BOTLIB_RemoveBot(char* name)
 					ClientDisconnect(bot);
 					game.bot_count--;
 
-					if (bot_personality->value) {
-						// If this is a bot with personality, free it up
-						int bot_pId = bot->bot.personality.pId;
-						gi.dprintf("Bot pid: %i\n", bot_pId);
-						for (int i = 0; i < MAX_BOTS; i++) {
-							if (bot_mappings[i].personality.pId == bot_pId) {
-								bot_mappings[i].personality.isActive = false;
-								break; // Exit the loop once the bot is found and deactivated
-							}
-						}
-						game.used_bot_personalities--;
-					}
+					if (bot_personality->value)
+						BOTLIB_FreeBotPersonality(bot);
 
 					if (!remove_all)
 						break;
@@ -1543,7 +1539,8 @@ void BOTLIB_RemoveBot(char* name)
 				freed = true;
 				ClientDisconnect(bot);
 				game.bot_count--;
-
+				if (bot_personality->value)
+					BOTLIB_FreeBotPersonality(bot);
 				//gi.bprintf (PRINT_MEDIUM, "%s removed\n", bot->client->pers.netname);
 				break;
 			}

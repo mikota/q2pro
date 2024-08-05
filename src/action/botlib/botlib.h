@@ -535,4 +535,7 @@ void BOTLIB_Personality(void);
 temp_bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename);
 void DeactivateBotPersonality(void);
 qboolean LoadBotPersonality(edict_t* bot, int team, int force_gender);
+void BOTLIB_FreeBotPersonality(edict_t* bot);
+
+extern int loaded_bot_personalities;
 #endif // _BOTLIB_H
