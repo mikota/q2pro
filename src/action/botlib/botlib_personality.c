@@ -614,6 +614,7 @@ qboolean BOTLIB_LoadBotPersonality(edict_t* self)
     self->bot.personality.combat_demeanor = selectedBot->personality.combat_demeanor;
     self->bot.personality.chat_demeanor = selectedBot->personality.chat_demeanor;
     self->bot.personality.leave_percent = selectedBot->personality.leave_percent;
+    self->bot.personality.isActive = true;
 
     if(pers_debug_mode)
       gi.dprintf("Selected Bot %s(indexes: %i/%i) - Weapon Pref[0]: %f, Item Pref[0]: %f, Map Pref: %f, Combat Demeanor: %f, Chat Demeanor: %f, Leave Percent: %d\n", selectedBot->name, self->bot.personality.pId, selectedBot->personality.pId, selectedBot->personality.weapon_prefs[0], selectedBot->personality.item_prefs[0], selectedBot->personality.map_prefs, selectedBot->personality.combat_demeanor, selectedBot->personality.chat_demeanor, selectedBot->personality.leave_percent);
