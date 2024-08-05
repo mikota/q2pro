@@ -1401,10 +1401,10 @@ edict_t* BOTLIB_SpawnBot(int team, int force_gender, char* force_name, char* for
 		bot_connections.total_team3++;
 
 	if(bot_personality->value && (bot_personality_index == game.used_bot_personalities)) {
-		gi.dprintf("%s: Ran out of bot personalities, loading random bots now.\n");
+		gi.dprintf("%s: Ran out of bot personalities, loading random bots now.\n", __func__);
 		DeactivateBotPersonality();
 	}
-	gi.dprintf("%s: trying to load personalities, loaded: %i used: %i\n", __func__, bot_personality_index, game.used_bot_personalities);
+	gi.dprintf("%s: trying to load personalities, loaded: %i used: %i\n", __func__, loaded_bot_personalities, game.used_bot_personalities);
 	
 	if (bot_personality->value) {
         if (bot_personality_index > game.used_bot_personalities) {

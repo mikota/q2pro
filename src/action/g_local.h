@@ -781,7 +781,6 @@ typedef struct
   // Bot personalities loaded
   #ifndef NO_BOTS
   char* bot_file_path[MAX_QPATH];
-  int loaded_bot_personalities;
   int used_bot_personalities;
   #endif
 }

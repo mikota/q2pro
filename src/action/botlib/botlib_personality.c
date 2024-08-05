@@ -7,7 +7,7 @@
 char** botNames = NULL; // Global array of bot names
 qboolean pers_debug_mode = true;
 int loaded_bot_personalities = 0;
-int bot_personality_index = 0;
+int bot_personality_index = 0;  // We're incrementing as we create
 
 // #define WEAPON_COUNT 9
 // #define ITEM_COUNT 6
@@ -142,8 +142,7 @@ temp_bot_mapping_t* create_new_bot(char* name) {
         return NULL;
     }
     newBot->personality.skin_pref = NULL; // Initialize to NULL
-    newBot->personality.pId = bot_personality_index;  // Initialize ID for indexing
-    bot_personality_index++;
+    newBot->personality.pId = bot_personality_index++;  // Initialize ID for indexing
     return newBot;
 }
 
@@ -631,12 +630,14 @@ qboolean BOTLIB_SetPersonality(edict_t* self, int team, int force_gender)
     int randomIndex = rand() % bot_personality_index;
     int attempts = 0;
     temp_bot_mapping_t* selectedBot = &bot_mappings[randomIndex];
+
     qboolean foundInactiveBot = false;
 
-    while (attempts < bot_personality_index) {
+    while (!foundInactiveBot && attempts < bot_personality_index) {
         randomIndex = rand() % bot_personality_index;
         if (!bot_mappings[randomIndex].personality.isActive) {
             foundInactiveBot = true;
+            selectedBot = &bot_mappings[randomIndex];
             break;
         }
         attempts++;
