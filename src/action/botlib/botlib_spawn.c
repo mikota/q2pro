@@ -1400,15 +1400,15 @@ edict_t* BOTLIB_SpawnBot(int team, int force_gender, char* force_name, char* for
 	else if (team == TEAM3)
 		bot_connections.total_team3++;
 
-	if(bot_personality->value && (loaded_bot_personalities == game.used_bot_personalities)) {
+	if(bot_personality->value && (bot_personality_index == game.used_bot_personalities)) {
 		gi.dprintf("%s: Ran out of bot personalities, loading random bots now.\n");
 		DeactivateBotPersonality();
 	}
-	gi.dprintf("%s: trying to load personalities, loaded: %i used: %i\n", __func__, loaded_bot_personalities, game.used_bot_personalities);
+	gi.dprintf("%s: trying to load personalities, loaded: %i used: %i\n", __func__, bot_personality_index, game.used_bot_personalities);
 	
 	if (bot_personality->value) {
-        if (loaded_bot_personalities > game.used_bot_personalities) {
-            if (!LoadBotPersonality(bot, team, force_gender)) {
+        if (bot_personality_index > game.used_bot_personalities) {
+            if (!BOTLIB_SetPersonality(bot, team, force_gender)) {
                 gi.dprintf("Failed to load bot personality, using default userinfo.\n");
                 BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
             }

@@ -26,11 +26,13 @@ void BOTLIB_Init(edict_t* self)
 
 	// Save previous data
 	float prev_skill = self->bot.skill;
+	int pId = self->bot.personality.pId;
 
 	memset(&self->bot, 0, sizeof(bot_t));
 
 	// Restore previous data
 	self->bot.skill = prev_skill;
+	self->bot.personality.pId = pId;
 
 	// Ping
 	// Set the average ping this bot will see
@@ -96,6 +98,8 @@ void BOTLIB_Init(edict_t* self)
 		AssignSkin(self, s, false /* nickChanged */);
 	}
 
+	if (bot_personality->value)
+		BOTLIB_LoadBotPersonality(self);
 }
 
 //rekkie -- Quake3 -- s

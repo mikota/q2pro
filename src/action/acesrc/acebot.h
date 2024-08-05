@@ -543,6 +543,7 @@ extern cvar_t* bot_randskill;
 extern cvar_t* bot_randname;
 extern cvar_t* bot_chat;
 extern cvar_t* bot_personality;
+extern cvar_t* bot_ragequit;
 
 //extern cvar_t* bot_randteamskin;
 

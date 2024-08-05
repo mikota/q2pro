@@ -7,6 +7,7 @@
 char** botNames = NULL; // Global array of bot names
 qboolean pers_debug_mode = true;
 int loaded_bot_personalities = 0;
+int bot_personality_index = 0;
 
 // #define WEAPON_COUNT 9
 // #define ITEM_COUNT 6
@@ -141,11 +142,12 @@ temp_bot_mapping_t* create_new_bot(char* name) {
         return NULL;
     }
     newBot->personality.skin_pref = NULL; // Initialize to NULL
-    newBot->personality.pId = loaded_bot_personalities;  // Initialize ID for indexing
-    //loaded_bot_personalities++;
+    newBot->personality.pId = bot_personality_index;  // Initialize ID for indexing
+    bot_personality_index++;
     return newBot;
 }
 
+// Death = True, Frag = False
 qboolean BotRageQuit(edict_t* self, qboolean frag_or_death)
 {
     // Don't do anything if the map_prefs are 0 or positive
@@ -496,7 +498,7 @@ temp_bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename)
 // }
 
 // Main function that will load other personality methods
-void BOTLIB_Personality(void) {
+void BOTLIB_PersonalityFile(void) {
     FILE* fIn;
 	char filename[MAX_QPATH];
     cvar_t* game_dir = gi.cvar("game", "action", 0);
@@ -599,20 +601,40 @@ char* _splitSkinChar(char *skinpathInput, qboolean returnSkin) {
     }
 }
 
-qboolean LoadBotPersonality(edict_t* self, int team, int force_gender)
+// At this point we have the bot ready, we just need to copy over the right loaded personality
+qboolean BOTLIB_LoadBotPersonality(edict_t* self)
 {
-    if (loaded_bot_personalities <= 0) {
+    temp_bot_mapping_t* selectedBot = &bot_mappings[self->bot.personality.pId];
+
+    // Copying array fields
+    memcpy(self->bot.personality.weapon_prefs, selectedBot->personality.weapon_prefs, sizeof(self->bot.personality.weapon_prefs));
+    memcpy(self->bot.personality.item_prefs, selectedBot->personality.item_prefs, sizeof(self->bot.personality.item_prefs));
+
+    // Copying simple fields
+    self->bot.personality.map_prefs = selectedBot->personality.map_prefs;
+    self->bot.personality.combat_demeanor = selectedBot->personality.combat_demeanor;
+    self->bot.personality.chat_demeanor = selectedBot->personality.chat_demeanor;
+    self->bot.personality.leave_percent = selectedBot->personality.leave_percent;
+
+    if(pers_debug_mode)
+      gi.dprintf("Selected Bot %s(indexes: %i/%i) - Weapon Pref[0]: %f, Item Pref[0]: %f, Map Pref: %f, Combat Demeanor: %f, Chat Demeanor: %f, Leave Percent: %d\n", selectedBot->name, self->bot.personality.pId, selectedBot->personality.pId, selectedBot->personality.weapon_prefs[0], selectedBot->personality.item_prefs[0], selectedBot->personality.map_prefs, selectedBot->personality.combat_demeanor, selectedBot->personality.chat_demeanor, selectedBot->personality.leave_percent);
+}
+
+qboolean BOTLIB_SetPersonality(edict_t* self, int team, int force_gender)
+{
+    if (bot_personality_index <= 0) {
         // Handle error: No bot personalities loaded
         return false;
     }
 
     srand(time(NULL));
-    int randomIndex = rand() % loaded_bot_personalities;
+    int randomIndex = rand() % bot_personality_index;
     int attempts = 0;
+    temp_bot_mapping_t* selectedBot = &bot_mappings[randomIndex];
     qboolean foundInactiveBot = false;
 
-    while (attempts < loaded_bot_personalities) {
-        randomIndex = rand() % loaded_bot_personalities;
+    while (attempts < bot_personality_index) {
+        randomIndex = rand() % bot_personality_index;
         if (!bot_mappings[randomIndex].personality.isActive) {
             foundInactiveBot = true;
             break;
@@ -625,27 +647,13 @@ qboolean LoadBotPersonality(edict_t* self, int team, int force_gender)
         return false;
     }
 
-    // Mark the selected bot as active
+    // Mark the selected bot as active in both loaded and live structs
     bot_mappings[randomIndex].personality.isActive = true;
+    self->bot.personality.isActive = true;
+    self->bot.personality.pId = randomIndex;
 
-    temp_bot_mapping_t* selectedBot = &bot_mappings[randomIndex];
-
-    gi.dprintf("Selected Bot %i - Weapon Pref[0]: %f, Item Pref[0]: %f, Map Pref: %f, Combat Demeanor: %f, Chat Demeanor: %f, Leave Percent: %d\n", randomIndex, selectedBot->personality.weapon_prefs[0], selectedBot->personality.item_prefs[0], selectedBot->personality.map_prefs, selectedBot->personality.combat_demeanor, selectedBot->personality.chat_demeanor, selectedBot->personality.leave_percent);
-
-    // Copying array fields
-    memcpy(self->bot.personality.weapon_prefs, selectedBot->personality.weapon_prefs, sizeof(self->bot.personality.weapon_prefs));
-    memcpy(self->bot.personality.item_prefs, selectedBot->personality.item_prefs, sizeof(self->bot.personality.item_prefs));
-
-    // Copying simple fields
-    self->bot.personality.map_prefs = selectedBot->personality.map_prefs;
-    self->bot.personality.combat_demeanor = selectedBot->personality.combat_demeanor;
-    self->bot.personality.chat_demeanor = selectedBot->personality.chat_demeanor;
-    self->bot.personality.leave_percent = selectedBot->personality.leave_percent;
-
-    gi.dprintf("Selected Bot %i - Weapon Pref[0]: %f, Item Pref[0]: %f, Map Pref: %f, Combat Demeanor: %f, Chat Demeanor: %f, Leave Percent: %d\n", randomIndex, selectedBot->personality.weapon_prefs[0], selectedBot->personality.item_prefs[0], selectedBot->personality.map_prefs, selectedBot->personality.combat_demeanor, selectedBot->personality.chat_demeanor, selectedBot->personality.leave_percent);
-
-    gi.dprintf("Trying to random bot %i add bot %s with skin %s\n", randomIndex, selectedBot->name, selectedBot->personality.skin_pref);
-
+    gi.dprintf("Random index %i\n", randomIndex);
+    
     int gender = INVALID;
 	char name[MAX_QPATH]; // Full bot name ( [prefix/clan/rng]  and/or  [name]  and/or  [postfix] )
 	char skin[MAX_INFO_STRING];

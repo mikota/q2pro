@@ -1596,7 +1596,7 @@ void SpawnEntities (const char *mapname, const char *entities, const char *spawn
 	//rekkie -- Fake Bot Client -- e
 
 	if(bot_personality->value)
-		BOTLIB_Personality();
+		BOTLIB_PersonalityFile();
 #endif
 //rekkie -- e
 }

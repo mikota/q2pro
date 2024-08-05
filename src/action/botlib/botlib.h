@@ -531,11 +531,13 @@ typedef struct {
 } temp_bot_mapping_t;
 temp_bot_mapping_t bot_mappings[100];
 
-void BOTLIB_Personality(void);
+void BOTLIB_PersonalityFile(void);
 temp_bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename);
 void DeactivateBotPersonality(void);
-qboolean LoadBotPersonality(edict_t* bot, int team, int force_gender);
+qboolean BOTLIB_SetPersonality(edict_t* bot, int team, int force_gender);
+qboolean BOTLIB_LoadBotPersonality(edict_t* self);
 void BOTLIB_FreeBotPersonality(edict_t* bot);
-
+qboolean BotRageQuit(edict_t* self, qboolean frag_or_death);
 extern int loaded_bot_personalities;
+extern int bot_personality_index;
 #endif // _BOTLIB_H

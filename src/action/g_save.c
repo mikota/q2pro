@@ -695,6 +695,7 @@ void InitGame( void )
 	bot_randname = gi.cvar("bot_randname", "1", 0);
 	bot_chat = gi.cvar("bot_chat", "0", 0);
 	bot_personality = gi.cvar("bot_personality", "0", CVAR_LATCH);
+	bot_ragequit = gi.cvar("bot_ragequit", "0", 0);
 	//bot_randteamskin = gi.cvar("bot_randteamskin", "0", 0);
 	//rekkie -- DEV_1 -- e
 #endif

@@ -797,8 +797,12 @@ void Add_Frag(edict_t * ent, int mod)
 	#ifndef NO_BOTS
 	//darksaint -- Bot Chat -- s
 	// Generates chat message if respawning (killed)
-	if (ent->is_bot)
+	if (ent->is_bot) {
 		BOTLIB_Chat(ent, CHAT_INSULTS);
+		if(bot_personality->value && bot_ragequit->value) {
+			BotRageQuit(ent, false);
+		}
+	}
 	#endif
 	//darksaint -- Bot Chat -- e
 
@@ -1581,8 +1585,12 @@ void ClientObituary(edict_t * self, edict_t * inflictor, edict_t * attacker)
 			#ifndef NO_BOTS
 			//darksaint -- Bot Chat -- s
 			// Generates chat message if respawning (killed)
-			if (self->is_bot)
+			if (self->is_bot) {
 				BOTLIB_Chat(self, CHAT_KILLED);
+				if(bot_personality->value && bot_ragequit->value) {
+					BotRageQuit(self, true);
+				}
+			}
 			#endif
 			//darksaint -- Bot Chat -- e
 
