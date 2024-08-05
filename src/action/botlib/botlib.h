@@ -540,4 +540,5 @@ void BOTLIB_FreeBotPersonality(edict_t* bot);
 qboolean BotRageQuit(edict_t* self, qboolean frag_or_death);
 extern int loaded_bot_personalities;
 extern int bot_personality_index;
+extern qboolean pers_debug_mode;
 #endif // _BOTLIB_H
