@@ -174,7 +174,13 @@ void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype)
 	if (chattype == CHAT_GOODBYE || chattype == CHAT_RAGE)
 		randval = randval - 0.3; // Increase the chance of this type of message
 		delayed = false;
-	if (randval > 0.2) { // 80% do not chat
+
+	// Extra randomization
+	if (bot_personality->value) {
+		if (!BOTLIB_DoIChat(bot)){
+			return;
+		}
+	} else if (randval > 0.2) { // 80% do not chat
 		//gi.dprintf("Skipping chat due to random chance (%f)\n", randval);
 		return; // Don't chat too often
 	}

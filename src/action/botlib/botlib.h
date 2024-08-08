@@ -538,6 +538,8 @@ qboolean BOTLIB_SetPersonality(edict_t* bot, int team, int force_gender);
 qboolean BOTLIB_LoadBotPersonality(edict_t* self);
 void BOTLIB_FreeBotPersonality(edict_t* bot);
 qboolean BotRageQuit(edict_t* self, qboolean frag_or_death);
+qboolean BOTLIB_DoIChat(edict_t* bot);
+
 extern int loaded_bot_personalities;
 extern int bot_personality_index;
 extern qboolean pers_debug_mode;

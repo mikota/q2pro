@@ -752,3 +752,20 @@ void BOTLIB_FreeBotPersonality(edict_t* bot)
     }
     game.used_bot_personalities--;
 }
+
+qboolean BOTLIB_DoIChat(edict_t* bot) {
+    float chatty = bot->bot.personality.chat_demeanor;
+    srand(time(NULL));
+    size_t multi = rand() % 100;
+
+    // Normalize chatty value to range 0 to 1
+    float normalizedChatty = (chatty + 1) / 2;
+
+    // Determine if the bot will chat
+    if (multi <= normalizedChatty * 100) {
+        return true; // Bot will chat
+    } else {
+        return false; // Bot will not chat
+    }
+    return false; // Default false
+}
