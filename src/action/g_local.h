@@ -786,6 +786,16 @@ typedef struct
 }
 game_locals_t;
 
+// Map features, utilized by / requires bot_personality to be enabled
+typedef struct map_features_s
+{
+	float volume;
+	float openness;
+	float water_amt;
+	float lava_amt;
+	float slime_amt;
+
+} map_features_t;
 
 //
 // this structure is cleared as each map is entered
@@ -877,6 +887,9 @@ typedef struct
   // Point of interest
   vec3_t poi_origin;
   vec3_t poi_angle;
+
+  // Map features
+  map_features_t map_features;
 }
 level_locals_t;
 

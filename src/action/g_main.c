@@ -494,7 +494,7 @@ cvar_t* bot_randvoice;	// Bots use random user voice wavs - percentage [min: 0 m
 cvar_t* bot_randskill;	// When random bot join a game, they pick a random skill [min: 1, max: 10]. Using 0 will turn this off.
 cvar_t* bot_randname;	// Allow bots to pick a random name
 cvar_t* bot_chat; 		// Enable generic bot chat
-cvar_t* bot_personality;   // Enable bot personality functionality
+cvar_t* bot_personality;   // Enable bot personality functionality [0 disable, 1 enable, 2 mixed with random bots]
 cvar_t* bot_ragequit;	// Enable bot rage quitting (requires bot_personality to be enabled as well)
 //cvar_t* bot_randteamskin; // Bots can randomize team skins each map
 //rekkie -- DEV_1 -- e

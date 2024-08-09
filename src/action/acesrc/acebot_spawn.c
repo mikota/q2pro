@@ -709,7 +709,7 @@ void ACESP_RemoveBot(char *name)
 //				ACEIT_PlayerRemoved (bot);
 //				gi.bprintf (PRINT_MEDIUM, "%s removed\n", bot->client->pers.netname);
 
-				if (bot_personality->value)
+				if (bot_personality->value && bot->bot.personality.isActive)
 					BOTLIB_FreeBotPersonality(bot);
 				if( ! remove_all )
 					break;

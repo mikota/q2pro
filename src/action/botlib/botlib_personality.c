@@ -149,6 +149,7 @@ temp_bot_mapping_t* create_new_bot(char* name) {
 qboolean BotRageQuit(edict_t* self, qboolean frag_or_death)
 {
     // Don't do anything if the map_prefs are 0 or positive
+    // This includes all bots that do not have personalities
     if (self->bot.personality.map_prefs >= 0)
         return false;
 
@@ -742,12 +743,13 @@ void BOTLIB_FreeBotPersonality(edict_t* bot)
     // If this is a bot with personality, free it up
     int bot_pId = bot->bot.personality.pId;
     for (int i = 0; i < MAX_BOTS; i++) {
-        if (bot_mappings[i].personality.pId == bot_pId) {
+        if (bot_mappings[i].personality.pId == bot_pId && bot_mappings[i].personality.isActive) {
             bot_mappings[i].personality.isActive = false;
+            game.used_bot_personalities--;
+            gi.dprintf("Freed up %s\n", bot->client->pers.netname);
             break; // Exit the loop once the bot is found and deactivated
         }
     }
-    game.used_bot_personalities--;
 }
 
 qboolean BOTLIB_DoIChat(edict_t* bot) {
