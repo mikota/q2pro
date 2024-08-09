@@ -767,7 +767,7 @@ qboolean BOTLIB_DoIChat(edict_t* bot) {
 }
 
 
-bool isArrayAllZeros(const float* array, int size) {
+qboolean isArrayAllZeros(const float* array, int size) {
     for (int i = 0; i < size; i++) {
         if (array[i] != 0.0f) {
             return false; // Found a non-zero element
@@ -790,8 +790,9 @@ GRENADE_NUM (9) maps to weapon_prefs[8]
 */
 // "weapon_prefs": [-0.6, 0.2, 0.5, -0.7, 0.1, -0.8, 0.4, -0.9, 0.3]
 void BOTLIB_BotPersonalityChooseWeapon(edict_t* bot) {
-    float weapon_prefs[10];
-    memcpy(weapon_prefs, bot->bot.personality.weapon_prefs, sizeof(bot->bot.personality.weapon_prefs));
+    float weapon_prefs[10] = {0.0f}; // All elements will be set to 0.0f
+
+    memcpy(weapon_prefs, bot->bot.personality.weapon_prefs, sizeof(weapon_prefs));
 
     int chosen_weapon_index = 0; // Initialize with the first index
     float highest_pref = weapon_prefs[0]; // Initialize with the first weapon's preference
@@ -802,9 +803,10 @@ void BOTLIB_BotPersonalityChooseWeapon(edict_t* bot) {
     qboolean all_zeros = isArrayAllZeros(weapon_prefs, sizeof(weapon_prefs) / sizeof(weapon_prefs[0]));
 
     // All zeroes somehow?  Still let's pick a good weapon
-    if (all_zeros)
+    if (all_zeros) {
         BOTLIB_SmartWeaponSelection(bot);
         return;
+    }
 
     for (int i = 0; i < (WEAPON_COUNT - 1); i++) { // Adjust loop to exclude grenades
         float current_pref = weapon_prefs[i];
@@ -825,16 +827,23 @@ void BOTLIB_BotPersonalityChooseWeapon(edict_t* bot) {
 
     // Will choose between always picking the top weapon, from choosing from the top 3
     int randomIndex = rand() % 2;
+    int chosenWeapon = 0;
 
     // Case 1: Always pick the top weapon
     if (randomIndex == 0) {
-        ACEAI_Cmd_Choose_Weapon_Num(bot, top3_indices[0]);
+        chosenWeapon = top3_indices[0];
+        ACEAI_Cmd_Choose_Weapon_Num(bot, chosenWeapon);
+        if (pers_debug_mode)
+            gi.dprintf("%s: %s chose %i weapon\n", __func__, bot->client->pers.netname, chosenWeapon);
         return;
     }
     // Case 2: Randomly choose from the top 3
     else {
         int randomChoice = rand() % 3; // Randomly choose 0, 1, or 2
-        ACEAI_Cmd_Choose_Weapon_Num(bot, top3_indices[randomChoice]);
+        chosenWeapon = top3_indices[randomChoice];
+        ACEAI_Cmd_Choose_Weapon_Num(bot, chosenWeapon);
+        if (pers_debug_mode)
+            gi.dprintf("%s: %s chose %i weapon\n", __func__, bot->client->pers.netname, chosenWeapon);
         return;
     }
 
@@ -865,14 +874,12 @@ void BOTLIB_BotPersonalityChooseItem(edict_t* bot)
 
     qboolean all_zeros = isArrayAllZeros(item_prefs, sizeof(item_prefs) / sizeof(item_prefs[0]));
 
-    // Will choose between always picking the top item, from choosing from the top 3
-    int randomIndex = rand() % 2;
-
     // If this is all zeroes, we're picking a random if we haven't selected an item yet
-    if (all_zeros && bot->client->selected_item < 1)
+    if (all_zeros && bot->client->selected_item < 1) {
         chosen_item_index = rand() % 6; // Randomly choose one of the 6 items
         ACEAI_Cmd_Choose_Item_Num(bot, chosen_item_index);
         return;
+    }
 
     for (int i = 0; i < ITEM_COUNT; i++) { // Adjust loop for 6 items
         float current_pref = item_prefs[i];
@@ -890,15 +897,26 @@ void BOTLIB_BotPersonalityChooseItem(edict_t* bot)
             }
         }
     }
+    // Will choose between always picking the top item, from choosing from the top 3
+    int randomIndex = rand() % 2;
+    int chosenItem = 0;
 
     // Case 1: Always pick the top item
     if (randomIndex == 0) {
-        ACEAI_Cmd_Choose_Item_Num(bot, top3_indices[0]);
+        chosenItem = top3_indices[0];
+        ACEAI_Cmd_Choose_Item_Num(bot, chosenItem);
+        if (pers_debug_mode)
+            gi.dprintf("%s: %s chose %i item\n", __func__, bot->client->pers.netname, chosenItem);
+        return;
     }
     // Case 2: Randomly choose from the top 3
     else {
         int randomChoice = rand() % 3; // Randomly choose 0, 1, or 2
-        ACEAI_Cmd_Choose_Item_Num(bot, top3_indices[randomChoice]);
+        chosenItem = top3_indices[randomChoice];
+        ACEAI_Cmd_Choose_Item_Num(bot, chosenItem);
+        if (pers_debug_mode)
+            gi.dprintf("%s: %s chose %i item\n", __func__, bot->client->pers.netname, chosenItem);
+        return;
     }
 }
 

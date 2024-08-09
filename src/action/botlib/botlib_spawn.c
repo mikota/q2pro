@@ -1425,6 +1425,9 @@ edict_t* BOTLIB_SpawnBot(int team, int force_gender, char* force_name, char* for
 		BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
 	}
 
+	// Need to set this here for ClientBeginDeathmatch
+	bot->bot.bot_type = BOT_TYPE_BOTLIB;
+
 	ClientBeginDeathmatch(bot);
 
 	BOTLIB_PutClientInServer(bot, true, team);
