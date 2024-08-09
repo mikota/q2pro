@@ -295,6 +295,7 @@ qboolean ACEAI_ChooseWeapon(edict_t *self);
 void ACEAI_Cmd_Choose( edict_t *ent, char *s );
 void ACEAI_Cmd_Choose_Weapon_Num( edict_t *ent, int num );
 void ACEAI_Cmd_Choose_Item_Num( edict_t *ent, int num );
+void ACEAI_Cmd_Choose_ItemKit_Num( edict_t *ent, int num );
 
 // acebot_cmds.c protos
 qboolean ACECM_Commands(edict_t *ent);

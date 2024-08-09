@@ -2046,3 +2046,24 @@ void ACEAI_Cmd_Choose_Item_Num( edict_t *ent, int num )
 	if( num )
 		ent->client->pers.chosenItem = FindItemByNum(num);
 }
+
+void ACEAI_Cmd_Choose_ItemKit_Num( edict_t *ent, int num )
+{
+	// Item Kits ignore item bans, for simplicity
+
+	if( num == KEV_NUM ) {
+		ent->client->pers.chosenItem = FindItemByNum(KEV_NUM);
+	} else if ( num == C_KIT_NUM ) {
+		ent->client->pers.chosenItem = FindItemByNum(BAND_NUM);
+		ent->client->pers.chosenItem2 = FindItemByNum(HELM_NUM);
+	} else if ( num == S_KIT_NUM ) {
+		ent->client->pers.chosenItem = FindItemByNum(SLIP_NUM);
+		ent->client->pers.chosenItem2 = FindItemByNum(SIL_NUM);
+    } else if ( num == A_KIT_NUM ) {
+		ent->client->pers.chosenItem = FindItemByNum(LASER_NUM);
+		ent->client->pers.chosenItem2 = FindItemByNum(SIL_NUM);
+	} else { // For safety
+		gi.dprintf("%s: num value here is not an item kit or kevlar vest (%i)\n", __func__, num);
+		ent->client->pers.chosenItem = FindItemByNum(KEV_NUM);
+	}
+}

@@ -952,9 +952,9 @@ void BOTLIB_BotPersonalityChooseItemKit(edict_t* bot) {
 
     // Choose item
     if (rand() % 2 == 0) {
-        ACEAI_Cmd_Choose_Item_Num(bot, top3_indices[0]);
+        ACEAI_Cmd_Choose_ItemKit_Num(bot, top3_indices[0]);
     } else {
-        ACEAI_Cmd_Choose_Item_Num(bot, top3_indices[rand() % 3]);
+        ACEAI_Cmd_Choose_ItemKit_Num(bot, top3_indices[rand() % 3]);
     }
 }
 
