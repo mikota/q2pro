@@ -586,6 +586,10 @@ extern cvar_t       *sv_ghostime;
 extern client_t     *sv_client;
 extern edict_t      *sv_player;
 
+#ifndef NO_BOTS
+extern cvar_t       *sv_bot_ping;
+#endif
+
 //===========================================================
 
 //

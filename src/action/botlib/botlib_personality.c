@@ -4,65 +4,9 @@
 #include "/opt/homebrew/include/jansson.h"
 
 // Count of bot personalities loaded
-qboolean pers_debug_mode = true;
+qboolean pers_debug_mode = false;
 int loaded_bot_personalities = 0;
 int bot_personality_index = 0;  // We're incrementing as we create
-
-// #define WEAPON_COUNT 9
-// #define ITEM_COUNT 6
-
-// typedef struct bot_personality_s
-// {
-// 	// These are +1 because we're ignoring the first index [0]
-// 	// So that MK23_NUM (1) stays at 1 here as well
-// 	float weapon_prefs[WEAPON_COUNT + 1];  	//-1 = Will never choose, 1 = Will always choose
-// 	float item_prefs[ITEM_COUNT +1];      	//-1 = Will never choose, 1 = Will always choose
-
-// 	float map_prefs;						//-1 = Hate, 0 = Neutral, 1 = Love
-// 	float combat_demeanor;					//-1 = Timid | 1 = Aggressive
-// 	float chat_demeanor;					//-1 = Quiet | 1 = Chatty
-// 	int leave_percent; 						// Percentage calculated that the bot will leave the map.  Recalculated/increases every time the bot dies.
-//     float shooting_skill;                   // -1 = Poor Skill | 1 = Excellent Skill (higher value = harder bot)
-//     float movement_skill;                   // -1 = Poor Skill | 1 = Excellent Skill (higher value = harder bot
-    
-//     // Will use the edict's values here, these are only here for testing
-//     char* skin;
-//     char* name;
-// } bot_personality_t;
-
-// #define MK23_NUM				1
-// #define MP5_NUM					2
-// #define M4_NUM					3
-// #define M3_NUM					4
-// #define HC_NUM					5
-// #define SNIPER_NUM				6
-// #define DUAL_NUM				7
-// #define KNIFE_NUM				8
-// #define GRENADE_NUM				9
-
-// #define SIL_NUM					10
-// #define SLIP_NUM				11
-// #define BAND_NUM				12
-// #define KEV_NUM					13
-// #define LASER_NUM				14
-// #define HELM_NUM				15
-
-// #define MK23_NAME    "MK23 Pistol"
-// #define MP5_NAME     "MP5/10 Submachinegun"
-// #define M4_NAME      "M4 Assault Rifle"
-// #define M3_NAME      "M3 Super 90 Assault Shotgun"
-// #define HC_NAME      "Handcannon"
-// #define SNIPER_NAME  "Sniper Rifle"
-// #define DUAL_NAME    "Dual MK23 Pistols"
-// #define KNIFE_NAME   "Combat Knife"
-// #define GRENADE_NAME "M26 Fragmentation Grenade"
-
-// #define SIL_NAME     "Silencer"
-// #define SLIP_NAME    "Stealth Slippers"
-// #define BAND_NAME    "Bandolier"
-// #define KEV_NAME     "Kevlar Vest"
-// #define HELM_NAME    "Kevlar Helmet"
-// #define LASER_NAME   "Lasersight"
 
 /////*
 // This file focuses on loading bot personality traits
@@ -313,187 +257,6 @@ temp_bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename)
     return bot_mappings;
 }
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    // Extract and assign values from the JSON object
-    // Define an array of weapon names corresponding to their preferences
-    // const char* weaponNames[] = {
-    //     MK23_NAME, MP5_NAME, M4_NAME, M3_NAME, HC_NAME, 
-    //     SNIPER_NAME, DUAL_NAME, KNIFE_NAME, GRENADE_NAME
-    // };
-
-    // json_t* weapon_prefs = json_object_get(root, "weapon_prefs");
-    // for (size_t i = 0; i < json_array_size(weapon_prefs); i++) {
-    //     json_t* wpref_value = json_array_get(weapon_prefs, i);
-    //     // Ensure the index is within the bounds of weaponNames array
-    //     const char* weaponName = (i < sizeof(weaponNames)/sizeof(weaponNames[0])) ? weaponNames[i] : "Unknown Weapon";
-    //     float value = validate_pref_numeric(wpref_value, weaponName); // Updated function call with weapon name
-
-    //     // Proceed with assignment only if value is not 0.0 (assuming 0.0 indicates invalid or not set)
-    //     if (value != 0.0f) {
-    //         temp_bot->personality.weapon_prefs[i] = value; // Direct assignment using index, assuming array is properly sized and ordered
-    //     }
-    // }
-
-    // // Assuming you have an array of preference names corresponding to each index
-    // // Define an array of item names corresponding to their preferences
-    // const char* itemNames[] = {SIL_NAME, SLIP_NAME, BAND_NAME, KEV_NAME, HELM_NAME, LASER_NAME};
-
-    // json_t* item_prefs = json_object_get(root, "item_prefs");
-    // for (size_t i = 0; i < json_array_size(item_prefs); i++) {
-    //     json_t* ipref_value = json_array_get(item_prefs, i);
-    //     // Ensure the index is within the bounds of itemNames array
-    //     const char* itemName = (i < sizeof(itemNames)/sizeof(itemNames[0])) ? itemNames[i] : "Unknown Item";
-    //     float value = validate_pref_numeric(ipref_value, itemName); // Pass the item name for detailed warnings
-
-    //     // Assuming 0.0f indicates an invalid or out-of-bounds value, skip assignment in such cases
-    //     if (value != 0.0f) {
-    //         temp_bot->personality.item_prefs[i] = value;
-    //     }
-    // }
-
-    // // Extract single float values, if they exist, else default to 0
-    // json_t *checkval;
-
-    // char* current_map_name = level.mapname;
-    // //personality->map_prefs = validate_pref_numeric(json_object_get(root, "map_prefs"), "map_prefs");
-    // update_map_pref(root, current_map_name, temp_bot);
-
-    // temp_bot->personality.combat_demeanor = validate_pref_numeric(json_object_get(root, "combat_demeanor"), "combat_demeanor");
-
-    // temp_bot->personality.chat_demeanor = validate_pref_numeric(json_object_get(root, "chat_demeanor"), "chat_demeanor");
-    
-    // // Extract integer value, every fresh personality load sets this to 0
-    // temp_bot->personality.leave_percent = 0;
-
-    // // Set the skin, if provided
-    // char* defaultSkin = "male/grunt";
-
-    // checkval = json_object_get(root, "skin");
-    // char* validatedSkin = validate_pref_string(checkval, 1);
-    // if (validatedSkin != NULL) {
-    //     // If skin value is valid, use it
-    //     temp_bot->personality.skin_pref = validatedSkin;
-    // } else {
-    //     // If skin value is invalid, use defaultSkin and print a warning
-    //     temp_bot->personality.skin_pref = strdup(defaultSkin); // Use strdup to copy defaultSkin
-    // }
-
-    // // Set the name, if provided
-    // char* defaultName = "AqtionBot";
-
-    // checkval = json_object_get(root, "bots");
-    // char* validatedName = validate_pref_string(checkval, 0);
-    // if (validatedName != NULL) {
-    //     // If name value is valid, use it
-    //     temp_bot->name = validatedName;
-    // } else {
-    //     // If name value is invalid, use defaultName and print a warning
-    //     temp_bot->name = strdup(defaultName); // Use strdup to copy defaultName
-    // }
-
-    
-    // Clean up
-//     json_decref(root);
-
-//     return 0;
-// }
-
-// int main() {
-//     // Example usage of load_bot_personality
-//     bot_personality_t* personality = load_bot_personality("bot.json");
-//     if (personality != NULL) {        
-//         printf("\n");
-//         printf("Weapon Preferences:");
-//         for (int i = 1; i < WEAPON_COUNT; i++) { // Assuming WEAPON_PREFS_SIZE is defined
-//             printf(" %f", personality->weapon_prefs[i]);
-//         }
-//         printf("\nItem Preferences:");
-//         for (int i = 1; i < ITEM_COUNT; i++) { // Assuming ITEM_PREFS_SIZE is defined
-//             printf(" %f", personality->item_prefs[i]);
-//         }
-//         printf("\n");
-//         // Print Map Preferences
-//         printf("Map Preferences: %f\n", personality->map_prefs);
-//         // Print Chat Demeanor
-//         printf("Chat Demeanor: %f\n", personality->chat_demeanor);
-        
-//         // Print Combat Demeanor
-//         printf("Combat Demeanor: %f\n", personality->combat_demeanor);
-        
-//         // Print Skin
-//         printf("Skin: %s\n", personality->skin);
-        
-//         printf("\n");
-//         //
-//         if (!warningCount)
-//             printf("Bot personality loaded successfully.\n");
-//         else
-//             printf("Loaded with %i warnings\n", warningCount);
-
-//         // Remember to free the allocated memory for personality
-//         free(personality);
-//     } else {
-//         printf("Failed to load bot personality.\n");
-//     }
-//     return 0;
-// }
-
-// Function to load bot names from file
-// int loadBotNames(const char* filename) {
-//     json_error_t error;
-//     json_t* root = json_load_file(filename, 0, &error);
-
-//     if (!root) {
-//         return 0; // Failed to load file
-//     }
-
-//     json_t* bots = json_object_get(root, "bots");
-//     if (!bots) {
-//         json_decref(root);
-//         return 0; // No "bots" object
-//     }
-
-//     size_t fileBotCount = json_array_size(bots);
-//     // Adjust the number of bots to load based on game.maxclients
-//     loadedBotCount = (fileBotCount < game.maxclients) ? fileBotCount : game.maxclients;
-//     botNames = malloc(loadedBotCount * sizeof(char*)); // Allocate array for bot names
-
-//     for (size_t i = 0; i < loadedBotCount; i++) {
-//         json_t* bot = json_array_get(bots, i);
-//         const char* name = json_string_value(json_object_get(bot, "name"));
-//         botNames[i] = strdup(name); // Copy name into array
-//     }
-
-//     json_decref(root);
-//     return 1; // Success
-// }
-// // Function to get a random bot name
-// char* getRandomBotName() {
-//     if (loadedBotCount == 0) return NULL; // No bots loaded
-//     srand(time(NULL)); // Seed the random number generator
-//     size_t index = rand() % loadedBotCount;
-//     return botNames[index]; // Return random bot name
-// }
-
-// void freeBotNames() {
-//     for (size_t i = 0; i < loadedBotCount; i++) {
-//         free(botNames[i]); // Free each name
-//     }
-//     free(botNames); // Free the array
-//     botNames = NULL;
-//     loadedBotCount = 0;
-// }
 
 // Main function that will load other personality methods
 void BOTLIB_PersonalityFile(void) {
@@ -527,37 +290,6 @@ void BOTLIB_PersonalityFile(void) {
     // Now that we have the file, let's load the bots
     BOTLIB_LoadPersonalities(filename);
 }
-
-// void copy_temp_to_real(edict_t* bot, temp_bot_mapping_t *roster, bot_personality_t *personality) {
-//     // Copying array fields
-//     memcpy(personality->weapon_prefs, roster->personality.weapon_prefs, sizeof(personality->weapon_prefs));
-//     memcpy(personality->item_prefs, roster->personality.item_prefs, sizeof(personality->item_prefs));
-
-//     // Copying simple fields
-//     personality->map_prefs = roster->personality.map_prefs;
-//     personality->combat_demeanor = roster->personality.combat_demeanor;
-//     personality->chat_demeanor = roster->personality.chat_demeanor;
-//     personality->leave_percent = roster->personality.leave_percent;
-
-//     // Copying string fields, assuming they should be char* in bot_personality_t
-//     if (roster->name != NULL) {
-//         personality->name_pref = malloc(strlen(roster->name) + 1);
-//         Info_SetValueForKey(userinfo, "name", roster->name);
-//     } else {
-//         // Safe default
-//         personality->name_pref = "AqtionBot";
-//     }
-
-//     if (roster->personality.skin_pref != NULL) {
-//         personality->skin_pref = malloc(strlen(roster->personality.skin_pref) + 1);
-//         strcpy(personality->skin_pref, roster->personality.skin_pref);
-//     } else {
-//         // Safe default
-//         personality->skin_pref = "male/grunt";
-//     }
-
-
-// }
 
 // Return skin if false, return model if true
 char* _splitSkinChar(char *skinpathInput, qboolean returnSkin) {
@@ -746,7 +478,8 @@ void BOTLIB_FreeBotPersonality(edict_t* bot)
         if (bot_mappings[i].personality.pId == bot_pId && bot_mappings[i].personality.isActive) {
             bot_mappings[i].personality.isActive = false;
             game.used_bot_personalities--;
-            gi.dprintf("Freed up %s\n", bot->client->pers.netname);
+            if(pers_debug_mode)
+                gi.dprintf("%s: Freed up %s\n", __func__, bot->client->pers.netname);
             break; // Exit the loop once the bot is found and deactivated
         }
     }
@@ -804,9 +537,11 @@ void BOTLIB_BotPersonalityChooseWeapon(edict_t* bot) {
 
     qboolean all_zeros = isArrayAllZeros(weapon_prefs, sizeof(weapon_prefs) / sizeof(weapon_prefs[0]));
 
-    // All zeroes somehow?  Still let's pick a good weapon
+    // All zeroes somehow?  Still, let's pick a good weapon
     if (all_zeros) {
         BOTLIB_SmartWeaponSelection(bot);
+        if(pers_debug_mode)
+            gi.dprintf("%s: chose BOTLIB_SmartWeaponSelection() because weapon_prefs were all zeroes");
         return;
     }
 
@@ -880,6 +615,8 @@ void BOTLIB_BotPersonalityChooseItem(edict_t* bot)
     if (all_zeros && bot->client->selected_item < 1) {
         chosen_item_index = rand() % 6; // Randomly choose one of the 6 items
         ACEAI_Cmd_Choose_Item_Num(bot, chosen_item_index);
+        if(pers_debug_mode)
+            gi.dprintf("%s: chose random item because item_prefs were all zeroes");
         return;
     }
 
@@ -938,16 +675,17 @@ void BOTLIB_BotPersonalityChooseItemKit(edict_t* bot) {
     int weaponNum = bot->client->weapon ? bot->client->weapon->typeNum : 0;
 
     // Adjust preferences based on weapon
-    if (weaponNum == SNIPER_NUM || weaponNum == M4_NUM) {
-        item_kit_prefs[0] += 0.25;
-    }
-    if (weaponNum == MP5_NUM || weaponNum == M4_NUM) {
+
+    // Everyone likes Kevlar
+    item_kit_prefs[0] += 0.50;
+
+    if (weaponNum == MP5_NUM || weaponNum == M4_NUM || weaponNum == M3_NUM) {
         item_kit_prefs[1] += 0.25;
     }
-    if (weaponNum == HC_NUM || weaponNum == M3_NUM) {
+    if (weaponNum == HC_NUM || weaponNum == M3_NUM || weaponNum == KNIFE_NUM || weaponNum == SNIPER_NUM) {
         item_kit_prefs[2] += 0.25;
     }
-    if (weaponNum == MP5_NUM || weaponNum == DUAL_NUM) {
+    if (weaponNum == MP5_NUM || weaponNum == DUAL_NUM || weaponNum == SNIPER_NUM) {
         item_kit_prefs[3] += 0.25;
     }
 

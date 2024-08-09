@@ -112,6 +112,10 @@ cvar_t  *g_view_predict;
 cvar_t  *g_view_low;
 cvar_t  *g_view_high;
 
+#ifndef NO_BOTS
+cvar_t  *sv_bot_ping;		// Report bot ping as fake ping values or simply as BOT (0 = ping, 1 = BOT)
+#endif
+
 static bool     sv_registered;
 
 //============================================================================
@@ -465,7 +469,10 @@ static size_t SV_StatusString(char *status)
         {
             if (bot_clients[i].in_use)
             {
-                len = Q_snprintf(entry, sizeof(entry), "%i %i \"%s\"\n", bot_clients[i].score, bot_clients[i].ping, bot_clients[i].name);  //entry	example = "0 1 \"[AIR]-Mech\"\n"	char[1024]
+                if(!sv_bot_ping->integer)
+                    len = Q_snprintf(entry, sizeof(entry), "%i %i \"%s\"\n", bot_clients[i].score, bot_clients[i].ping, bot_clients[i].name);  //entry	example = "0 1 \"[AIR]-Mech\"\n"	char[1024]
+                else
+                    len = Q_snprintf(entry, sizeof(entry), "%i \"%s\" \"%s\"\n", bot_clients[i].score, "BOT", bot_clients[i].name);  //entry	example = "0 1 \"[AIR]-Mech\"\n"	char[1024]
 
                 if (len >= sizeof(entry))
                     continue;
@@ -2426,6 +2433,10 @@ void SV_Init(void)
     // set up default frametime for main loop
     sv.framerate = BASE_FRAMERATE;
     sv.frametime = Com_ComputeFrametime(sv.framerate);
+#endif
+
+#ifndef NO_BOTS
+    sv_bot_ping = Cvar_Get("sv_bot_ping", "0", 0);
 #endif
 
     // set up default pmove parameters
