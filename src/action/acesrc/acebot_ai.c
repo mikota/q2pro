@@ -229,7 +229,8 @@ void BOTLIB_PickLongRangeGoal(edict_t* self)
 		}
 
 		// At LCA, randomly pick a spawn spot. This breaks up the bots at LCA, so they spread out.
-		if (random() < 0.2 || (teamplay->value && lights_camera_action)) // Greater than LCA!
+		// BOTLIB_Spawnrush will take into account bot personality and current weaponry
+		if (random() < 0.2 || (teamplay->value && lights_camera_action) || BOTLIB_SpawnRush(self)) // Greater than LCA!
 		{
 			// Find all the spawn points
 			int sp_counter = 0;

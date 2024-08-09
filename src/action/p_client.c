@@ -3045,7 +3045,16 @@ void PutClientInServer(edict_t * ent)
 		if (ent->bot.bot_type == BOT_TYPE_BOTLIB) // BOTLIB
 		{
 			BOTLIB_Init(ent); // Initialize all the bot variables
-			BOTLIB_SmartWeaponSelection(ent);
+			if (!bot_personality->value) {
+				BOTLIB_SmartWeaponSelection(ent); // This is an excellent way to choose good weapon variety
+			} else {
+				// If using personalities, they have their own weapon/item preferences
+				BOTLIB_BotPersonalityChooseWeapon(ent);
+				if (item_kit_mode->value)
+					BOTLIB_BotPersonalityChooseItemKit(ent);
+				else
+					BOTLIB_BotPersonalityChooseItem(ent);
+			}
 		}
 		else // LTK bots
 		{

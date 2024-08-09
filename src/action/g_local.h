@@ -1476,6 +1476,7 @@ qboolean infront( edict_t *self, edict_t *other );
 #endif
 void disablecvar(cvar_t *cvar, char *msg);
 int eztimer(int seconds);
+float sigmoid(float x);
 
 // Re-enabled for bots
 float *tv (float x, float y, float z);

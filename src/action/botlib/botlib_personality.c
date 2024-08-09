@@ -4,7 +4,6 @@
 #include "/opt/homebrew/include/jansson.h"
 
 // Count of bot personalities loaded
-char** botNames = NULL; // Global array of bot names
 qboolean pers_debug_mode = true;
 int loaded_bot_personalities = 0;
 int bot_personality_index = 0;  // We're incrementing as we create
@@ -177,10 +176,9 @@ qboolean BotRageQuit(edict_t* self, qboolean frag_or_death)
     return false;
 }
 
-
 // Dynamically update the map preferences of the bot
 // Not all bots will have a preference, so we default to 0 for those
-void update_map_pref(json_t* root, char* map_name, temp_bot_mapping_t* newBot)
+void UpdateMapPref(json_t* root, char* map_name, temp_bot_mapping_t* newBot)
 {
     // Get the "map_prefs" object from the root
     json_t* map_prefs = json_object_get(root, "map_prefs");
@@ -265,7 +263,7 @@ temp_bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename)
 
         json_t* map_prefs = json_object_get(botDetails, "map_prefs");
         newBot->personality.map_prefs = validate_pref_numeric(map_prefs, "map_prefs");
-        update_map_pref(botDetails, level.mapname, newBot);
+        UpdateMapPref(botDetails, level.mapname, newBot);
 
         json_t* combat_demeanor = json_object_get(botDetails, "combat_demeanor");
         newBot->personality.combat_demeanor = validate_pref_numeric(combat_demeanor, "combat_demeanor");
@@ -627,7 +625,6 @@ qboolean BOTLIB_SetPersonality(edict_t* self, int team, int force_gender)
         return false;
     }
 
-    srand(time(NULL));
     int randomIndex = rand() % bot_personality_index;
     int attempts = 0;
     temp_bot_mapping_t* selectedBot = &bot_mappings[randomIndex];
@@ -755,7 +752,6 @@ void BOTLIB_FreeBotPersonality(edict_t* bot)
 
 qboolean BOTLIB_DoIChat(edict_t* bot) {
     float chatty = bot->bot.personality.chat_demeanor;
-    srand(time(NULL));
     size_t multi = rand() % 100;
 
     // Normalize chatty value to range 0 to 1
@@ -768,4 +764,244 @@ qboolean BOTLIB_DoIChat(edict_t* bot) {
         return false; // Bot will not chat
     }
     return false; // Default false
+}
+
+
+bool isArrayAllZeros(const float* array, int size) {
+    for (int i = 0; i < size; i++) {
+        if (array[i] != 0.0f) {
+            return false; // Found a non-zero element
+        }
+    }
+    return true; // All elements are zero
+}
+
+//
+/*
+MK23_NUM (1) maps to weapon_prefs[0] 
+MP5_NUM (2) maps to weapon_prefs[1]
+M4_NUM (3) maps to weapon_prefs[2]
+M3_NUM (4) maps to weapon_prefs[3] 
+HC_NUM (5) maps to weapon_prefs[4]
+SNIPER_NUM (6) maps to weapon_prefs[5] 
+DUAL_NUM (7) maps to weapon_prefs[6]
+KNIFE_NUM (8) maps to weapon_prefs[7] 
+GRENADE_NUM (9) maps to weapon_prefs[8]
+*/
+// "weapon_prefs": [-0.6, 0.2, 0.5, -0.7, 0.1, -0.8, 0.4, -0.9, 0.3]
+void BOTLIB_BotPersonalityChooseWeapon(edict_t* bot) {
+    float weapon_prefs[10];
+    memcpy(weapon_prefs, bot->bot.personality.weapon_prefs, sizeof(bot->bot.personality.weapon_prefs));
+
+    int chosen_weapon_index = 0; // Initialize with the first index
+    float highest_pref = weapon_prefs[0]; // Initialize with the first weapon's preference
+
+    int top3_indices[3] = {0, 0, 0};
+    float top3_prefs[3] = {-1.0f, -1.0f, -1.0f}; // Initialize with low values
+
+    qboolean all_zeros = isArrayAllZeros(weapon_prefs, sizeof(weapon_prefs) / sizeof(weapon_prefs[0]));
+
+    // All zeroes somehow?  Still let's pick a good weapon
+    if (all_zeros)
+        BOTLIB_SmartWeaponSelection(bot);
+        return;
+
+    for (int i = 0; i < (WEAPON_COUNT - 1); i++) { // Adjust loop to exclude grenades
+        float current_pref = weapon_prefs[i];
+        for (int j = 0; j < 3; j++) {
+            if (current_pref > top3_prefs[j]) {
+                // Shift lower preferences down
+                for (int k = 2; k > j; k--) {
+                    top3_prefs[k] = top3_prefs[k - 1];
+                    top3_indices[k] = top3_indices[k - 1];
+                }
+                // Insert the new preference
+                top3_prefs[j] = current_pref;
+                top3_indices[j] = i;
+                break; // Break since we've inserted the current preference
+            }
+        }
+    }
+
+    // Will choose between always picking the top weapon, from choosing from the top 3
+    int randomIndex = rand() % 2;
+
+    // Case 1: Always pick the top weapon
+    if (randomIndex == 0) {
+        ACEAI_Cmd_Choose_Weapon_Num(bot, top3_indices[0]);
+        return;
+    }
+    // Case 2: Randomly choose from the top 3
+    else {
+        int randomChoice = rand() % 3; // Randomly choose 0, 1, or 2
+        ACEAI_Cmd_Choose_Weapon_Num(bot, top3_indices[randomChoice]);
+        return;
+    }
+
+    // If for whatever reason this doesn't work, safely return BOTLIB_SmartWeaponSelection
+    return BOTLIB_SmartWeaponSelection(bot);
+}
+
+/*
+#define SIL_NUM					10
+#define SLIP_NUM				11
+#define BAND_NUM				12
+#define KEV_NUM					13
+#define LASER_NUM				14
+#define HELM_NUM				15
+*/
+//"item_prefs": [0.6, 0.7, 0.8, 0.9, 1.0, 1.0]
+
+void BOTLIB_BotPersonalityChooseItem(edict_t* bot)
+{
+    float item_prefs[6];
+    memcpy(item_prefs, bot->bot.personality.item_prefs, sizeof(item_prefs));
+
+    int chosen_item_index = 0; // Initialize with the first index
+    float highest_pref = item_prefs[0]; // Initialize with the first item's preference
+
+    int top3_indices[3] = {0, 0, 0}; // Initialize with the first index
+    float top3_prefs[3] = {-1.0f, -1.0f, -1.0f}; // Initialize with low values
+
+    qboolean all_zeros = isArrayAllZeros(item_prefs, sizeof(item_prefs) / sizeof(item_prefs[0]));
+
+    // Will choose between always picking the top item, from choosing from the top 3
+    int randomIndex = rand() % 2;
+
+    // If this is all zeroes, we're picking a random if we haven't selected an item yet
+    if (all_zeros && bot->client->selected_item < 1)
+        chosen_item_index = rand() % 6; // Randomly choose one of the 6 items
+        ACEAI_Cmd_Choose_Item_Num(bot, chosen_item_index);
+        return;
+
+    for (int i = 0; i < ITEM_COUNT; i++) { // Adjust loop for 6 items
+        float current_pref = item_prefs[i];
+        for (int j = 0; j < 3; j++) {
+            if (current_pref > top3_prefs[j]) {
+                // Shift lower preferences down
+                for (int k = 2; k > j; k--) {
+                    top3_prefs[k] = top3_prefs[k - 1];
+                    top3_indices[k] = top3_indices[k - 1];
+                }
+                // Insert the new preference
+                top3_prefs[j] = current_pref;
+                top3_indices[j] = i;
+                break; // Break since we've inserted the current preference
+            }
+        }
+    }
+
+    // Case 1: Always pick the top item
+    if (randomIndex == 0) {
+        ACEAI_Cmd_Choose_Item_Num(bot, top3_indices[0]);
+    }
+    // Case 2: Randomly choose from the top 3
+    else {
+        int randomChoice = rand() % 3; // Randomly choose 0, 1, or 2
+        ACEAI_Cmd_Choose_Item_Num(bot, top3_indices[randomChoice]);
+    }
+}
+
+/*
+#define KEV_NUM					13
+#define C_KIT_NUM				25
+#define S_KIT_NUM				26
+#define A_KIT_NUM				27
+
+Commando, Stealth and Assassin Kits
+*/
+
+
+void BOTLIB_BotPersonalityChooseItemKit(edict_t* bot) {
+    float item_kit_prefs[4] = {0.0f, 0.0f, 0.0f, 0.0f}; // Initialize preferences to 0
+
+    int weaponNum = bot->client->weapon ? bot->client->weapon->typeNum : 0;
+
+    // Adjust preferences based on weapon
+    if (weaponNum == SNIPER_NUM || weaponNum == M4_NUM) {
+        item_kit_prefs[0] += 0.25;
+    }
+    if (weaponNum == MP5_NUM || weaponNum == M4_NUM) {
+        item_kit_prefs[1] += 0.25;
+    }
+    if (weaponNum == HC_NUM || weaponNum == M3_NUM) {
+        item_kit_prefs[2] += 0.25;
+    }
+    if (weaponNum == MP5_NUM || weaponNum == DUAL_NUM) {
+        item_kit_prefs[3] += 0.25;
+    }
+
+    int top3_indices[3] = {0, 0, 0};
+    float top3_prefs[3] = {-1.0f, -1.0f, -1.0f};
+
+    // Determine top 3 preferences
+    for (int i = 0; i < 4; i++) { // Adjusted loop condition
+        float current_pref = item_kit_prefs[i];
+        for (int j = 0; j < 3; j++) {
+            if (current_pref > top3_prefs[j]) {
+                for (int k = 2; k > j; k--) {
+                    top3_prefs[k] = top3_prefs[k - 1];
+                    top3_indices[k] = top3_indices[k - 1];
+                }
+                top3_prefs[j] = current_pref;
+                top3_indices[j] = i;
+                break;
+            }
+        }
+    }
+
+    // Choose item
+    if (rand() % 2 == 0) {
+        ACEAI_Cmd_Choose_Item_Num(bot, top3_indices[0]);
+    } else {
+        ACEAI_Cmd_Choose_Item_Num(bot, top3_indices[rand() % 3]);
+    }
+}
+
+//"combat_demeanor": 0.45
+qboolean BOTLIB_SpawnRush(edict_t* bot) {
+    int weaponNum = bot->client->weapon ? bot->client->weapon->typeNum : 0;
+    int itemNum = bot->client->selected_item ? bot->client->selected_item : 0;
+
+    // Normalize combat_index from [-1, 1] to [0, 1]
+    float normalized_combat_index = (bot->bot.personality.combat_demeanor + 1) / 2.0f;
+
+    float probabilityThreshold;
+    if (normalized_combat_index < 0.5) {
+        // Scale for values below 0.5 to be between 0% and 25%
+        probabilityThreshold = 0.5f * normalized_combat_index;
+    } else {
+        // Adjust the scale for values above 0.5 to be between 25% and 100%
+        probabilityThreshold = 0.25f + ((normalized_combat_index - 0.5f) * 1.5f);
+    }
+
+    // Adjusting probabilityThreshold based on weapon possession
+    if (weaponNum == SNIPER_NUM) {
+        probabilityThreshold -= 0.1; // Decrease chance of rush for sniper rifle
+    } else if ((weaponNum == M4_NUM || weaponNum == HC_NUM || weaponNum == M3_NUM)) {
+        probabilityThreshold += 0.1; // Increase chance of rush for M4, handcannon, and shotgun
+    }
+
+    // Adjusting probabilityThreshold based on item possession
+    if ((itemNum == SIL_NUM || itemNum == SLIP_NUM)) {
+        probabilityThreshold -= 0.1; // Decrease chance of rush for silencer and slipper users
+    } else if ((itemNum == KEV_NUM || itemNum == HELM_NUM || itemNum == BAND_NUM || itemNum == LASER_NUM)) {
+        probabilityThreshold += 0.1; // Increase chance of rush for vest, helm, laser and bandolier users
+    }
+
+    // Generate a random number between 0 and 1
+    float randomValue = rand() / (float)RAND_MAX;
+
+    bool isRushing = randomValue <= probabilityThreshold;
+
+    // Decide based on the probability threshold
+    if (pers_debug_mode) {
+        gi.dprintf("%s: %s's probabilityThreshold = %f, randomValue = %f, isRushing = %s\n", 
+                __func__, 
+                bot->client->pers.netname, 
+                probabilityThreshold, 
+                randomValue, 
+                isRushing ? "YES" : "NO");
+        }
+    return isRushing;
 }

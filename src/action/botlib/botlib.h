@@ -225,6 +225,7 @@ typedef enum
 	CHAT_KILLED,
 	CHAT_INSULTS,
 	CHAT_GOODBYE,
+	CHAT_VICTORY,
 	CHAT_RAGE,
 } bot_chat_types_t;
 
@@ -539,6 +540,10 @@ qboolean BOTLIB_LoadBotPersonality(edict_t* self);
 void BOTLIB_FreeBotPersonality(edict_t* bot);
 qboolean BotRageQuit(edict_t* self, qboolean frag_or_death);
 qboolean BOTLIB_DoIChat(edict_t* bot);
+void BOTLIB_BotPersonalityChooseWeapon(edict_t* bot);
+void BOTLIB_BotPersonalityChooseItem(edict_t* bot);
+void BOTLIB_BotPersonalityChooseItemKit(edict_t* bot);
+qboolean BOTLIB_SpawnRush(edict_t* bot);
 
 extern int loaded_bot_personalities;
 extern int bot_personality_index;
