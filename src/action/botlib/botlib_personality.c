@@ -310,8 +310,14 @@ char* _splitSkinChar(char *skinpathInput, qboolean returnSkin) {
         return NULL;
     }
 
-    // Use strtok_r for a safer tokenization
+    // Use strtok_s for a safer tokenization on Windows
+#ifdef _WIN32
+    char *context;
+    char *token = strtok_s(skinpath, "/", &context);
+#else
     char *token = strtok_r(skinpath, "/", &saveptr);
+#endif
+
     if (token == NULL) {
         gi.dprintf("%s skin path provided is invalid\n", skinpath);
         free(skinpath); // Clean up
