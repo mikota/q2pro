@@ -5,7 +5,7 @@ source_filename = jansson-2.14.tar.bz2
 source_hash = fba956f27c6ae56ce6dfd52fbf9d20254aad42821f74fa52f83957625294afb9
 patch_filename = jansson_2.14-2_patch.zip
 patch_url = https://raw.githubusercontent.com/actionquake/q2pro/rektek-bots-personality/extern/jansson_patch.zip
-patch_hash = d3d72f357402287ed07f6831921c1a4771647392e8efad13084040abcd83b7fa
+patch_hash = b1386b1df733874afe1b90d39c0ae8d5c060de458e250afa8f3306ba6eea5184
 source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/jansson_2.14-2/jansson-2.14.tar.bz2
 wrapdb_version = 2.14-2
 
