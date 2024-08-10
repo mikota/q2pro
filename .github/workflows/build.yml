@@ -72,6 +72,7 @@ jobs:
           ./configure
           make
           make check
+          cat test-suite.log
           make install
 
       - name: Build
