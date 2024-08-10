@@ -425,6 +425,13 @@ jansson = dependency('jansson',
   default_options: fallback_opt,
 )
 
+if jansson.found()
+  client_deps += jansson
+  config.set10('USE_JANSSON', true)
+  allow_fallback:  jansson_dep
+  dll_link_args += '-ljansson'
+endif
+
 if not win32
   uuid = dependency('uuid',
     required:        get_option('uuid'),
@@ -436,18 +443,6 @@ if not win32
     client_deps += uuid
     config.set10('USE_UUID', true)
     dll_link_args += '-luuid'
-  endif
-
-  jansson = dependency('jansson',
-    required:        get_option('jansson'),
-    allow_fallback:  win32,
-    default_options: fallback_opt,
-  )
-
-  if jansson.found()
-    client_deps += jansson
-    config.set10('USE_JANSSON', true)
-    dll_link_args += '-ljansson'
   endif
 endif
 
