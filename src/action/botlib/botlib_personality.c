@@ -1,7 +1,7 @@
 #include "../g_local.h"
 #include "../acesrc/acebot.h"
 #include "botlib.h"
-#include "/opt/homebrew/include/jansson.h"
+#include "jansson.h"
 
 // Count of bot personalities loaded
 qboolean pers_debug_mode = false;
