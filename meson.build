@@ -423,7 +423,6 @@ jansson = dependency('jansson',
   version:         '>= 2.8',
   required:        get_option('jansson'),
   default_options: fallback_opt,
-  allow_fallback:  jansson_dep
 )
 
 if jansson.found()
