@@ -419,20 +419,17 @@ if openal.found()
   config.set10('USE_OPENAL', true)
 endif
 
-jansson = dependency('jansson',
+jansson_dep = dependency('jansson',
   version:         '>= 2.8',
   required:        get_option('jansson'),
   default_options: fallback_opt,
+  fallback:        ['jansson', 'jansson_dep']
 )
-
-if jansson.found()
+if jansson_dep.found()
   client_deps += jansson
   server_deps += jansson
   config.set10('USE_JANSSON', true)
   dll_link_args += '-ljansson'
-  if win32
-    inc_dirs += 'subprojects/jansson-2.14'
-  endif
 endif
 
 if not win32
