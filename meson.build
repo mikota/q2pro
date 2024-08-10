@@ -426,8 +426,7 @@ jansson_dep = dependency('jansson',
 )
 
 if jansson_dep.found()
-  client_deps += jansson_dep
-  server_deps += jansson_dep
+  game_deps += jansson_dep
   dll_link_args += '-ljansson'
 endif
 
