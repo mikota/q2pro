@@ -107,6 +107,9 @@ jobs:
           meson setup ${{ env.MESON_ARGS }} ${{ env.MESON_ARGS_WIN }} builddir
           meson compile -C builddir
 
+      - name: List Jansson directory contents
+        run: dir subprojects\jansson-2.14
+
       - name: Generate Win MSVC archives
         uses: actions/upload-artifact@v4
         with:
