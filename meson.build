@@ -441,7 +441,6 @@ if not win32
   if jansson.found()
     client_deps += jansson
     config.set10('USE_JANSSON', true)
-    dll_link_args += '-L/opt/homebrew/lib'
     dll_link_args += '-ljansson'
   endif
 endif
@@ -455,6 +454,7 @@ if host_machine.system() == 'darwin'
   )
   client_deps += opengl
   inc_dirs += '/opt/homebrew/include'
+  dll_link_args += '-L/opt/homebrew/lib'
 endif
 
 # require FFmpeg >= 5.1.3

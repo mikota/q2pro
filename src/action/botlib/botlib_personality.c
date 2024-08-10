@@ -7,6 +7,7 @@
 qboolean pers_debug_mode = false;
 int loaded_bot_personalities = 0;
 int bot_personality_index = 0;  // We're incrementing as we create
+temp_bot_mapping_t bot_mappings[MAX_BOTS];
 
 /////*
 // This file focuses on loading bot personality traits

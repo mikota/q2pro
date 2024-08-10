@@ -536,7 +536,7 @@ typedef struct {
     char* name;
     temp_bot_personality_t personality;
 } temp_bot_mapping_t;
-temp_bot_mapping_t bot_mappings[100];
+extern temp_bot_mapping_t bot_mappings[100];
 
 void BOTLIB_PersonalityFile(void);
 temp_bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename);
