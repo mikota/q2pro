@@ -419,6 +419,12 @@ if openal.found()
   config.set10('USE_OPENAL', true)
 endif
 
+jansson = dependency('libjansson',
+  version:         '>= 2.13',
+  required:        get_option('libjansson'),
+  default_options: fallback_opt,
+)
+
 if not win32
   uuid = dependency('uuid',
     required:        get_option('uuid'),
@@ -453,8 +459,13 @@ if host_machine.system() == 'darwin'
     default_options: fallback_opt,
   )
   client_deps += opengl
-  inc_dirs += '/opt/homebrew/include'
-  dll_link_args += '-L/opt/homebrew/lib'
+  if host_machine.cpu_family() == 'x86_64' # Intel
+    inc_dirs += '/usr/local/include'
+    dll_link_args += '-L/usr/local/lib'
+  else                                     # Apple Silicon
+    inc_dirs += '/opt/homebrew/include'
+    dll_link_args += '-L/opt/homebrew/lib'
+  endif
 endif
 
 # require FFmpeg >= 5.1.3

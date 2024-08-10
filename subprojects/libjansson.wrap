@@ -1,0 +1,9 @@
+[wrap-file]
+directory = jansson-2.13
+source_url = https://digip.org/jansson/releases/jansson-2.13.tar.gz
+source_filename = jansson-2.13.tar.gz
+source_hash = 02c31bc16e702b30feb06d18bbfe086c0d8c938e906950980af7adcdb324541b
+wrapdb_version = 2.13-1
+
+[provide]
+jansson = jansson_dep
