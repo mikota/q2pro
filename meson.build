@@ -420,7 +420,7 @@ if openal.found()
 endif
 
 jansson = dependency('jansson',
-  version:         '>= 2.13',
+  version:         '>= 2.8',
   required:        get_option('jansson'),
   default_options: fallback_opt,
 )
