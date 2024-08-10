@@ -427,8 +427,12 @@ jansson = dependency('jansson',
 
 if jansson.found()
   client_deps += jansson
+  server_deps += jansson
   config.set10('USE_JANSSON', true)
   dll_link_args += '-ljansson'
+  if win32
+    inc_dirs += 'subprojects/jansson-2.14'
+  endif
 endif
 
 if not win32
