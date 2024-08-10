@@ -67,6 +67,8 @@ jobs:
       - name: Build jansson
         run: |
           wget https://github.com/akheron/jansson/releases/download/v2.14/jansson-2.14.tar.bz2
+          tar -xvf jansson-2.14.tar.bz2
+          cd jansson-2.14
           ./configure
           make
           make check
