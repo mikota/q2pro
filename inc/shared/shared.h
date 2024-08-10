@@ -25,7 +25,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 //rekkie -- CMAKE -- s
 #if _MSC_VER >= 1920 && !__INTEL_COMPILER
     //#define NDEBUG 1
-#define VERSION "ReKTeK"
+//#define VERSION "ReKTeK"
 //#define BUILDSTRING "1"
 //#define CPUSTRING "1"
 //#define BASEGAME "baseq2"
