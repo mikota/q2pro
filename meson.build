@@ -427,7 +427,7 @@ jansson_dep = dependency('jansson',
 )
 if jansson_dep.found()
   game_deps += jansson_dep
-  dll_link_args += '-ljansson'
+  #dll_link_args += '-ljansson'
 endif
 
 if not win32

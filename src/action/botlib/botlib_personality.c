@@ -334,7 +334,7 @@ char* _splitSkinChar(char *skinpathInput, qboolean returnSkin) {
 }
 
 // At this point we have the bot ready, we just need to copy over the right loaded personality
-qboolean BOTLIB_LoadBotPersonality(edict_t* self)
+void BOTLIB_LoadBotPersonality(edict_t* self)
 {
     temp_bot_mapping_t* selectedBot = &bot_mappings[self->bot.personality.pId];
 

@@ -542,7 +542,7 @@ void BOTLIB_PersonalityFile(void);
 temp_bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename);
 void DeactivateBotPersonality(void);
 qboolean BOTLIB_SetPersonality(edict_t* bot, int team, int force_gender);
-qboolean BOTLIB_LoadBotPersonality(edict_t* self);
+void BOTLIB_LoadBotPersonality(edict_t* self);
 void BOTLIB_FreeBotPersonality(edict_t* bot);
 qboolean BotRageQuit(edict_t* self, qboolean frag_or_death);
 qboolean BOTLIB_DoIChat(edict_t* bot);
