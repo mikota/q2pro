@@ -423,12 +423,12 @@ jansson = dependency('jansson',
   version:         '>= 2.8',
   required:        get_option('jansson'),
   default_options: fallback_opt,
+  allow_fallback:  jansson_dep
 )
 
 if jansson.found()
   client_deps += jansson
   config.set10('USE_JANSSON', true)
-  allow_fallback:  jansson_dep
   dll_link_args += '-ljansson'
 endif
 
