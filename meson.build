@@ -419,9 +419,9 @@ if openal.found()
   config.set10('USE_OPENAL', true)
 endif
 
-jansson = dependency('libjansson',
+jansson = dependency('jansson',
   version:         '>= 2.13',
-  required:        get_option('libjansson'),
+  required:        get_option('jansson'),
   default_options: fallback_opt,
 )
 
