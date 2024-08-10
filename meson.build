@@ -428,9 +428,6 @@ jansson_dep = dependency('jansson',
 if jansson_dep.found()
   client_deps += jansson_dep
   server_deps += jansson_dep
-  if host_machine.system() == 'windows' and cc.get_id() == 'msvc'
-    jansson_lib = 'subprojects/jansson-2.14/jansson.lib'
-  endif
   dll_link_args += '-ljansson'
 endif
 
