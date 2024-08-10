@@ -64,16 +64,16 @@ jobs:
           sudo apt-get install -y gcc-mingw-w64 nasm python3-pip ninja-build
           sudo python3 -m pip install meson
 
-      - name: Build jansson
-        run: |
-          wget https://github.com/akheron/jansson/releases/download/v2.14/jansson-2.14.tar.bz2
-          tar -xvf jansson-2.14.tar.bz2
-          cd jansson-2.14
-          ./configure
-          make
-          make check | true
-          cat test-suite.log
-          make install
+      # - name: Build jansson
+      #   run: |
+      #     wget https://github.com/akheron/jansson/releases/download/v2.14/jansson-2.14.tar.bz2
+      #     tar -xvf jansson-2.14.tar.bz2
+      #     cd jansson-2.14
+      #     ./configure
+      #     make
+      #     make check | true
+      #     cat test-suite.log
+      #     make install
 
       - name: Build
         run: |
@@ -117,9 +117,6 @@ jobs:
         run: |
           meson setup ${{ env.MESON_ARGS }} ${{ env.MESON_ARGS_WIN }} builddir
           meson compile -C builddir
-
-      - name: List Jansson directory contents
-        run: dir subprojects\jansson-2.14
 
       - name: Generate Win MSVC archives
         uses: actions/upload-artifact@v4
