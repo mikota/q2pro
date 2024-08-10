@@ -421,14 +421,13 @@ endif
 
 jansson_dep = dependency('jansson',
   version:         '>= 2.8',
-  required:        get_option('jansson'),
-  default_options: fallback_opt,
-  fallback:        ['jansson', 'jansson_dep']
+  fallback:        ['jansson', 'jansson_dep'],
+  required:        true  # Or set to true/false as needed
 )
+
 if jansson_dep.found()
-  client_deps += jansson
-  server_deps += jansson
-  config.set10('USE_JANSSON', true)
+  client_deps += jansson_dep
+  server_deps += jansson_dep
   dll_link_args += '-ljansson'
 endif
 
