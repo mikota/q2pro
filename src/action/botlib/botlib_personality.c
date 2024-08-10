@@ -267,6 +267,7 @@ void BOTLIB_PersonalityFile(void) {
 	cvar_t* botdir = gi.cvar("botdir", "bots", 0);
 
 #ifdef _WIN32
+    int f;
 	f = sprintf(filename, ".\\");
 	f += sprintf(filename + f, game_dir->string);
 	f += sprintf(filename + f, "\\");

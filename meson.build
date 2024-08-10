@@ -419,12 +419,12 @@ if openal.found()
   config.set10('USE_OPENAL', true)
 endif
 
+# libjansson required for botlib
 jansson_dep = dependency('jansson',
   version:         '>= 2.8',
   fallback:        ['jansson', 'jansson_dep'],
   required:        true  # Or set to true/false as needed
 )
-
 if jansson_dep.found()
   game_deps += jansson_dep
   dll_link_args += '-ljansson'
