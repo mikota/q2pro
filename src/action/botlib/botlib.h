@@ -172,6 +172,12 @@ typedef struct ctf_status_s
 } ctf_status_t;
 extern ctf_status_t bot_ctf_status;
 
+// ===========================================================================
+// botlib_esp.c
+// ===========================================================================
+int BOTLIB_ESP_Get_Target_Node(edict_t* ent);
+int BOTLIB_InterceptLeader(edict_t* self, int team, float distance);
+
 typedef struct esp_status_s
 {
 	edict_t* esp_target; // ETV: target edict

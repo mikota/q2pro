@@ -5,7 +5,7 @@
 esp_status_t bot_esp_status;
 
 // Get the 
-int BOTLIB_CTF_Get_Flag_Node(edict_t *ent)
+int BOTLIB_ESP_Get_Target_Node(edict_t *ent)
 {
 	vec3_t mins = { -16, -16, -24 };
 	vec3_t maxs = { 16, 16, 32 };
@@ -14,6 +14,17 @@ int BOTLIB_CTF_Get_Flag_Node(edict_t *ent)
 
 	if (ent == NULL)
 		return INVALID;
+
+	edict_t *tmp = NULL;
+	edict_t *target = NULL;
+
+	// Reset escortcap value
+	espsettings.escortcap = false;	
+
+	// Find the target
+	while ((tmp = G_Find(ent, FOFS(classname), "item_flag")) != NULL) {
+		target = tmp;
+	}
 
 	int cloest_node_num = INVALID;
 	float cloest_node_dist = 99999999;
@@ -279,7 +290,7 @@ void BOTLIB_Update_Flags_Status(void)
 			//Com_Printf("%s flag FLAG_T1_NUM %x %x %d %x\n", __func__, ent->flags, ent->svflags, ent->solid, ent->spawnflags);
 
 			bot_ctf_status.flag1 = ent;
-			bot_ctf_status.flag1_curr_node = BOTLIB_CTF_Get_Flag_Node(ent);
+			bot_ctf_status.flag1_curr_node = BOTLIB_ESP_Get_Target_Node(ent);
 
 			// Home - never touched (set once per map)
 			if (ent->flags == 0 && ent->svflags == 0 && ent->solid == SOLID_TRIGGER && ent->spawnflags == 0 && bot_ctf_status.flag1_home_node == INVALID)
@@ -297,7 +308,7 @@ void BOTLIB_Update_Flags_Status(void)
 				*/
 
 				bot_ctf_status.flag1_is_home = true;
-				bot_ctf_status.flag1_home_node = BOTLIB_CTF_Get_Flag_Node(ent);
+				bot_ctf_status.flag1_home_node = BOTLIB_ESP_Get_Target_Node(ent);
 				//Com_Printf("%s Red flag home to node %i\n", __func__, bot_ctf_status.flag1_home_node);
 			}
 			// Returned
@@ -327,7 +338,7 @@ void BOTLIB_Update_Flags_Status(void)
 			//Com_Printf("%s flag FLAG_T2_NUM %x %x %d %x\n", __func__, ent->flags, ent->svflags, ent->solid, ent->spawnflags);
 
 			bot_ctf_status.flag2 = ent;
-			bot_ctf_status.flag2_curr_node = BOTLIB_CTF_Get_Flag_Node(ent);
+			bot_ctf_status.flag2_curr_node = BOTLIB_ESP_Get_Target_Node(ent);
 
 			// Home - never touched (set once per map)
 			if (ent->flags == 0 && ent->svflags == 0 && ent->solid == SOLID_TRIGGER && ent->spawnflags == 0 && bot_ctf_status.flag2_home_node == INVALID)
@@ -345,7 +356,7 @@ void BOTLIB_Update_Flags_Status(void)
 				*/
 
 				bot_ctf_status.flag2_is_home = true;
-				bot_ctf_status.flag2_home_node = BOTLIB_CTF_Get_Flag_Node(ent);
+				bot_ctf_status.flag2_home_node = BOTLIB_ESP_Get_Target_Node(ent);
 				Com_Printf("%s Blue flag home to node %i\n", __func__, bot_ctf_status.flag2_home_node);
 			}
 			// Returned
@@ -370,10 +381,10 @@ void BOTLIB_Update_Flags_Status(void)
 			}
 
 			// Flag home moved
-			if (bot_ctf_status.flag2_is_home && bot_ctf_status.flag2_home_node != BOTLIB_CTF_Get_Flag_Node(ent))
+			if (bot_ctf_status.flag2_is_home && bot_ctf_status.flag2_home_node != BOTLIB_ESP_Get_Target_Node(ent))
 			{
 				//Com_Printf("%s Blue flag home was moved to node %i\n", __func__, bot_ctf_status.flag2_home_node);
-				bot_ctf_status.flag2_home_node = BOTLIB_CTF_Get_Flag_Node(ent); // Update home node
+				bot_ctf_status.flag2_home_node = BOTLIB_ESP_Get_Target_Node(ent); // Update home node
 			}
 		}
 

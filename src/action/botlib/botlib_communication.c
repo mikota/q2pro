@@ -100,7 +100,7 @@ char *botchat_goodbyes[DBC_GOODBYES] =
 	"sauna time"
 };
 
-#define DBC_KILLEDS 8
+#define DBC_KILLEDS 20
 char *botchat_killeds[DBC_KILLEDS] =
 {
 	"lol",
@@ -110,7 +110,19 @@ char *botchat_killeds[DBC_KILLEDS] =
 	"prkl",
 	"jajajaja",
 	"ffffffffff",
-	"woowwwww"
+	"woowwwww",
+	"ran outta ammo",
+	"ahhhhhhhh",
+	"damn",
+	"heh",
+	"rip",
+	":D",
+	":)))",
+	">:)",
+	"noooooo",
+	":<",
+	"oops",
+	"rofl",
 };
 
 #define DBC_INSULTS 11
