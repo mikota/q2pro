@@ -2841,7 +2841,7 @@ void BOTLIB_GetWeaponsAndAmmo(edict_t* self)
 //rekkie -- Quake3 -- s
 void BOTLIB_Healing(edict_t* self, usercmd_t* ucmd)
 {
-	if (self->health != self->old_health || self->client->leg_damage)
+	if ((self->health != self->old_health || self->client->leg_damage) && self->health < 100)
 	{
 		//Com_Printf("%s %s is healing\n", __func__, self->client->pers.netname);
 		

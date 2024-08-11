@@ -1409,31 +1409,32 @@ edict_t* BOTLIB_SpawnBot(int team, int force_gender, char* force_name, char* for
 		gi.dprintf("%s: trying to load personalities, loaded: %i used: %i\n", __func__, loaded_bot_personalities, game.used_bot_personalities);
 	
 
-	// 
+	// Loading bot personalities and/or random bots
 	if (bot_personality->value == 2) {
-		if (rand() % 2) { // Randomly choose between 0 and 1
+		if (rand() % 2) { // Randomly choose between 0 and 1, picking a personality or a random bot
 			if (!BOTLIB_SetPersonality(bot, team, force_gender)) {
 				if (pers_debug_mode)
-					gi.dprintf("Failed to load bot personality, using default userinfo.\n");
+					gi.dprintf("%s: bot_personality value %f BOTLIB_SetPersonality() failed to load bot personality.\n", __func__, bot_personality->value);
 				BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
 			}
 		} else {
 			BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
 		}
-	} else if (bot_personality->value == 1) {
+	} else if (bot_personality->value == 1) { // We want to prioritize bot personalities, then go random if we run out
 		if (bot_personality_index > game.used_bot_personalities) {
 			if (!BOTLIB_SetPersonality(bot, team, force_gender)) {
 				if (pers_debug_mode)
-					gi.dprintf("Failed to load bot personality, using default userinfo.\n");
+					gi.dprintf("%s: bot_personality value %f BOTLIB_SetPersonality() failed to load bot personality.\n", __func__, bot_personality->value);
 				BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
 			}
 		} else {
 			if (pers_debug_mode)
-				gi.dprintf("Ran out of bot personalities, loading random bots now.\n");
+				gi.dprintf("%s: Ran out of bot personalities, loading random bots now.\n", __func__);
 			BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
 		}
-	} else { // Use random data
-		gi.dprintf("%s: trying to load random bots\n", __func__);
+	} else { // Use random bot data, no personalities
+		if (pers_debug_mode)
+			gi.dprintf("%s: trying to load random bots\n", __func__);
 		BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
 	}
 

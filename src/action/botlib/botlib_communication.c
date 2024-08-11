@@ -34,7 +34,7 @@ void AddMessageToChatQueue(edict_t* bot, const char* text, int frameReceived) {
 
 void ProcessChatQueue(int currentFrame) {
     for (int i = 0; i < chatQueue.count; i++) {
-        if (currentFrame > chatQueue.messages[i].frameReceived + 4 * HZ/HZ) {
+        if (currentFrame > chatQueue.messages[i].frameReceived + 4 * HZ) {
             // Send the chat message from the correct bot
             BOTLIB_Say(chatQueue.messages[i].bot, chatQueue.messages[i].text, false);
             //gi.dprintf("Sending delayed chat message from bot: %s\n", chatQueue.messages[i].text);
@@ -162,6 +162,42 @@ char *botchat_rage[DBC_RAGE] =
 	"PERKELEEeeeee"
 };
 
+// This function is used to mix up chat so that multiple
+// phrases can be combined to create a more unique message
+// Currently onlt doing this for CHAT_KILLED
+char* _chatMix(char* msg, bot_chat_types_t chattype, int randval)
+{
+    char* text = NULL;
+    int newrandval = 0;
+    switch (chattype) {
+        case CHAT_KILLED:
+            do {
+                newrandval = rand() % DBC_KILLEDS;
+            } while (newrandval == randval);
+            text = botchat_killeds[newrandval];
+            break;
+        default:
+            if (debug_mode)
+                gi.bprintf(PRINT_HIGH, "%s: Unknown chat type %d", __func__, chattype);
+            return msg; // Just return what was given to us
+    }
+
+    // Randomize whether to append or prepend
+    if (rand() % 2 == 0) {
+        // Prepend
+        char temp[256];
+        snprintf(temp, sizeof(temp), "%s %s", text, msg);
+        strncpy(msg, temp, sizeof(temp) - 1);
+        msg[sizeof(temp) - 1] = '\0'; // Ensure null-termination
+    } else {
+        // Append
+        strncat(msg, " ", sizeof(msg) - strlen(msg) - 1); // Add a space before appending the new text
+        strncat(msg, text, sizeof(msg) - strlen(msg) - 1);
+    }
+
+    return msg;
+}
+
 void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype)
 {
 	// Do nothing if bot_chat is disabled
@@ -179,7 +215,8 @@ void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype)
 		//case CHAT_WELCOME:
 			// CHAT_WELCOME is handled below outside of this switch statement
 		case CHAT_KILLED:
-			text = botchat_killeds[rand() % DBC_KILLEDS];
+			int randval = rand() % DBC_KILLEDS;
+			text = botchat_killeds[randval];
 			break;
 		case CHAT_INSULTS:
 			text = botchat_insults[rand() % DBC_INSULTS];
@@ -213,6 +250,10 @@ void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype)
 		if (bot->bot.lastChatTime > level.framenum - chatInterval) {
 			//gi.dprintf("Skipping chat due to interval limit (%i) needs to be 0 or smaller\n", (bot->bot.lastChatTime - (level.framenum - chatInterval)));
 			return;
+		} else if (chattype == CHAT_KILLED) { // Mix up the killed messages
+			if (rand() % 2 == 0) {
+				text = _chatMix(text, chattype, randval);
+			}
 		}
 	}
 	// Goodbyes and rages happen without delay

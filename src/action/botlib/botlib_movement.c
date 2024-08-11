@@ -5864,10 +5864,9 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 			self->just_spawned_go = true; // Bot is ready, when wander_timeout is reached.
 
 			// If enemy is in sight, don't wait too long
-			if (self->enemy)
+			if (self->enemy) {
 				self->just_spawned_timeout = level.framenum + random() * HZ;			// Short wait
-			else
-			{
+			} else if (!bot_personality->value) {
 				// Otherwise pick from various wait times before moving out
 				int rnd_rng = rand() % 4;
 				if (rnd_rng == 0)
@@ -5878,6 +5877,18 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 					self->just_spawned_timeout = level.framenum + (random() * 2) * HZ;  // Short wait
 				else
 					self->just_spawned_timeout = 0;										// No wait
+			} else { // bot_personality is enabled, let's make it more realistic
+				int rnd_rng = rand() % 4;
+				float skill_factor = 1.0f - (self->bot.skill / 10.0f); // Scale factor based on skill (0 to 1)
+
+				if (rnd_rng == 0)
+					self->just_spawned_timeout = level.framenum + (random() * 10 * skill_factor) * HZ; // Long wait
+				else if (rnd_rng == 1)
+					self->just_spawned_timeout = level.framenum + (random() * 5 * skill_factor) * HZ;  // Medium wait
+				else if (rnd_rng == 2)
+					self->just_spawned_timeout = level.framenum + (random() * 2 * skill_factor) * HZ;  // Short wait
+				else
+					self->just_spawned_timeout = 0; // No wait
 			}
 
 			self->bot.bi.actionflags |= ACTION_HOLDPOS;
