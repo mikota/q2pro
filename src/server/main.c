@@ -112,10 +112,6 @@ cvar_t  *g_view_predict;
 cvar_t  *g_view_low;
 cvar_t  *g_view_high;
 
-#ifndef NO_BOTS
-cvar_t  *sv_bot_ping;		// Report bot ping as fake ping values or simply as BOT (0 = ping, 1 = BOT)
-#endif
-
 static bool     sv_registered;
 
 //============================================================================
@@ -469,10 +465,7 @@ static size_t SV_StatusString(char *status)
         {
             if (bot_clients[i].in_use)
             {
-                if(!sv_bot_ping->integer)
-                    len = Q_snprintf(entry, sizeof(entry), "%i %i \"%s\"\n", bot_clients[i].score, bot_clients[i].ping, bot_clients[i].name);  //entry	example = "0 1 \"[AIR]-Mech\"\n"	char[1024]
-                else
-                    len = Q_snprintf(entry, sizeof(entry), "%i \"%s\" \"%s\"\n", bot_clients[i].score, "BOT", bot_clients[i].name);  //entry	example = "0 1 \"[AIR]-Mech\"\n"	char[1024]
+                len = Q_snprintf(entry, sizeof(entry), "%i %i %2f \"%s\"\n", bot_clients[i].score, bot_clients[i].ping, bot_clients[i].skill, bot_clients[i].name);  //entry	example = "0 1 \"[AIR]-Mech\"\n"	char[1024]
 
                 if (len >= sizeof(entry))
                     continue;
@@ -1155,10 +1148,11 @@ void SV_BotInit(void)
         bot_clients[i].ping = 0;
         bot_clients[i].score = 0;
         bot_clients[i].number = i;
+        bot_clients[i].skill = 0;
     }
 }
 // Game DLL updates Server of bot info
-void SV_BotUpdateInfo(char* name, int ping, int score)
+void SV_BotUpdateInfo(char* name, int ping, int score, float skill)
 {
     for (int i = 0; i < MAX_CLIENTS; i++)
     {
@@ -1168,6 +1162,7 @@ void SV_BotUpdateInfo(char* name, int ping, int score)
             {
                 bot_clients[i].ping = ping;
                 bot_clients[i].score = score;
+                bot_clients[i].skill = skill;
                 return;
             }
         }
@@ -1185,6 +1180,7 @@ void SV_BotConnect(char* name)
             bot_clients[i].ping = 0;
             bot_clients[i].score = 0;
             bot_clients[i].number = i;
+            bot_clients[i].skill = 0;
             Com_Printf("%s Server added %s as a fake client\n", __func__, bot_clients[i].name);
             break;
         }
@@ -1201,6 +1197,7 @@ void SV_BotDisconnect(char* name)
             bot_clients[i].name[0] = 0;
             bot_clients[i].ping = 0;
             bot_clients[i].score = 0;
+            bot_clients[i].skill = 0;
             Com_Printf("%s Server removed %s as a fake client\n", __func__, name);
             break;
         }
@@ -1215,6 +1212,7 @@ void SV_BotClearClients(void)
         bot_clients[i].name[0] = 0;
         bot_clients[i].ping = 0;
         bot_clients[i].score = 0;
+        bot_clients[i].skill = 0;
     }
 }
 //rekkie -- Fake Bot Client -- e
@@ -2433,10 +2431,6 @@ void SV_Init(void)
     // set up default frametime for main loop
     sv.framerate = BASE_FRAMERATE;
     sv.frametime = Com_ComputeFrametime(sv.framerate);
-#endif
-
-#ifndef NO_BOTS
-    sv_bot_ping = Cvar_Get("sv_bot_ping", "0", 0);
 #endif
 
     // set up default pmove parameters

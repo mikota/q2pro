@@ -365,7 +365,7 @@ qboolean BOTLIB_SetPersonality(edict_t* self, int team, int force_gender)
         // Handle error: No bot personalities loaded
         return false;
     }
-
+    
     int randomIndex = rand() % bot_personality_index;
     int attempts = 0;
     temp_bot_mapping_t* selectedBot = &bot_mappings[randomIndex];
@@ -391,8 +391,6 @@ qboolean BOTLIB_SetPersonality(edict_t* self, int team, int force_gender)
     bot_mappings[randomIndex].personality.isActive = true;
     self->bot.personality.isActive = true;
     self->bot.personality.pId = randomIndex;
-
-    gi.dprintf("Random index %i\n", randomIndex);
     
     int gender = INVALID;
 	char name[MAX_QPATH]; // Full bot name ( [prefix/clan/rng]  and/or  [name]  and/or  [postfix] )
@@ -549,7 +547,7 @@ void BOTLIB_BotPersonalityChooseWeapon(edict_t* bot) {
     if (all_zeros) {
         BOTLIB_SmartWeaponSelection(bot);
         if(pers_debug_mode)
-            gi.dprintf("%s: chose BOTLIB_SmartWeaponSelection() because weapon_prefs were all zeroes");
+            gi.dprintf("%s: chose BOTLIB_SmartWeaponSelection() because weapon_prefs were all zeroes\n", __func__);
         return;
     }
 

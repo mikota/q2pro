@@ -328,6 +328,8 @@ void InitGame( void )
 
 	InitCommandList();
 
+	Q_srand(time(NULL));
+	
 	IRC_init();
 	gi.dprintf( "==== InitGame ====\n" );
 

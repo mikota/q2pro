@@ -552,13 +552,14 @@ static void dump_bot_clients(void)
     Com_Printf(
         "\n"
         "Bot Clients.\n"
-        "num score ping name\n"
-        "--- ----- ---- ---------------\n");
+        "num score ping skill name\n"
+        "--- ----- ---- ----- ---------------\n");
 
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if(bot_clients[i].in_use) {
             Com_Printf("%3i %5i ", bot_clients[i].number, bot_clients[i].score);
             Com_Printf("%4i ", bot_clients[i].ping);
+            Com_Printf("%5i ", bot_clients[i].skill);
             Com_Printf("%-15.15s ", bot_clients[i].name);
             Com_Printf("\n");
         }

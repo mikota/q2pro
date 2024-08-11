@@ -168,6 +168,8 @@ char *botchat_rage[DBC_RAGE] =
 char* _chatMix(char* msg, bot_chat_types_t chattype, int randval)
 {
     char* text = NULL;
+	char buffer[1024];
+    buffer[0] = '\0';
     int newrandval = 0;
     switch (chattype) {
         case CHAT_KILLED:
@@ -185,17 +187,14 @@ char* _chatMix(char* msg, bot_chat_types_t chattype, int randval)
     // Randomize whether to append or prepend
     if (rand() % 2 == 0) {
         // Prepend
-        char temp[256];
-        snprintf(temp, sizeof(temp), "%s %s", text, msg);
-        strncpy(msg, temp, sizeof(temp) - 1);
-        msg[sizeof(temp) - 1] = '\0'; // Ensure null-termination
+        snprintf(buffer, sizeof(buffer), "%s %s", text, msg);
     } else {
         // Append
-        strncat(msg, " ", sizeof(msg) - strlen(msg) - 1); // Add a space before appending the new text
-        strncat(msg, text, sizeof(msg) - strlen(msg) - 1);
+        snprintf(buffer, sizeof(buffer), "%s %s", msg, text);
     }
 
-    return msg;
+    // Return a dynamically allocated copy of the result
+    return strdup(buffer);
 }
 
 void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype)

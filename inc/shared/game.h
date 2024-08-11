@@ -244,7 +244,7 @@ typedef struct {
     //rekkie -- surface data -- e
 
     //rekkie -- Fake Bot Client -- s
-    void (*SV_BotUpdateInfo)(char* name, int ping, int score);
+    void (*SV_BotUpdateInfo)(char* name, int ping, int score, float skill);
     void (*SV_BotConnect)(char* name);
     void (*SV_BotDisconnect)(char* name);
     void (*SV_BotClearClients)(void);

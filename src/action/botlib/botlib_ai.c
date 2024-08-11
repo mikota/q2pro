@@ -98,8 +98,18 @@ void BOTLIB_Init(edict_t* self)
 		AssignSkin(self, s, false /* nickChanged */);
 	}
 
-	if (bot_personality->value)
+	// Bot personalities
+	if (bot_personality->value) {
 		BOTLIB_LoadBotPersonality(self);
+
+		// Bot skill adjustment based on map and other prefs
+		// Simple adjustments for now
+		int skillPlus = 0;
+		skillPlus += self->bot.personality.map_prefs;
+		self->bot.skill += skillPlus; // This will decrease skill if map_prefs is negative, max -1
+		if (self->bot.skill > MAX_BOTSKILL)
+			self->bot.skill = MAX_BOTSKILL;
+	}
 }
 
 //rekkie -- Quake3 -- s
@@ -658,7 +668,7 @@ void BOTLIB_Think(edict_t* self)
 		self->bot.bot_ping = self->bot.bot_baseline_ping + ping_jitter;
 		if (self->bot.bot_ping < 5) self->bot.bot_ping = 1; // Min ping
 		self->client->ping = self->bot.bot_ping;
-		gi.SV_BotUpdateInfo(self->client->pers.netname, self->bot.bot_ping, self->client->resp.score);
+		gi.SV_BotUpdateInfo(self->client->pers.netname, self->bot.bot_ping, self->client->resp.score, self->bot.skill);
 	}
 	//rekkie -- Fake Bot Client -- e
 
