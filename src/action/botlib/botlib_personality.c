@@ -253,6 +253,8 @@ temp_bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename)
         }
 
         free(newBot); // Free the temporary newBot since it's now copied to bot_mappings
+        json_decref(botDetails);
+        json_decref(root);
     }
 
     json_decref(root);
