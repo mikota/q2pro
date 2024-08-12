@@ -1375,7 +1375,7 @@ void BOTLIB_PutClientInServer(edict_t* bot, qboolean respawn, int team)
 	bot->think = BOTLIB_Think;
 	bot->nextthink = level.framenum + 1;
 
-	PutClientInServer(bot);
+	//PutClientInServer(bot);
 	JoinTeam(bot, team, true);
 }
 

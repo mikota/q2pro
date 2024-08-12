@@ -87,6 +87,7 @@ temp_bot_mapping_t* create_new_bot(char* name) {
     }
     newBot->personality.skin_pref = NULL; // Initialize to NULL
     newBot->personality.pId = bot_personality_index++;  // Initialize ID for indexing
+    newBot->personality.isActive = false; // Initialize as inactive
     return newBot;
 }
 
@@ -352,11 +353,11 @@ void BOTLIB_LoadBotPersonality(edict_t* self)
     self->bot.personality.map_prefs = selectedBot->personality.map_prefs;
     self->bot.personality.combat_demeanor = selectedBot->personality.combat_demeanor;
     self->bot.personality.chat_demeanor = selectedBot->personality.chat_demeanor;
-    self->bot.personality.leave_percent = selectedBot->personality.leave_percent;
-    self->bot.personality.isActive = true;
+    self->bot.personality.leave_percent = 0; // Initialize to 0, will get updated in RageQuit
+    self->bot.personality.isActive = true; // Mark as active
 
     if(pers_debug_mode)
-      gi.dprintf("Selected Bot %s(indexes: %i/%i) - Weapon Pref[0]: %f, Item Pref[0]: %f, Map Pref: %f, Combat Demeanor: %f, Chat Demeanor: %f, Leave Percent: %d\n", selectedBot->name, self->bot.personality.pId, selectedBot->personality.pId, selectedBot->personality.weapon_prefs[0], selectedBot->personality.item_prefs[0], selectedBot->personality.map_prefs, selectedBot->personality.combat_demeanor, selectedBot->personality.chat_demeanor, selectedBot->personality.leave_percent);
+      gi.dprintf("Selected Bot %s(indexes: %i/%i) - Weapon Pref[0]: %f, Item Pref[0]: %f, Map Pref: %f, Combat Demeanor: %f, Chat Demeanor: %f Now ACTIVE\n", selectedBot->name, self->bot.personality.pId, selectedBot->personality.pId, selectedBot->personality.weapon_prefs[0], selectedBot->personality.item_prefs[0], selectedBot->personality.map_prefs, selectedBot->personality.combat_demeanor, selectedBot->personality.chat_demeanor);
 }
 
 qboolean BOTLIB_SetPersonality(edict_t* self, int team, int force_gender)
@@ -369,23 +370,24 @@ qboolean BOTLIB_SetPersonality(edict_t* self, int team, int force_gender)
     int randomIndex = rand() % bot_personality_index;
     int attempts = 0;
     temp_bot_mapping_t* selectedBot = &bot_mappings[randomIndex];
+    selectedBot = &bot_mappings[randomIndex];
 
-    qboolean foundInactiveBot = false;
+    // qboolean foundInactiveBot = false;
 
-    while (!foundInactiveBot && attempts < bot_personality_index) {
-        randomIndex = rand() % bot_personality_index;
-        if (!bot_mappings[randomIndex].personality.isActive) {
-            foundInactiveBot = true;
-            selectedBot = &bot_mappings[randomIndex];
-            break;
-        }
-        attempts++;
-    }
+    // while (!foundInactiveBot && attempts < bot_personality_index) {
+    //     randomIndex = rand() % bot_personality_index;
+    //     if (!bot_mappings[randomIndex].personality.isActive) {
+    //         foundInactiveBot = true;
+    //         selectedBot = &bot_mappings[randomIndex];
+    //         break;
+    //     }
+    //     attempts++;
+    // }
 
-    if (!foundInactiveBot) {
-        // Unable to find an inactive bot
-        return false;
-    }
+    // if (!foundInactiveBot) {
+    //     // Unable to find an inactive bot
+    //     return false;
+    // }
 
     // Mark the selected bot as active in both loaded and live structs
     bot_mappings[randomIndex].personality.isActive = true;
