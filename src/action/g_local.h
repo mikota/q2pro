@@ -2702,6 +2702,8 @@ void Bandage (edict_t * ent);
 void ShowGun (edict_t * ent);	// hentai's vwep function added by zucc
 void FL_think (edict_t * self);	// TNG Flashlight
 void FL_make (edict_t * self);	// TNG Flashlight
+const char* PrintWeaponName( int weapon );
+const char* PrintItemName( int item );
 
 // spec functions
 void SetupSpecSpawn (void);

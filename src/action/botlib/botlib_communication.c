@@ -34,7 +34,7 @@ void AddMessageToChatQueue(edict_t* bot, const char* text, int frameReceived) {
 
 void ProcessChatQueue(int currentFrame) {
     for (int i = 0; i < chatQueue.count; i++) {
-        if (currentFrame > chatQueue.messages[i].frameReceived + 4 * HZ) {
+        if (currentFrame > chatQueue.messages[i].frameReceived + (rand() % HZ) + 4 * HZ) {
             // Send the chat message from the correct bot
             BOTLIB_Say(chatQueue.messages[i].bot, chatQueue.messages[i].text, false);
             //gi.dprintf("Sending delayed chat message from bot: %s\n", chatQueue.messages[i].text);
@@ -55,7 +55,7 @@ void UpdateBotChat(void) {
 }
 
 // Function to get a random bot
-edict_t* getRandomBot()
+edict_t* getRandomBot(void)
 {
 	edict_t* bots[MAX_CLIENTS];
 	int botCount = 0;
@@ -208,7 +208,6 @@ void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype)
 	// bot_is_target means the bot edict provided to this function is not the talker, but the bot the other
 	// bots will talk to, such as 'Welcome <so and so>!'.  Bot chosen to speak will be random from the list
 	// of current/inuse bots
-	qboolean bot_is_target = false;
 
 	switch (chattype) {
 		//case CHAT_WELCOME:
@@ -268,8 +267,13 @@ void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype)
 		int index = rand() % DBC_WELCOMES; // Choose a random message index
 		char message[256]; // Assuming 256 bytes is enough for the message
 		snprintf(message, sizeof(message), botchat_welcomes[index], bot->client->pers.netname);
+		
+		// Ensure 'text' buffer is large enough
+		char text[256]; // Increase the size of 'text' to match 'message'
+		
 		// Copy back to 'text'
 		snprintf(text, sizeof(text), "%s", message);
+		
 		if (getRandomBot() != NULL)
 			bot = getRandomBot();
 	}

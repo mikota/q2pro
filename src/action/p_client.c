@@ -3055,6 +3055,11 @@ void PutClientInServer(edict_t * ent)
 				else
 					BOTLIB_BotPersonalityChooseItem(ent);
 			}
+			gi.dprintf("Bot %s has chosen %s and %s\n", 
+				ent->client->pers.netname, 
+				PrintWeaponName(ent->client->pers.chosenWeapon->typeNum),
+				PrintItemName(ent->client->pers.chosenItem->typeNum)
+			);
 		}
 		else // LTK bots
 		{
@@ -3632,6 +3637,12 @@ qboolean ClientConnect(edict_t * ent, char *userinfo)
 	//set connected on ClientBeginDeathmatch as clientconnect doesn't always
 	//guarantee a client is actually making it all the way into the game.
 	//ent->client->pers.connected = true;
+
+	#ifndef NO_BOTS
+	if(bot_chat->value)
+		BOTLIB_Chat(ent, CHAT_WELCOME);
+	#endif
+
 	return true;
 }
 

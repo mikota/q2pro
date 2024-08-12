@@ -622,13 +622,13 @@ void BOTLIB_BotPersonalityChooseItem(edict_t* bot)
     // If this is all zeroes, we're picking a random if we haven't selected an item yet
     if (all_zeros && bot->client->selected_item < 1) {
         chosen_item_index = rand() % 6; // Randomly choose one of the 6 items
-        ACEAI_Cmd_Choose_Item_Num(bot, chosen_item_index);
+        ACEAI_Cmd_Choose_Item_Num(bot, chosen_item_index + 10); // Map index to item number
         if(pers_debug_mode)
-            gi.dprintf("%s: chose random item because item_prefs were all zeroes");
+            gi.dprintf("%s: chose random item because item_prefs were all zeroes", bot->client->pers.netname);
         return;
     }
 
-    for (int i = 0; i < ITEM_COUNT; i++) { // Adjust loop for 6 items
+    for (int i = 0; i < 6; i++) { // Adjust loop for 6 items
         float current_pref = item_prefs[i];
         for (int j = 0; j < 3; j++) {
             if (current_pref > top3_prefs[j]) {
@@ -650,7 +650,7 @@ void BOTLIB_BotPersonalityChooseItem(edict_t* bot)
 
     // Case 1: Always pick the top item
     if (randomIndex == 0) {
-        chosenItem = top3_indices[0];
+        chosenItem = top3_indices[0] + 10; // Map index to item number
         ACEAI_Cmd_Choose_Item_Num(bot, chosenItem);
         if (pers_debug_mode)
             gi.dprintf("%s: %s chose %i item\n", __func__, bot->client->pers.netname, chosenItem);
@@ -659,7 +659,7 @@ void BOTLIB_BotPersonalityChooseItem(edict_t* bot)
     // Case 2: Randomly choose from the top 3
     else {
         int randomChoice = rand() % 3; // Randomly choose 0, 1, or 2
-        chosenItem = top3_indices[randomChoice];
+        chosenItem = top3_indices[randomChoice] + 10; // Map index to item number
         ACEAI_Cmd_Choose_Item_Num(bot, chosenItem);
         if (pers_debug_mode)
             gi.dprintf("%s: %s chose %i item\n", __func__, bot->client->pers.netname, chosenItem);
