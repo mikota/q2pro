@@ -213,7 +213,8 @@ void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype)
 		//case CHAT_WELCOME:
 			// CHAT_WELCOME is handled below outside of this switch statement
 		case CHAT_KILLED:
-			int randval = rand() % DBC_KILLEDS;
+			int randval = 0;
+			randval = rand() % DBC_KILLEDS;
 			text = botchat_killeds[randval];
 			break;
 		case CHAT_INSULTS:
