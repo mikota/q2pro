@@ -888,7 +888,7 @@ trace_t q_gameabi SV_Clip(const vec3_t start, const vec3_t mins,
 
 bsp_t* SV_BSP(void);
 void SV_BotInit(void);
-void SV_BotUpdateInfo(char* name, int ping, int score, float skill);
+void SV_BotUpdateInfo(char* name, int ping, int score);
 void SV_BotConnect(char* name);
 void SV_BotDisconnect(char* name);
 void SV_BotClearClients(void);
@@ -898,7 +898,6 @@ typedef struct bot_client_s {
     int ping;
     short score;
     int number;
-    float skill;
 } bot_client_t;
 extern bot_client_t bot_clients[MAX_CLIENTS];
 

@@ -465,7 +465,7 @@ static size_t SV_StatusString(char *status)
         {
             if (bot_clients[i].in_use)
             {
-                len = Q_snprintf(entry, sizeof(entry), "%i %i %2f \"%s\"\n", bot_clients[i].score, bot_clients[i].ping, bot_clients[i].skill, bot_clients[i].name);  //entry	example = "0 1 \"[AIR]-Mech\"\n"	char[1024]
+                len = Q_snprintf(entry, sizeof(entry), "%i %i \"%s\"\n", bot_clients[i].score, bot_clients[i].ping, bot_clients[i].name);  //entry	example = "0 1 \"[AIR]-Mech\"\n"	char[1024]
 
                 if (len >= sizeof(entry))
                     continue;
@@ -1148,11 +1148,10 @@ void SV_BotInit(void)
         bot_clients[i].ping = 0;
         bot_clients[i].score = 0;
         bot_clients[i].number = i;
-        bot_clients[i].skill = 0;
     }
 }
 // Game DLL updates Server of bot info
-void SV_BotUpdateInfo(char* name, int ping, int score, float skill)
+void SV_BotUpdateInfo(char* name, int ping, int score)
 {
     for (int i = 0; i < MAX_CLIENTS; i++)
     {
@@ -1162,7 +1161,6 @@ void SV_BotUpdateInfo(char* name, int ping, int score, float skill)
             {
                 bot_clients[i].ping = ping;
                 bot_clients[i].score = score;
-                bot_clients[i].skill = skill;
                 return;
             }
         }
@@ -1180,7 +1178,6 @@ void SV_BotConnect(char* name)
             bot_clients[i].ping = 0;
             bot_clients[i].score = 0;
             bot_clients[i].number = i;
-            bot_clients[i].skill = 0;
             Com_Printf("%s Server added %s as a fake client\n", __func__, bot_clients[i].name);
             break;
         }
@@ -1197,7 +1194,6 @@ void SV_BotDisconnect(char* name)
             bot_clients[i].name[0] = 0;
             bot_clients[i].ping = 0;
             bot_clients[i].score = 0;
-            bot_clients[i].skill = 0;
             Com_Printf("%s Server removed %s as a fake client\n", __func__, name);
             break;
         }
@@ -1212,7 +1208,6 @@ void SV_BotClearClients(void)
         bot_clients[i].name[0] = 0;
         bot_clients[i].ping = 0;
         bot_clients[i].score = 0;
-        bot_clients[i].skill = 0;
     }
 }
 //rekkie -- Fake Bot Client -- e
