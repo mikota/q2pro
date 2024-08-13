@@ -559,7 +559,7 @@ static void dump_bot_clients(void)
         if(bot_clients[i].in_use) {
             Com_Printf("%3i %5i ", bot_clients[i].number, bot_clients[i].score);
             Com_Printf("%4i ", bot_clients[i].ping);
-            Com_Printf("%5i ", bot_clients[i].skill);
+            Com_Printf(" %.2f ", bot_clients[i].skill);
             Com_Printf("%-15.15s ", bot_clients[i].name);
             Com_Printf("\n");
         }

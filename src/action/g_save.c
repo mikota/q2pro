@@ -692,7 +692,7 @@ void InitGame( void )
 	bot_showpath = gi.cvar("bot_showpath", "0", 0);
 	bot_maxteam = gi.cvar("bot_maxteam", "0", 0);
 	bot_rush = gi.cvar("bot_rush", "0", 0);
-	bot_randvoice = gi.cvar("bot_randvoice", "33", 0);
+	bot_randvoice = gi.cvar("bot_randvoice", "5", 0);
 	bot_randskill = gi.cvar("bot_randskill", "10", 0);
 	bot_randname = gi.cvar("bot_randname", "1", 0);
 	bot_chat = gi.cvar("bot_chat", "0", 0);
