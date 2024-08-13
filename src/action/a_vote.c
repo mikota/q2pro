@@ -574,7 +574,7 @@ votelist_t *MapWithMostVotes (float *p)
 		return (NULL);
 
 	//find map_num_clients
-	map_num_clients = _numvoteclients();
+	map_num_clients = _numclients();
 
 	if (map_num_clients == 0)
 		return (NULL);
@@ -607,7 +607,7 @@ votelist_t *MapWithMostAllVotes( void )
 	votelist_t *search = NULL, *most = NULL;
 	int highest_total = 0;
 
-	if( ! _numvoteclients() )
+	if( ! _numclients() )
 		return NULL;
 
 	for( search = map_votes; search != NULL; search = search->next )
@@ -1011,7 +1011,7 @@ void _CheckKickVote (void)
 		return;
 
 	kickvotechanged = false;
-	playernum = _numvoteclients ();
+	playernum = _numclients ();
 
 	maxvotes = 0;
 	mtarget = NULL;
@@ -1212,7 +1212,7 @@ void Cmd_Kicklist_f(edict_t *ent)
 	   "kicked players %s be temporarily banned.\n\n",
 	   (int) (kickvote_min->value),
 	   (kickvote_min->value == 1) ? "" : "s",
-	   _numvoteclients(),
+	   _numclients(),
 	   kickvote_need->value, Allkickvotes,
 	   kickvote_pass->value, Mostkickpercent,
 	   Mostkickvotes == NULL ? "nobody" : Mostkickvotes->client->pers.netname,
@@ -1545,7 +1545,7 @@ configlist_t *ConfigWithMostVotes (float *p)
     return (NULL);
 
   //find config_num_clients
-  config_num_clients = _numvoteclients();
+  config_num_clients = _numclients();
 
   if (config_num_clients == 0)
     return (NULL);
@@ -2114,7 +2114,7 @@ void _CalcScrambleVotes (int *numclients, int *numvotes, float *percent)
 	int i;
 	edict_t *ent;
 
-	*numclients = _numvoteclients();
+	*numclients = _numclients();
 	*numvotes = 0;
 	*percent = 0.00f;
 
