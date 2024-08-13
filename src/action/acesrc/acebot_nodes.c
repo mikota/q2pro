@@ -1468,9 +1468,9 @@ void BOTLIB_MouseControlNodes(edict_t* ent, usercmd_t* ucmd)
 					ent->bot.walknode.selected_node_count_prev = ent->bot.walknode.selection_node_count; // Update change
 
 					if (ent->bot.walknode.selection_node_first == INVALID)
-						Com_Printf("%s %s nodes selected %d [area: INVALID]\n", __func__, ent->client->pers.netname, ent->bot.walknode.selection_node_count);
+						gi.cprintf(ent, PRINT_MEDIUM, "%s %s nodes selected %d [area: INVALID]\n", __func__, ent->client->pers.netname, ent->bot.walknode.selection_node_count);
 					else
-						Com_Printf("%s %s nodes selected %d [area: %d]\n", __func__, ent->client->pers.netname, ent->bot.walknode.selection_node_count, nodes[ent->bot.walknode.selection_node_first].area);
+						gi.cprintf(ent, PRINT_MEDIUM, "%s %s nodes selected %d [area: %d]\n", __func__, ent->client->pers.netname, ent->bot.walknode.selection_node_count, nodes[ent->bot.walknode.selection_node_first].area);
 				}
 			}
 		}
@@ -1539,7 +1539,7 @@ void BOTLIB_MouseControlNodes(edict_t* ent, usercmd_t* ucmd)
 						{
 							// Print curent link type
 							NodeTypeToString(ent, nodes[from].links[i].targetNodeType, type_name, sizeof(type_name));
-							Com_Printf("%s %s current link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
+							gi.cprintf(ent, PRINT_MEDIUM, "%s %s current link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
 							return;
 						}
 					}
@@ -1574,13 +1574,13 @@ void BOTLIB_MouseControlNodes(edict_t* ent, usercmd_t* ucmd)
 			{
 				// Print current node type
 				NodeTypeToString(ent, nodes[node].type, type_name, sizeof(type_name));
-				Com_Printf("%s Current node [%d] of type: %s\n", __func__, nodes[node].nodenum, type_name);
+				gi.cprintf(ent, PRINT_MEDIUM, "%s Current node [%d] of type: %s\n", __func__, nodes[node].nodenum, type_name);
 
 				// Print all links from this node to other nodes
 				for (i = 0; i < nodes[node].num_links; i++)
 				{
 					NodeTypeToString(ent, nodes[node].links[i].targetNodeType, type_name, sizeof(type_name));
-					Com_Printf("%s node-to-node[%d -> %d] link type: %s\n", __func__, nodes[node].nodenum, nodes[node].links[i].targetNode, type_name);
+					gi.cprintf(ent, PRINT_MEDIUM, "%s node-to-node[%d -> %d] link type: %s\n", __func__, nodes[node].nodenum, nodes[node].links[i].targetNode, type_name);
 				}
 
 				ent->bot.walknode.highlighted_node = node;
@@ -1590,11 +1590,11 @@ void BOTLIB_MouseControlNodes(edict_t* ent, usercmd_t* ucmd)
 				return;
 			}
 
-			//Com_Printf("%s [%d] [LINK] Node touched prev_and_curr[%d %d] type[%d %d] \n", __func__, level.framenum, ent->bot.walknode.prev_highlighted_node, node, nodes[ent->bot.walknode.prev_highlighted_node].type, nodes[node].type);
+			//gi.cprintf(ent, PRINT_MEDIUM, "%s [%d] [LINK] Node touched prev_and_curr[%d %d] type[%d %d] \n", __func__, level.framenum, ent->bot.walknode.prev_highlighted_node, node, nodes[ent->bot.walknode.prev_highlighted_node].type, nodes[node].type);
 		}
 		else // No node touched
 		{
-			//Com_Printf("%s [%d] [LINK] No node touched prev_and_curr[%d %d] type[%d %d] \n", __func__, level.framenum, ent->bot.walknode.prev_highlighted_node, node, nodes[ent->bot.walknode.prev_highlighted_node].type, nodes[node].type);
+			//gi.cprintf(ent, PRINT_MEDIUM, "%s [%d] [LINK] No node touched prev_and_curr[%d %d] type[%d %d] \n", __func__, level.framenum, ent->bot.walknode.prev_highlighted_node, node, nodes[ent->bot.walknode.prev_highlighted_node].type, nodes[node].type);
 
 			// Unselect nodes
 			ent->bot.walknode.highlighted_node = INVALID;
@@ -1634,7 +1634,7 @@ void BOTLIB_MouseControlNodes(edict_t* ent, usercmd_t* ucmd)
 				{
 					//char typename[32] = { '\0' }; // Length of the longest node type name
 					//NodeTypeToString(ent, nodes[node_added].type, typename, sizeof(typename));
-					//Com_Printf("%s %s added node [%d] type [%s]\n", __func__, ent->client->pers.netname, node_added, typename);
+					//gi.cprintf(ent, PRINT_MEDIUM, "%s %s added node [%d] type [%s]\n", __func__, ent->client->pers.netname, node_added, typename);
 
 					// Try to self expand nodes outward from this node
 					if (ent->bot.walknode.highlighted_node_type == HIGHLIGHTED_NODE_FLOODFILL)
@@ -1689,13 +1689,13 @@ void BOTLIB_MouseControlNodes(edict_t* ent, usercmd_t* ucmd)
 			{
 				// Print current node type
 				NodeTypeToString(ent, nodes[node].type, type_name, sizeof(type_name));
-				Com_Printf("%s Current node [%d] of type: %s\n", __func__, nodes[node].nodenum, type_name);
+				gi.cprintf(ent, PRINT_MEDIUM, "%s Current node [%d] of type: %s\n", __func__, nodes[node].nodenum, type_name);
 
 				// Print all links from this node to other nodes
 				for (i = 0; i < nodes[node].num_links; i++)
 				{
 					NodeTypeToString(ent, nodes[node].links[i].targetNodeType, type_name, sizeof(type_name));
-					Com_Printf("%s node-to-node[%d -> %d] link type: %s\n", __func__, nodes[node].nodenum, nodes[node].links[i].targetNode, type_name);
+					gi.cprintf(ent, PRINT_MEDIUM, "%s node-to-node[%d -> %d] link type: %s\n", __func__, nodes[node].nodenum, nodes[node].links[i].targetNode, type_name);
 				}
 
 				ent->bot.walknode.highlighted_node = node;
@@ -1766,7 +1766,7 @@ void BOTLIB_MouseControlNodes(edict_t* ent, usercmd_t* ucmd)
 				BOTLIB_RemoveAllNodeLinksFrom(nodes[node].nodenum); // Remove all links to and from this node
 
 				nodes[node].type = nodetype; // Update the node type
-				Com_Printf("%s Changed node to type: %s\n", __func__, type_name);
+				gi.cprintf(ent, PRINT_MEDIUM, "%s Changed node to type: %s\n", __func__, type_name);
 			}
 			return;
 		}
@@ -1822,7 +1822,7 @@ void BOTLIB_MouseControlNodes(edict_t* ent, usercmd_t* ucmd)
 
 					if (NodeTypeToString(ent, linktype, type_name, sizeof(type_name))) // Only change if valid
 					{
-						Com_Printf("%s %s changing link from node[%d -> %d] to type [%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
+						gi.cprintf(ent, PRINT_MEDIUM, "%s %s changing link from node[%d -> %d] to type [%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
 						nodes[from].links[i].targetNodeType = linktype; // Update the link type
 					}
 					return;
@@ -1847,7 +1847,7 @@ void BOTLIB_MouseControlNodes(edict_t* ent, usercmd_t* ucmd)
 
 					// Print removing link
 					NodeTypeToString(ent, nodes[from].links[i].targetNodeType, type_name, sizeof(type_name));
-					Com_Printf("%s %s removing link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
+					gi.cprintf(ent, PRINT_MEDIUM, "%s %s removing link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
 
 					// Remove link
 					ACEND_RemoveNodeEdge(ent, from, to); // Removes one side of the link
@@ -1865,7 +1865,7 @@ void BOTLIB_MouseControlNodes(edict_t* ent, usercmd_t* ucmd)
 					{
 						// Print adding link
 						NodeTypeToString(ent, node_type, type_name, sizeof(type_name));
-						Com_Printf("%s %s adding link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
+						gi.cprintf(ent, PRINT_MEDIUM, "%s %s adding link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
 
 						////ACEND_UpdateNodeReach(from, to); // Update path_table
 					}
@@ -1882,7 +1882,7 @@ void BOTLIB_MouseControlNodes(edict_t* ent, usercmd_t* ucmd)
 					{
 						// Print adding link
 						NodeTypeToString(ent, node_type, type_name, sizeof(type_name));
-						Com_Printf("%s %s adding link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
+						gi.cprintf(ent, PRINT_MEDIUM, "%s %s adding link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
 
 						////ACEND_UpdateNodeReach(from, to); // Update path_table
 					}
@@ -1899,7 +1899,7 @@ void BOTLIB_MouseControlNodes(edict_t* ent, usercmd_t* ucmd)
 					{
 						// Print adding link
 						NodeTypeToString(ent, node_type, type_name, sizeof(type_name));
-						Com_Printf("%s %s adding link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
+						gi.cprintf(ent, PRINT_MEDIUM, "%s %s adding link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
 
 						////ACEND_UpdateNodeReach(from, to); // Update path_table
 					}
@@ -1916,7 +1916,7 @@ void BOTLIB_MouseControlNodes(edict_t* ent, usercmd_t* ucmd)
 					{
 						// Print adding link
 						NodeTypeToString(ent, node_type, type_name, sizeof(type_name));
-						Com_Printf("%s %s adding link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
+						gi.cprintf(ent, PRINT_MEDIUM, "%s %s adding link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
 
 						////ACEND_UpdateNodeReach(from, to); // Update path_table
 					}
@@ -1933,7 +1933,7 @@ void BOTLIB_MouseControlNodes(edict_t* ent, usercmd_t* ucmd)
 					{
 						// Print adding link
 						NodeTypeToString(ent, node_type, type_name, sizeof(type_name));
-						Com_Printf("%s %s adding link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
+						gi.cprintf(ent, PRINT_MEDIUM, "%s %s adding link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
 
 						ACEND_UpdateNodeReach(from, to); // Update path_table
 					}
@@ -1950,7 +1950,7 @@ void BOTLIB_MouseControlNodes(edict_t* ent, usercmd_t* ucmd)
 					{
 						// Print adding link
 						NodeTypeToString(ent, node_type, type_name, sizeof(type_name));
-						Com_Printf("%s %s adding link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
+						gi.cprintf(ent, PRINT_MEDIUM, "%s %s adding link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
 
 						////ACEND_UpdateNodeReach(from, to); // Update path_table
 					}
@@ -1966,7 +1966,7 @@ void BOTLIB_MouseControlNodes(edict_t* ent, usercmd_t* ucmd)
 					{
 						// Print adding link
 						NodeTypeToString(ent, node_type, type_name, sizeof(type_name));
-						Com_Printf("%s %s adding link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
+						gi.cprintf(ent, PRINT_MEDIUM, "%s %s adding link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
 
 						////ACEND_UpdateNodeReach(from, to); // Update path_table
 					}
@@ -1982,7 +1982,7 @@ void BOTLIB_MouseControlNodes(edict_t* ent, usercmd_t* ucmd)
 					{
 						// Print adding link
 						NodeTypeToString(ent, node_type, type_name, sizeof(type_name));
-						Com_Printf("%s %s adding link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
+						gi.cprintf(ent, PRINT_MEDIUM, "%s %s adding link from node[%d -> %d] type[%s]\n", __func__, ent->client->pers.netname, from, to, type_name);
 
 						////ACEND_UpdateNodeReach(from, to); // Update path_table
 					}
@@ -2050,7 +2050,7 @@ int BOTLIB_Reachability(int from, int to)
 			{
 				void(*DrawBox)(int number, vec3_t origin, uint32_t color, vec3_t mins, vec3_t maxs, int time) = players[0]->client->pers.draw->DrawBox;
 				DrawBox(500 + tested_distance, pos, MakeColor(255, 255, 0, 255), nodes[from].mins, nodes[from].maxs, 500); // Draw node box
-				//Com_Printf("%s [%d to %d] dist[%f of %f] pos[%f %f %f]\n", __func__, from, to, distance, tested_distance, pos[0], pos[1], pos[2]);
+				//gi.cprintf(ent, PRINT_MEDIUM, "%s [%d to %d] dist[%f of %f] pos[%f %f %f]\n", __func__, from, to, distance, tested_distance, pos[0], pos[1], pos[2]);
 			}
 #endif
 			//rekkie -- debug drawing -- e
