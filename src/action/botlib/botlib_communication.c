@@ -209,13 +209,13 @@ void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype)
 	// bots will talk to, such as 'Welcome <so and so>!'.  Bot chosen to speak will be random from the list
 	// of current/inuse bots
 
-	int randval = 0;
+	int killedsrandval = 0;
 	switch (chattype) {
 		//case CHAT_WELCOME:
 			// CHAT_WELCOME is handled below outside of this switch statement
 		case CHAT_KILLED:
-			randval = rand() % DBC_KILLEDS;
-			text = botchat_killeds[randval];
+			killedsrandval = rand() % DBC_KILLEDS;
+			text = botchat_killeds[killedsrandval];
 			break;
 		case CHAT_INSULTS:
 			text = botchat_insults[rand() % DBC_INSULTS];
