@@ -507,14 +507,14 @@ void BOTLIB_ChangeNodeFunction(edict_t* ent)
 	if (ent->bot.walknode.highlighted_node_type == HIGHLIGHTED_NODE_NONE)
 	{
 		ent->bot.walknode.highlighted_node_type = HIGHLIGHTED_NODE_SELECT; // Select nodes
-		Com_Printf("%s Node selection changed to: Select nodes (area is [%d]) (use nav_area <num> to change selected node area)\n", __func__, ent->bot.walknode.selection_area);
+		gi.cprintf(ent, PRINT_MEDIUM, "%s Node selection changed to: Select nodes (area is [%d]) (use nav_area <num> to change selected node area)\n", "ChangeNodeFunction:", ent->bot.walknode.selection_area);
 		VectorClear(ent->bot.walknode.selection_start);
 		VectorClear(ent->bot.walknode.selection_end);
 	}
 	else if (ent->bot.walknode.highlighted_node_type == HIGHLIGHTED_NODE_SELECT)
 	{
 		ent->bot.walknode.highlighted_node_type = HIGHLIGHTED_NODE_SELECT_SMART; // Smart node selection
-		Com_Printf("%s Node selection changed to: Smart node selection (area is [%d]) (use nav_area <num> to change selected node area)\n", __func__, ent->bot.walknode.selection_area);
+		gi.cprintf(ent, PRINT_MEDIUM, "%s Node selection changed to: Smart node selection (area is [%d]) (use nav_area <num> to change selected node area)\n", "ChangeNodeFunction:", ent->bot.walknode.selection_area);
 		VectorClear(ent->bot.walknode.selection_start);
 		VectorClear(ent->bot.walknode.selection_end);
 		BOTLIB_SetAllNodeNormals(); // Set all the normals
@@ -522,42 +522,42 @@ void BOTLIB_ChangeNodeFunction(edict_t* ent)
 	else if (ent->bot.walknode.highlighted_node_type == HIGHLIGHTED_NODE_SELECT_SMART)
 	{
 		ent->bot.walknode.highlighted_node_type = HIGHLIGHTED_NODE_ADD; // Add nodes
-		Com_Printf("%s Node selection changed to: Add node\n", __func__);
+		gi.cprintf(ent, PRINT_MEDIUM, "%s Node selection changed to: Add node\n", "ChangeNodeFunction:");
 	}
 	else if (ent->bot.walknode.highlighted_node_type == HIGHLIGHTED_NODE_ADD)
 	{
 		ent->bot.walknode.highlighted_node_type = HIGHLIGHTED_NODE_LINK; // Link nodes
-		Com_Printf("%s Node selection changed to: Link/Unlink node\n", __func__);
+		gi.cprintf(ent, PRINT_MEDIUM, "%s Node selection changed to: Link/Unlink node\n", "ChangeNodeFunction:");
 	}
 	else if (ent->bot.walknode.highlighted_node_type == HIGHLIGHTED_NODE_LINK)
 	{
 		ent->bot.walknode.highlighted_node_type = HIGHLIGHTED_NODE_MOVE; // Move nodes
-		Com_Printf("%s Node selection changed to: Move node\n", __func__);
+		gi.cprintf(ent, PRINT_MEDIUM, "%s Node selection changed to: Move node\n", "ChangeNodeFunction:");
 	}
 	else if (ent->bot.walknode.highlighted_node_type == HIGHLIGHTED_NODE_MOVE)
 	{
 		ent->bot.walknode.highlighted_node_type = HIGHLIGHTED_NODE_TYPE; // Change node type
-		Com_Printf("%s Node selection changed to: Change node type\n", __func__);
+		gi.cprintf(ent, PRINT_MEDIUM, "%s Node selection changed to: Change node type\n", "ChangeNodeFunction:");
 	}
 	else if (ent->bot.walknode.highlighted_node_type == HIGHLIGHTED_NODE_TYPE)
 	{
 		ent->bot.walknode.highlighted_node_type = HIGHLIGHTED_NODE_LINKTYPE; // Change node-to-node link type
-		Com_Printf("%s Node selection changed to: Change node-to-node link type\n", __func__);
+		gi.cprintf(ent, PRINT_MEDIUM, "%s Node selection changed to: Change node-to-node link type\n", "ChangeNodeFunction:");
 	}
 	else if (ent->bot.walknode.highlighted_node_type == HIGHLIGHTED_NODE_LINKTYPE)
 	{
 		ent->bot.walknode.highlighted_node_type = HIGHLIGHTED_NODE_DEL; // Delete nodes
-		Com_Printf("%s Node selection changed to: Delete node\n", __func__);
+		gi.cprintf(ent, PRINT_MEDIUM, "%s Node selection changed to: Delete node\n", "ChangeNodeFunction:");
 	}
 	else if (ent->bot.walknode.highlighted_node_type == HIGHLIGHTED_NODE_DEL)
 	{
 		ent->bot.walknode.highlighted_node_type = HIGHLIGHTED_NODE_FLOODFILL; // Flood fill
-		Com_Printf("%s Node selection changed to: Flood fill area with nodes\n", __func__);
+		gi.cprintf(ent, PRINT_MEDIUM, "%s Node selection changed to: Flood fill area with nodes\n", "ChangeNodeFunction:");
 	}
 	else
 	{
 		ent->bot.walknode.highlighted_node_type = HIGHLIGHTED_NODE_NONE; // Disable interaction with nodes
-		Com_Printf("%s Node selection changed to: No interaction with nodes\n", __func__);
+		gi.cprintf(ent, PRINT_MEDIUM, "%s Node selection changed to: No interaction with nodes\n", "ChangeNodeFunction:");
 	}
 
 	// Reset highlighted nodes
