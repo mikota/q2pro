@@ -4,7 +4,6 @@
 #include <jansson.h>
 
 // Count of bot personalities loaded
-qboolean pers_debug_mode = false;
 int loaded_bot_personalities = 0;
 int bot_personality_index = 0;  // We're incrementing as we create
 temp_bot_mapping_t bot_mappings[MAX_BOTS];
@@ -139,12 +138,12 @@ void UpdateMapPref(json_t* root, char* map_name, temp_bot_mapping_t* newBot)
     if (value && json_is_real(value)) {
         // Update the newBot struct with the fetched value
         newBot->personality.map_prefs = (float)json_real_value(value);
-        if(pers_debug_mode)
+        if(bot_debug->value)
             gi.dprintf("Updated map preference for '%s' to %f.\n", map_name, newBot->personality.map_prefs);
     } else {
         // If the map name is not found or the value is not a real number, default to 0.0f
         newBot->personality.map_prefs = 0.0f;
-        if(pers_debug_mode)
+        if(bot_debug->value)
             gi.dprintf("Map '%s' not found or invalid. Defaulting to %f.\n", map_name, newBot->personality.map_prefs);
     }
 }
@@ -224,19 +223,19 @@ temp_bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename)
             if (validatedSkinPref != NULL) {
                 newBot->personality.skin_pref = validatedSkinPref;
             } else {
-                if (pers_debug_mode)
+                if (bot_debug->value)
                     gi.dprintf("%s: warning: skin object missing from %s\n", __func__, botName);
                 newBot->personality.skin_pref = "male/grunt";
             }
         } else {
-            if (pers_debug_mode)
+            if (bot_debug->value)
                 gi.dprintf("%s: warning: skin object missing from %s\n", __func__, botName);
             newBot->personality.skin_pref = "male/grunt";
         }
 
         bot_mappings[botIndex++] = *newBot;
 
-        if (pers_debug_mode) {
+        if (bot_debug->value) {
             gi.dprintf("Loaded bot %s\n", newBot->name);
             gi.dprintf("Weapon Preferences:\n");
             for (size_t i = 0; i < WEAPON_COUNT; i++) {
@@ -356,7 +355,7 @@ void BOTLIB_LoadBotPersonality(edict_t* self)
     self->bot.personality.leave_percent = 0; // Initialize to 0, will get updated in RageQuit
     self->bot.personality.isActive = true; // Mark as active
 
-    if(pers_debug_mode)
+    if(bot_debug->value)
       gi.dprintf("Selected Bot %s(indexes: %i/%i) - Weapon Pref[0]: %f, Item Pref[0]: %f, Map Pref: %f, Combat Demeanor: %f, Chat Demeanor: %f Now ACTIVE\n", selectedBot->name, self->bot.personality.pId, selectedBot->personality.pId, selectedBot->personality.weapon_prefs[0], selectedBot->personality.item_prefs[0], selectedBot->personality.map_prefs, selectedBot->personality.combat_demeanor, selectedBot->personality.chat_demeanor);
 }
 
@@ -486,7 +485,7 @@ void BOTLIB_FreeBotPersonality(edict_t* bot)
         if (bot_mappings[i].personality.pId == bot_pId && bot_mappings[i].personality.isActive) {
             bot_mappings[i].personality.isActive = false;
             game.used_bot_personalities--;
-            if(pers_debug_mode)
+            if(bot_debug->value)
                 gi.dprintf("%s: Freed up %s\n", __func__, bot->client->pers.netname);
             break; // Exit the loop once the bot is found and deactivated
         }
@@ -548,7 +547,7 @@ void BOTLIB_BotPersonalityChooseWeapon(edict_t* bot) {
     // All zeroes somehow?  Still, let's pick a good weapon
     if (all_zeros) {
         BOTLIB_SmartWeaponSelection(bot);
-        if(pers_debug_mode)
+        if(bot_debug->value)
             gi.dprintf("%s: chose BOTLIB_SmartWeaponSelection() because weapon_prefs were all zeroes\n", __func__);
         return;
     }
@@ -578,7 +577,7 @@ void BOTLIB_BotPersonalityChooseWeapon(edict_t* bot) {
     if (randomIndex == 0) {
         chosenWeapon = top3_indices[0];
         ACEAI_Cmd_Choose_Weapon_Num(bot, chosenWeapon);
-        if (pers_debug_mode)
+        if (bot_debug->value)
             gi.dprintf("%s: %s chose %i weapon\n", __func__, bot->client->pers.netname, chosenWeapon);
         return;
     }
@@ -587,7 +586,7 @@ void BOTLIB_BotPersonalityChooseWeapon(edict_t* bot) {
         int randomChoice = rand() % 3; // Randomly choose 0, 1, or 2
         chosenWeapon = top3_indices[randomChoice];
         ACEAI_Cmd_Choose_Weapon_Num(bot, chosenWeapon);
-        if (pers_debug_mode)
+        if (bot_debug->value)
             gi.dprintf("%s: %s chose %i weapon\n", __func__, bot->client->pers.netname, chosenWeapon);
         return;
     }
@@ -623,7 +622,7 @@ void BOTLIB_BotPersonalityChooseItem(edict_t* bot)
     if (all_zeros && bot->client->selected_item < 1) {
         chosen_item_index = rand() % 6; // Randomly choose one of the 6 items
         ACEAI_Cmd_Choose_Item_Num(bot, chosen_item_index + 10); // Map index to item number
-        if(pers_debug_mode)
+        if(bot_debug->value)
             gi.dprintf("%s: chose random item because item_prefs were all zeroes", bot->client->pers.netname);
         return;
     }
@@ -652,7 +651,7 @@ void BOTLIB_BotPersonalityChooseItem(edict_t* bot)
     if (randomIndex == 0) {
         chosenItem = top3_indices[0] + 10; // Map index to item number
         ACEAI_Cmd_Choose_Item_Num(bot, chosenItem);
-        if (pers_debug_mode)
+        if (bot_debug->value)
             gi.dprintf("%s: %s chose %i item\n", __func__, bot->client->pers.netname, chosenItem);
         return;
     }
@@ -661,7 +660,7 @@ void BOTLIB_BotPersonalityChooseItem(edict_t* bot)
         int randomChoice = rand() % 3; // Randomly choose 0, 1, or 2
         chosenItem = top3_indices[randomChoice] + 10; // Map index to item number
         ACEAI_Cmd_Choose_Item_Num(bot, chosenItem);
-        if (pers_debug_mode)
+        if (bot_debug->value)
             gi.dprintf("%s: %s chose %i item\n", __func__, bot->client->pers.netname, chosenItem);
         return;
     }
@@ -761,7 +760,7 @@ qboolean BOTLIB_SpawnRush(edict_t* bot) {
     bool isRushing = randomValue <= probabilityThreshold;
 
     // Decide based on the probability threshold
-    if (pers_debug_mode) {
+    if (bot_debug->value) {
         gi.dprintf("%s: %s's probabilityThreshold = %f, randomValue = %f, isRushing = %s\n", 
                 __func__, 
                 bot->client->pers.netname, 

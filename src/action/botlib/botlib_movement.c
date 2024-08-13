@@ -6358,14 +6358,14 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 
 		if (self->bot.next_node == INVALID)
 		{
-			if(pers_debug_mode)
+			if(bot_debug->value)
 				Com_Printf("%s %s invalid next_node node:curr/next/goal[%d %d %d]  type:curr/next[%d %d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.next_node, self->bot.goal_node, current_node_type, next_node_type);
 			self->bot.state = BOT_MOVE_STATE_NAV;
 			return;
 		}
 		if (self->bot.current_node == self->bot.next_node && self->bot.current_node == self->bot.goal_node)
 		{
-			if(pers_debug_mode)
+			if(bot_debug->value)
 				Com_Printf("%s %s reached goal node:curr/next/goal[%d %d %d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.next_node, self->bot.goal_node);
 			////if (nav_area.total_areas > 0)
 			////	self->bot.state = BOT_MOVE_STATE_NAV_NEXT;

@@ -1401,11 +1401,11 @@ edict_t* BOTLIB_SpawnBot(int team, int force_gender, char* force_name, char* for
 		bot_connections.total_team3++;
 
 	if(bot_personality->value && (bot_personality_index == game.used_bot_personalities)) {
-		if(pers_debug_mode)
+		if(bot_debug->value)
 			gi.dprintf("%s: Ran out of bot personalities, loading random bots now.\n", __func__);
 		DeactivateBotPersonality();
 	}
-	if (pers_debug_mode)
+	if (bot_debug->value)
 		gi.dprintf("%s: trying to load personalities, loaded: %i used: %i\n", __func__, loaded_bot_personalities, game.used_bot_personalities);
 	
 
@@ -1413,7 +1413,7 @@ edict_t* BOTLIB_SpawnBot(int team, int force_gender, char* force_name, char* for
 	if (bot_personality->value == 2) {
 		if (rand() % 2) { // Randomly choose between 0 and 1, picking a personality or a random bot
 			if (!BOTLIB_SetPersonality(bot, team, force_gender)) {
-				if (pers_debug_mode)
+				if (bot_debug->value)
 					gi.dprintf("%s: bot_personality value %f BOTLIB_SetPersonality() failed to load bot personality.\n", __func__, bot_personality->value);
 				BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
 			}
@@ -1423,17 +1423,17 @@ edict_t* BOTLIB_SpawnBot(int team, int force_gender, char* force_name, char* for
 	} else if (bot_personality->value == 1) { // We want to prioritize bot personalities, then go random if we run out
 		if (bot_personality_index > game.used_bot_personalities) {
 			if (!BOTLIB_SetPersonality(bot, team, force_gender)) {
-				if (pers_debug_mode)
+				if (bot_debug->value)
 					gi.dprintf("%s: bot_personality value %f BOTLIB_SetPersonality() failed to load bot personality.\n", __func__, bot_personality->value);
 				BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
 			}
 		} else {
-			if (pers_debug_mode)
+			if (bot_debug->value)
 				gi.dprintf("%s: Ran out of bot personalities, loading random bots now.\n", __func__);
 			BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
 		}
 	} else { // Use random bot data, no personalities
-		if (pers_debug_mode)
+		if (bot_debug->value)
 			gi.dprintf("%s: trying to load random bots\n", __func__);
 		BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
 	}

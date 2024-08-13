@@ -553,5 +553,4 @@ qboolean BOTLIB_SpawnRush(edict_t* bot);
 
 extern int loaded_bot_personalities;
 extern int bot_personality_index;
-extern qboolean pers_debug_mode;
 #endif // _BOTLIB_H
