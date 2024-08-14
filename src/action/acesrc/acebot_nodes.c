@@ -1792,32 +1792,33 @@ void BOTLIB_MouseControlNodes(edict_t* ent, usercmd_t* ucmd)
 					// Change link type
 					int linktype = (nodes[from].links[i].targetNodeType + 1); // Increment type so the switch statement will use the next type in the nodetype_t enum
 					switch (linktype) {
-					case NODE_MOVE:
-						linktype = NODE_MOVE;
-						break;
-					case NODE_JUMPPAD:
-						linktype = NODE_JUMPPAD;
-						break;
-					case NODE_LADDER:
-						linktype = NODE_LADDER;
-						break;
-					case NODE_WATER:
-						linktype = NODE_WATER;
-						break;
-					case NODE_CROUCH:
-						linktype = NODE_CROUCH;
-						break;
-					case NODE_BOXJUMP:
-						linktype = NODE_BOXJUMP;
-						break;
-					case NODE_POI:
-						linktype = NODE_POI;
-					case NODE_POI_LOOKAT:
-						linktype = NODE_POI_LOOKAT; // NODE_POI_LOOKAT enum == 7
-						break;
-					default:
-						linktype = NODE_MOVE; // NODE_MOVE enum == 1
-						break;
+						case NODE_MOVE:
+							linktype = NODE_MOVE;
+							break;
+						case NODE_JUMPPAD:
+							linktype = NODE_JUMPPAD;
+							break;
+						case NODE_LADDER:
+							linktype = NODE_LADDER;
+							break;
+						case NODE_WATER:
+							linktype = NODE_WATER;
+							break;
+						case NODE_CROUCH:
+							linktype = NODE_CROUCH;
+							break;
+						case NODE_BOXJUMP:
+							linktype = NODE_BOXJUMP;
+							break;
+						case NODE_POI:
+							linktype = NODE_POI;
+							break;
+						case NODE_POI_LOOKAT:
+							linktype = NODE_POI_LOOKAT; // NODE_POI_LOOKAT enum == 7
+							break;
+						default:
+							linktype = NODE_MOVE; // NODE_MOVE enum == 1
+							break;
 					}
 
 					if (NodeTypeToString(ent, linktype, type_name, sizeof(type_name))) // Only change if valid

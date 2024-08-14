@@ -1379,7 +1379,7 @@ void BOTLIB_PutClientInServer(edict_t* bot, qboolean respawn, int team)
 	JoinTeam(bot, team, true);
 }
 
-// Spawn a bot
+// Spawn a bot*SelectTeamplaySpawnPoint
 void ClientBeginDeathmatch(edict_t* ent);
 edict_t* BOTLIB_SpawnBot(int team, int force_gender, char* force_name, char* force_skin) //char* userinfo)
 {

@@ -788,8 +788,20 @@ void BOTLIB_Think(edict_t* self)
 
 	// Kill the bot if they've not moved between nodes in a timely manner, stuck!
 	//gi.dprintf("%s is currently at node %i\n", self->client->pers.netname, self->bot.current_node);
-	if (self->bot.node_travel_time > 120)
-		killPlayer(self, true);
+
+	// Non-teamplay stuck suicide
+	if (!teamplay->value) {
+		if (self->bot.node_travel_time > 120) {
+			killPlayer(self, true);
+		}
+		// Too often teamplay bots will suicide because there's a bit of waiting around
+	} else if (self->bot.node_travel_time > 160 && 
+		current_round_length > 60 && 
+		!lights_camera_action &&
+		!holding_on_tie_check) {
+			BOTLIB_PickLongRangeGoal(self);
+			//killPlayer(self, true);
+	}
 
 	// Find any short range goal
 	//ACEAI_PickShortRangeGoal(self);

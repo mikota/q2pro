@@ -2892,7 +2892,9 @@ void BOTLIB_Healing(edict_t* self, usercmd_t* ucmd)
 				if (self->client->bandaging) self->bot.radioBandaging = true; // If bandaging, flag the bot to radio this in
 			}
 			//else if ((self->bot.enemy_seen_time + self->bot.bot_bandage_delay_time) <= (level.framenum * HZ))
-			else if (self->bot.bot_bandage_delay_time < level.framenum && closest_enemy > 1024) // Bot can bandage
+			else if (self->bot.bot_bandage_delay_time < level.framenum && 
+				closest_enemy > 1024 && 
+				(self->health < 100 || self->client->bleeding)) // Bot can bandage
 			{
 				//Com_Printf("%s %s is bandaging with health:%d, bandage delay:%f\n", __func__, self->client->pers.netname, self->health, self->bot_bandage_delay_time);
 				Cmd_Bandage_f(self);
