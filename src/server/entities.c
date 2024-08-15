@@ -125,6 +125,75 @@ static bool SV_TruncPacketEntities(client_t *client, const client_frame_t *from,
     return ret;
 }
 
+#if AQTION_EXTENSION
+static void SV_Ghud_SendUpdateToClient(client_t *client, const client_frame_t *oldframe, client_frame_t *frame)
+{
+	if (client->protocol == PROTOCOL_VERSION_AQTION && client->version >= PROTOCOL_VERSION_AQTION_GHUD)
+	{
+		int protocolflags, maxelements;
+
+		maxelements = 0;
+		protocolflags = 0;
+		if (client->version >= PROTOCOL_VERSION_AQTION_GHUD2)
+		{
+			maxelements = MAX_GHUDS;
+			protocolflags |= 1;
+		}
+		else
+		{	
+			maxelements = 64; // we have to obey old kinda broken ghud for older clients
+		}
+
+		if (oldframe != NULL) {
+            memcpy(frame->ghud, oldframe->ghud, sizeof(frame->ghud)); // use oldframe as baseline in case we can't fit all the updates in one package
+        } else {
+            memset(frame->ghud, 0, sizeof(frame->ghud)); // initialize to zero if oldframe is NULL
+        }
+		MSG_WriteByte(svc_ghudupdate);
+		qboolean written = false;
+		int i;
+		for (i = 0; i < maxelements; i++)
+		{
+			ghud_element_t *element = &client->ghud[i];
+			size_t old_size;
+			int uflags = 0;
+
+			if (oldframe != NULL) {
+                uflags = MSG_DeltaGhud(&oldframe->ghud[i], element, protocolflags);
+                if (oldframe->ghud[i].flags & GHF_FORCE || element->flags & GHF_FORCE)
+                    uflags |= 0x7F;
+            } else {
+                if (element->flags & GHF_FORCE)
+                    uflags |= 0x7F;
+            }
+
+			if (!uflags)
+				continue;
+
+			old_size = msg_write.cursize;
+
+			MSG_WriteByte(i);
+			MSG_WriteGhud(element, uflags);
+
+			if (msg_write.cursize >= client->netchan.maxpacketlen)
+			{
+				msg_write.cursize = old_size;
+				break;
+			}
+
+			written = true;
+			memcpy(&frame->ghud[i], element, sizeof(ghud_element_t)); // update the ghud since it made it into the frame
+			element->flags &= ~GHF_FORCE;
+		}
+
+		if (written)
+			MSG_WriteByte(255);
+		else
+			msg_write.cursize--;
+	}
+}
+#endif
+
 /*
 =============
 SV_EmitPacketEntities
@@ -223,6 +292,11 @@ static bool SV_EmitPacketEntities(client_t *client, const client_frame_t *from,
     }
 
     MSG_WriteShort(0);      // end of packetentities
+
+#if AQTION_EXTENSION
+    if(from)
+        SV_Ghud_SendUpdateToClient(client, from, to);
+#endif
     return ret;
 }
 
@@ -412,67 +486,6 @@ bool SV_WriteFrameToClient_Enhanced(client_t *client, unsigned maxsize)
     return SV_EmitPacketEntities(client, oldframe, frame, clientEntityNum, maxsize);
 }
 
-#if AQTION_EXTENSION
-static void SV_Ghud_SendUpdateToClient(client_t *client, client_frame_t *oldframe, client_frame_t *frame)
-{
-	if (client->protocol == PROTOCOL_VERSION_AQTION && client->version >= PROTOCOL_VERSION_AQTION_GHUD)
-	{
-		int protocolflags, maxelements;
-
-		maxelements = 0;
-		protocolflags = 0;
-		if (client->version >= PROTOCOL_VERSION_AQTION_GHUD2)
-		{
-			maxelements = MAX_GHUDS;
-			protocolflags |= 1;
-		}
-		else
-		{	
-			maxelements = 64; // we have to obey old kinda broken ghud for older clients
-		}
-
-		memcpy(frame->ghud, oldframe->ghud, sizeof(frame->ghud)); // use oldframe as baseline in case we can't fit all the updates in one package
-
-		MSG_WriteByte(svc_ghudupdate);
-		qboolean written = false;
-		int i;
-		for (i = 0; i < maxelements; i++)
-		{
-			ghud_element_t *element = &client->ghud[i];
-			size_t old_size;
-			int uflags;
-
-			uflags = MSG_DeltaGhud(&oldframe->ghud[i], element, protocolflags);
-			if (oldframe->ghud[i].flags & GHF_FORCE || element->flags & GHF_FORCE)
-				uflags |= 0x7F;
-
-			if (!uflags)
-				continue;
-
-			old_size = msg_write.cursize;
-
-			MSG_WriteByte(i);
-			MSG_WriteGhud(element, uflags);
-
-			if (msg_write.cursize >= client->netchan.maxpacketlen)
-			{
-				msg_write.cursize = old_size;
-				break;
-			}
-
-			written = true;
-			memcpy(&frame->ghud[i], element, sizeof(ghud_element_t)); // update the ghud since it made it into the frame
-			element->flags &= ~GHF_FORCE;
-		}
-
-		if (written)
-			MSG_WriteByte(255);
-		else
-			msg_write.cursize--;
-	}
-}
-#endif
-
 bool SV_WriteFrameToClient_Aqtion(client_t *client, unsigned maxsize)
 {
 	client_frame_t  *frame, *oldframe;
@@ -572,13 +585,8 @@ bool SV_WriteFrameToClient_Aqtion(client_t *client, unsigned maxsize)
 
 	// delta encode the entities
     MSG_WriteByte(svc_packetentities);
-#if AQTION_EXTENSION
-	if (oldframe)
-		SV_Ghud_SendUpdateToClient(client, oldframe, frame);
-#endif
+
 	return SV_EmitPacketEntities(client, oldframe, frame, clientEntityNum, maxsize);
-
-
 }
 
 
