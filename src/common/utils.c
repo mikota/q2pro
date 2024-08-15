@@ -188,6 +188,10 @@ bool Com_WildCmpEx(const char *filter, const char *string,
 ==============================================================================
 */
 
+#if USE_CLIENT
+const char com_env_suf[6][3] = { "rt", "lf", "bk", "ft", "up", "dn" };
+#endif
+
 const char *const colorNames[COLOR_COUNT] = {
     "black", "red", "green", "yellow",
     "blue", "cyan", "magenta", "white",
@@ -369,7 +373,7 @@ unsigned Com_HashString(const char *s, unsigned size)
         hash = 127 * hash + c;
     }
 
-    hash = (hash >> 20) ^(hash >> 10) ^ hash;
+    hash = (hash >> 20) ^ (hash >> 10) ^ hash;
     return hash & (size - 1);
 }
 
@@ -391,7 +395,7 @@ unsigned Com_HashStringLen(const char *s, size_t len, unsigned size)
         hash = 127 * hash + c;
     }
 
-    hash = (hash >> 20) ^(hash >> 10) ^ hash;
+    hash = (hash >> 20) ^ (hash >> 10) ^ hash;
     return hash & (size - 1);
 }
 
@@ -581,7 +585,7 @@ char *Com_MakePrintable(const char *s)
     char *end = buffer + sizeof(buffer);
 
     while (*s && o < end - 1) {
-        int c = *s++;
+        byte c = *s++;
         int e = get_escape_char(c);
 
         if (e)

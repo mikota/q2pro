@@ -49,8 +49,8 @@ typedef struct mtexinfo_s {  // used internally due to name len probs //ZOID
     vec3_t              axis[2];
     vec2_t              offset;
     struct image_s      *image; // used for texturing
-    int                 numframes;
     struct mtexinfo_s   *next; // used for animation
+    int                 numframes;
 #endif
 #if USE_CLIENT
     char                material[16];
@@ -81,28 +81,27 @@ typedef struct {
 
 typedef struct mface_s {
     msurfedge_t     *firstsurfedge;
-    int             numsurfedges;
-
     cplane_t        *plane;
-    int             drawflags; // DSURF_PLANEBACK, etc
 
     byte            *lightmap;
     byte            styles[MAX_LIGHTMAPS];
     byte            numstyles;
 
     byte            hash;
+    uint16_t        numsurfedges;
 
     mtexinfo_t      *texinfo;
     vec3_t          lm_axis[2];
     vec2_t          lm_offset;
     vec2_t          lm_scale;
-    int             lm_width;
-    int             lm_height;
+    uint16_t        lm_width;
+    uint16_t        lm_height;
 
     int             texnum[3]; // FIXME MAX_TMUS
+    int             drawflags; // DSURF_PLANEBACK, etc
     int             statebits;
     int             firstvert;
-    int             light_s, light_t;
+    uint16_t        light_s, light_t;
     float           stylecache[MAX_LIGHTMAPS];
 
     unsigned        drawframe;
@@ -161,8 +160,8 @@ typedef struct {
     int             contents;
     int             cluster;
     int             area;
-    mbrush_t        **firstleafbrush;
     int             numleafbrushes;
+    mbrush_t        **firstleafbrush;
 #if USE_REF
     mface_t         **firstleafface;
     int             numleaffaces;
@@ -180,12 +179,7 @@ typedef struct {
     unsigned        floodvalid;
 } marea_t;
 
-typedef struct mmodel_s {
-#if USE_REF
-    /* ======> */
-    int             type;
-    /* <====== */
-#endif
+typedef struct {
     vec3_t          mins, maxs;
     vec3_t          origin;        // for sounds or lights
     mnode_t         *headnode;
@@ -482,7 +476,7 @@ void DrawSelection(vec3_t start, vec3_t end, float min, float max, uint32_t colo
 //#if USE_REF
 
 typedef struct {
-    int32_t point[3];
+    uint32_t point[3];
     uint32_t children[8];
 } lightgrid_node_t;
 
@@ -514,7 +508,7 @@ typedef struct {
 
 //#endif
 
-typedef struct bsp_s {
+typedef struct {
     list_t      entry;
     int         refcount;
 
@@ -604,15 +598,15 @@ typedef struct {
     float       fraction;
 } lightpoint_t;
 
-void BSP_LightPoint(lightpoint_t *point, const vec3_t start, const vec3_t end, mnode_t *headnode, int nolm_mask);
+void BSP_LightPoint(lightpoint_t *point, const vec3_t start, const vec3_t end, const mnode_t *headnode, int nolm_mask);
 void BSP_TransformedLightPoint(lightpoint_t *point, const vec3_t start, const vec3_t end,
-                               mnode_t *headnode, int nolm_mask, const vec3_t origin, const vec3_t angles);
+                               const mnode_t *headnode, int nolm_mask, const vec3_t origin, const vec3_t angles);
 
-lightgrid_sample_t *BSP_LookupLightgrid(lightgrid_t *grid, uint32_t point[3]);
+const lightgrid_sample_t *BSP_LookupLightgrid(const lightgrid_t *grid, const uint32_t point[3]);
 #endif
 
-byte *BSP_ClusterVis(bsp_t *bsp, byte *mask, int cluster, int vis);
-mleaf_t *BSP_PointLeaf(mnode_t *node, const vec3_t p);
-mmodel_t *BSP_InlineModel(bsp_t *bsp, const char *name);
+byte *BSP_ClusterVis(const bsp_t *bsp, byte *mask, int cluster, int vis);
+const mleaf_t *BSP_PointLeaf(const mnode_t *node, const vec3_t p);
+const mmodel_t *BSP_InlineModel(const bsp_t *bsp, const char *name);
 
 void BSP_Init(void);

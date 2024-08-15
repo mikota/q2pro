@@ -167,14 +167,10 @@ static request_t *CL_AddRequest(const netadr_t *adr, requestType_t type)
 static request_t *CL_FindRequest(void)
 {
     request_t *r;
-    int i, count;
-
-    count = MAX_REQUESTS;
-    if (count > nextRequest)
-        count = nextRequest;
+    int i;
 
     // find the most recent request sent to this address
-    for (i = 0; i < count; i++) {
+    for (i = 0; i < MAX_REQUESTS; i++) {
         r = &clientRequests[(nextRequest - i - 1) & REQUEST_MASK];
         if (!r->type) {
             continue;
@@ -507,15 +503,8 @@ void CL_CheckForResend(void)
 
 static void CL_RecentIP_g(genctx_t *ctx)
 {
-    netadr_t *a;
-    int i, j;
-
-    j = cls.recent_head - RECENT_ADDR;
-    if (j < 0) {
-        j = 0;
-    }
-    for (i = cls.recent_head - 1; i >= j; i--) {
-        a = &cls.recent_addr[i & RECENT_MASK];
+    for (int i = 0; i < RECENT_ADDR; i++) {
+        const netadr_t *a = &cls.recent_addr[(cls.recent_head - i - 1) & RECENT_MASK];
         if (a->type) {
             Prompt_AddMatch(ctx, NET_AdrToString(a));
         }
@@ -592,27 +581,21 @@ static void CL_Connect_f(void)
 
 static void CL_FollowIP_f(void)
 {
-    netadr_t *a;
-    int i, j;
+    const netadr_t *a;
+    int i = 0;
 
     if (Cmd_Argc() > 1) {
         // optional second argument references less recent address
-        j = Q_clip(Q_atoi(Cmd_Argv(1)), 0, RECENT_ADDR - 1) + 1;
-    } else {
-        j = 1;
+        i = Q_clip(Q_atoi(Cmd_Argv(1)), 0, RECENT_ADDR - 1);
     }
 
-    i = cls.recent_head - j;
-    if (i < 0) {
-        Com_Printf("No IP address to follow.\n");
-        return;
-    }
-
-    a = &cls.recent_addr[i & RECENT_MASK];
+    a = &cls.recent_addr[(cls.recent_head - i - 1) & RECENT_MASK];
     if (a->type) {
-        char *s = NET_AdrToString(a);
+        const char *s = NET_AdrToString(a);
         Com_Printf("Following %s...\n", s);
         Cbuf_InsertText(cmd_current, va("connect %s\n", s));
+    } else {
+        Com_Printf("No IP address to follow.\n");
     }
 }
 
@@ -1461,16 +1444,18 @@ static void CL_ConnectionlessPacket(void)
     }
 
     if (!strcmp(c, "passive_connect")) {
+        const char *adr;
+
         if (!cls.passive) {
             Com_DPrintf("Passive connect received while not connecting.  Ignored.\n");
             return;
         }
-        s = NET_AdrToString(&net_from);
-        Com_Printf("Received passive connect from %s.\n", s);
+        adr = NET_AdrToString(&net_from);
+        Com_Printf("Received passive connect from %s.\n", adr);
 
         cls.serverAddress = net_from;
         cls.serverProtocol = cl_protocol->integer;
-        Q_strlcpy(cls.servername, s, sizeof(cls.servername));
+        Q_strlcpy(cls.servername, adr, sizeof(cls.servername));
         cls.passive = false;
 
         cls.state = ca_challenging;
@@ -1558,7 +1543,7 @@ static void CL_PacketEvent(void)
 }
 
 #if USE_ICMP
-void CL_ErrorEvent(netadr_t *from)
+void CL_ErrorEvent(const netadr_t *from)
 {
     UI_ErrorEvent(from);
 
@@ -1873,7 +1858,7 @@ typedef struct {
 static list_t   cl_ignore_text;
 static list_t   cl_ignore_nick;
 
-static ignore_t *find_ignore(list_t *list, const char *match)
+static ignore_t *find_ignore(const list_t *list, const char *match)
 {
     ignore_t *ignore;
 
@@ -1886,7 +1871,7 @@ static ignore_t *find_ignore(list_t *list, const char *match)
     return NULL;
 }
 
-static void list_ignores(list_t *list)
+static void list_ignores(const list_t *list)
 {
     ignore_t *ignore;
 
@@ -2251,7 +2236,7 @@ static size_t CL_Ups_m(char *buffer, size_t size)
         VectorScale(cl.frame.ps.pmove.velocity, 0.125f, vel);
     }
 
-    return Q_scnprintf(buffer, size, "%.f", VectorLength(vel));
+    return Q_snprintf(buffer, size, "%.f", VectorLength(vel));
 }
 
 static size_t CL_Timer_m(char *buffer, size_t size)
@@ -2263,9 +2248,9 @@ static size_t CL_Timer_m(char *buffer, size_t size)
     hour = min / 60; min %= 60;
 
     if (hour) {
-        return Q_scnprintf(buffer, size, "%i:%i:%02i", hour, min, sec);
+        return Q_snprintf(buffer, size, "%i:%i:%02i", hour, min, sec);
     }
-    return Q_scnprintf(buffer, size, "%i:%02i", min, sec);
+    return Q_snprintf(buffer, size, "%i:%02i", min, sec);
 }
 
 static size_t CL_DemoPos_m(char *buffer, size_t size)
@@ -2277,35 +2262,35 @@ static size_t CL_DemoPos_m(char *buffer, size_t size)
     else if (!MVD_GetDemoStatus(NULL, NULL, &framenum))
         framenum = 0;
 
-    sec = framenum / 10; framenum %= 10;
+    sec = framenum / BASE_FRAMERATE; framenum %= BASE_FRAMERATE;
     min = sec / 60; sec %= 60;
 
-    return Q_scnprintf(buffer, size, "%d:%02d.%d", min, sec, framenum);
+    return Q_snprintf(buffer, size, "%d:%02d.%d", min, sec, framenum);
 }
 
 static size_t CL_Fps_m(char *buffer, size_t size)
 {
-    return Q_scnprintf(buffer, size, "%i", C_FPS);
+    return Q_snprintf(buffer, size, "%i", C_FPS);
 }
 
 static size_t R_Fps_m(char *buffer, size_t size)
 {
-    return Q_scnprintf(buffer, size, "%i", R_FPS);
+    return Q_snprintf(buffer, size, "%i", R_FPS);
 }
 
 static size_t CL_Mps_m(char *buffer, size_t size)
 {
-    return Q_scnprintf(buffer, size, "%i", C_MPS);
+    return Q_snprintf(buffer, size, "%i", C_MPS);
 }
 
 static size_t CL_Pps_m(char *buffer, size_t size)
 {
-    return Q_scnprintf(buffer, size, "%i", C_PPS);
+    return Q_snprintf(buffer, size, "%i", C_PPS);
 }
 
 static size_t CL_Ping_m(char *buffer, size_t size)
 {
-    return Q_scnprintf(buffer, size, "%i", cls.measure.ping);
+    return Q_snprintf(buffer, size, "%i", cls.measure.ping);
 }
 
 static size_t CL_Lag_m(char *buffer, size_t size)
@@ -2315,22 +2300,22 @@ static size_t CL_Lag_m(char *buffer, size_t size)
     if (cls.netchan.total_received)
         f = (float)cls.netchan.total_dropped / cls.netchan.total_received;
 
-    return Q_scnprintf(buffer, size, "%.2f%%", f * 100.0f);
+    return Q_snprintf(buffer, size, "%.2f%%", f * 100.0f);
 }
 
 static size_t CL_Health_m(char *buffer, size_t size)
 {
-    return Q_scnprintf(buffer, size, "%i", cl.frame.ps.stats[STAT_HEALTH]);
+    return Q_snprintf(buffer, size, "%i", cl.frame.ps.stats[STAT_HEALTH]);
 }
 
 static size_t CL_Ammo_m(char *buffer, size_t size)
 {
-    return Q_scnprintf(buffer, size, "%i", cl.frame.ps.stats[STAT_AMMO]);
+    return Q_snprintf(buffer, size, "%i", cl.frame.ps.stats[STAT_AMMO]);
 }
 
 static size_t CL_Armor_m(char *buffer, size_t size)
 {
-    return Q_scnprintf(buffer, size, "%i", cl.frame.ps.stats[STAT_ARMOR]);
+    return Q_snprintf(buffer, size, "%i", cl.frame.ps.stats[STAT_ARMOR]);
 }
 
 static size_t CL_WeaponModel_m(char *buffer, size_t size)
@@ -2341,7 +2326,7 @@ static size_t CL_WeaponModel_m(char *buffer, size_t size)
 
 static size_t CL_NumEntities_m(char *buffer, size_t size)
 {
-    return Q_scnprintf(buffer, size, "%i", cl.frame.numEntities);
+    return Q_snprintf(buffer, size, "%i", cl.frame.numEntities);
 }
 
 /*
@@ -2543,9 +2528,15 @@ static bool allow_stufftext(const char *text)
 {
     string_entry_t *entry;
 
+    if (cl_ignore_stufftext->integer <= 0)
+        return true;
+
     for (entry = cls.stufftextwhitelist; entry; entry = entry->next)
         if (Com_WildCmp(entry->string, text))
             return true;
+
+    if (cl_ignore_stufftext->integer >= 2)
+        Com_WPrintf("Ignored stufftext: %s\n", text);
 
     return false;
 }
@@ -2593,9 +2584,8 @@ static void exec_server_string(cmdbuf_t *buf, const char *text)
         return;
     }
 
-    if (cl_ignore_stufftext->integer >= 1 && !allow_stufftext(text)) {
-        if (cl_ignore_stufftext->integer >= 2)
-            Com_WPrintf("Ignored stufftext: %s\n", text);
+    // optional whitelist filtering
+    if (!allow_stufftext(text)) {
         return;
     }
 
@@ -2640,49 +2630,9 @@ static void cl_flares_changed(cvar_t *self)
     CL_UpdateFlaresSetting();
 }
 
-static inline int fps_to_msec(int fps)
-{
-#if 0
-    return (1000 + fps / 2) / fps;
-#else
-    return 1000 / fps;
-#endif
-}
-
-static void warn_on_fps_rounding(cvar_t *cvar)
-{
-    static bool warned = false;
-    int msec, real_maxfps;
-
-    if (cvar->integer <= 0 || cl_warn_on_fps_rounding->integer <= 0)
-        return;
-
-    msec = fps_to_msec(cvar->integer);
-    if (!msec)
-        return;
-
-    real_maxfps = 1000 / msec;
-    if (cvar->integer == real_maxfps)
-        return;
-
-    Com_WPrintf("%s value `%d' is inexact, using `%d' instead.\n",
-                cvar->name, cvar->integer, real_maxfps);
-    if (!warned) {
-        Com_Printf("(Set `%s' to `0' to disable this warning.)\n",
-                   cl_warn_on_fps_rounding->name);
-        warned = true;
-    }
-}
-
 static void cl_sync_changed(cvar_t *self)
 {
     CL_UpdateFrameTimes();
-}
-
-static void cl_maxfps_changed(cvar_t *self)
-{
-    CL_UpdateFrameTimes();
-    warn_on_fps_rounding(self);
 }
 
 // allow downloads to be permanently disabled as a
@@ -2728,10 +2678,6 @@ static const cmdreg_t c_client[] = {
     { "reconnect", CL_Reconnect_f },
     { "rcon", CL_Rcon_f, CL_Rcon_c },
     { "serverstatus", CL_ServerStatus_f, CL_ServerStatus_c },
-    { "ignoretext", CL_IgnoreText_f },
-    { "unignoretext", CL_UnIgnoreText_f },
-    { "ignorenick", CL_IgnoreNick_f, CL_IgnoreNick_c },
-    { "unignorenick", CL_UnIgnoreNick_f, CL_UnIgnoreNick_c },
     { "dumpclients", CL_DumpClients_f },
     { "dumpstatusbar", CL_DumpStatusbar_f },
     { "dumplayout", CL_DumpLayout_f },
@@ -2779,9 +2725,6 @@ static void CL_InitLocal(void)
     CL_InitDownloads();
     CL_GTV_Init();
 
-    List_Init(&cl_ignore_text);
-    List_Init(&cl_ignore_nick);
-
     Cmd_Register(c_client);
 
     for (i = 0; i < MAX_LOCAL_SERVERS; i++) {
@@ -2809,11 +2752,11 @@ static void CL_InitLocal(void)
     cl_kickangles = Cvar_Get("cl_kickangles", "1", CVAR_CHEAT);
     cl_warn_on_fps_rounding = Cvar_Get("cl_warn_on_fps_rounding", "1", 0);
     cl_maxfps = Cvar_Get("cl_maxfps", "62", 0);
-    cl_maxfps->changed = cl_maxfps_changed;
+    cl_maxfps->changed = cl_sync_changed;
     cl_async = Cvar_Get("cl_async", "1", 0);
     cl_async->changed = cl_sync_changed;
     r_maxfps = Cvar_Get("r_maxfps", "0", 0);
-    r_maxfps->changed = cl_maxfps_changed;
+    r_maxfps->changed = cl_sync_changed;
     cl_autopause = Cvar_Get("cl_autopause", "1", 0);
     cl_rollhack = Cvar_Get("cl_rollhack", "1", 0);
     cl_noglow = Cvar_Get("cl_noglow", "0", 0);
@@ -2845,8 +2788,6 @@ static void CL_InitLocal(void)
     com_timedemo->changed = cl_sync_changed;
 
     CL_UpdateFrameTimes();
-    warn_on_fps_rounding(cl_maxfps);
-    warn_on_fps_rounding(r_maxfps);
 
 #if USE_DEBUG
     cl_shownet = Cvar_Get("cl_shownet", "0", 0);
@@ -2956,6 +2897,32 @@ static void CL_InitLocal(void)
     Cmd_AddMacro("cl_armor", CL_Armor_m);
     Cmd_AddMacro("cl_weaponmodel", CL_WeaponModel_m);
     Cmd_AddMacro("cl_numentities", CL_NumEntities_m);
+}
+
+static const cmdreg_t c_ignores[] = {
+    { "ignoretext", CL_IgnoreText_f },
+    { "unignoretext", CL_UnIgnoreText_f },
+    { "ignorenick", CL_IgnoreNick_f, CL_IgnoreNick_c },
+    { "unignorenick", CL_UnIgnoreNick_f, CL_UnIgnoreNick_c },
+    { NULL }
+};
+
+/*
+=================
+CL_PreInit
+
+Called before executing configs to register commands such as `bind' or
+`ignoretext'.
+=================
+*/
+void CL_PreInit(void)
+{
+    Key_Init();
+
+    List_Init(&cl_ignore_text);
+    List_Init(&cl_ignore_nick);
+
+    Cmd_Register(c_ignores);
 }
 
 /*
@@ -3206,12 +3173,50 @@ static sync_mode_t sync_mode;
 #define MIN_REF_HZ MIN_PHYS_HZ
 #define MAX_REF_HZ 1000
 
+static inline int fps_to_msec(int fps)
+{
+    return 1000 / fps;
+}
+
+static void warn_on_fps_rounding(const cvar_t *cvar, int msec)
+{
+    static bool warned = false;
+    int real_maxfps;
+
+    if (cl_warn_on_fps_rounding->integer <= 0)
+        return;
+
+    if (!msec)
+        return;
+
+    real_maxfps = 1000 / msec;
+    if (cvar->integer == real_maxfps)
+        return;
+
+    Com_WPrintf("%s value `%d' is inexact and will be rounded to `%d'.\n",
+                cvar->name, cvar->integer, real_maxfps);
+    if (!warned) {
+        Com_Printf("(Set `%s' to `0' to disable this warning.)\n",
+                   cl_warn_on_fps_rounding->name);
+        warned = true;
+    }
+}
+
 static int fps_to_clamped_msec(cvar_t *cvar, int min, int max)
 {
+    int msec;
+
     if (cvar->integer == 0)
         return fps_to_msec(max);
-    else
-        return fps_to_msec(Cvar_ClampInteger(cvar, min, max));
+
+    msec = fps_to_msec(Cvar_ClampInteger(cvar, min, max));
+
+    if (cvar->modified) {
+        warn_on_fps_rounding(cvar, msec);
+        cvar->modified = false;
+    }
+
+    return msec;
 }
 
 /*
@@ -3409,8 +3414,6 @@ unsigned CL_Frame(unsigned msec)
     C_FRAMES++;
 
     CL_MeasureStats();
-
-    cls.framecount++;
 
     main_extra = 0;
     return 0;

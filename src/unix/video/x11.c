@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
+#include <X11/Xresource.h>
 #include <X11/XKBlib.h>
 #include <X11/extensions/XInput2.h>
 
@@ -182,7 +183,7 @@ static int error_handler(Display *dpy, XErrorEvent *event)
     return 0;
 }
 
-static bool choose_fb_config(r_opengl_config_t *cfg, GLXFBConfig *fbc)
+static bool choose_fb_config(const r_opengl_config_t *cfg, GLXFBConfig *fbc)
 {
     int glx_attr[] = {
         GLX_X_RENDERABLE, True,
@@ -219,6 +220,53 @@ static bool choose_fb_config(r_opengl_config_t *cfg, GLXFBConfig *fbc)
     return true;
 }
 
+static bool get_dpi_scale_xft(void)
+{
+    char *resman = XResourceManagerString(x11.dpy);
+    if (!resman)
+        return false;
+
+    XrmInitialize();
+
+    XrmDatabase db = XrmGetStringDatabase(resman);
+    if (!db)
+        return false;
+
+    bool ret = false;
+    char *type, *end;
+    XrmValue value;
+    if (XrmGetResource(db, "Xft.dpi", "String", &type, &value) &&
+        value.addr && !strcmp(type, "String") && *value.addr) {
+        unsigned long dpi = strtoul(value.addr, &end, 10);
+        if (dpi && !*end) {
+            x11.dpi_scale = Q_clip((dpi + 48) / 96, 1, 10);
+            Com_DPrintf("Using Xft DPI scale: %d\n", x11.dpi_scale);
+            ret = true;
+        }
+    }
+    XrmDestroyDatabase(db);
+    return ret;
+}
+
+static void get_dpi_scale_physical(void)
+{
+    int width = DisplayWidth(x11.dpy, x11.screen);
+    int height = DisplayHeight(x11.dpy, x11.screen);
+    int mm_width = DisplayWidthMM(x11.dpy, x11.screen);
+    int mm_height = DisplayHeightMM(x11.dpy, x11.screen);
+
+    if (mm_width > 0 && mm_height > 0) {
+        float dpi_x = width * 25.4f / mm_width;
+        float dpi_y = height * 25.4f / mm_height;
+        int scale_x = Q_rint(dpi_x / 96.0f);
+        int scale_y = Q_rint(dpi_y / 96.0f);
+        if (scale_x == scale_y) {
+            x11.dpi_scale = Q_clip(scale_x, 1, 10);
+            Com_DPrintf("Using physical DPI scale: %d\n", x11.dpi_scale);
+        }
+    }
+}
+
 static bool init(void)
 {
     if (!(x11.dpy = XOpenDisplay(NULL))) {
@@ -244,15 +292,16 @@ static bool init(void)
 
     x11.extensions = glx_parse_extension_string(glXQueryExtensionsString(x11.dpy, x11.screen));
 
-    r_opengl_config_t *cfg = R_GetGLConfig();
+    r_opengl_config_t cfg;
+    R_GetGLConfig(&cfg);
 
-    if (cfg->multisamples && !(x11.extensions & QGLX_ARB_multisample)) {
-        Com_WPrintf("GLX_ARB_multisample not found for %d multisamples\n", cfg->multisamples);
-        cfg->multisamples = 0;
+    if (cfg.multisamples && !(x11.extensions & QGLX_ARB_multisample)) {
+        Com_WPrintf("GLX_ARB_multisample not found for %d multisamples\n", cfg.multisamples);
+        cfg.multisamples = 0;
     }
 
     GLXFBConfig fbc;
-    if (!choose_fb_config(cfg, &fbc)) {
+    if (!choose_fb_config(&cfg, &fbc)) {
         Com_Printf("Falling back to failsafe config\n");
         r_opengl_config_t failsafe = { .depthbits = 24 };
         if (!choose_fb_config(&failsafe, &fbc))
@@ -290,20 +339,8 @@ static bool init(void)
     }
 
     x11.dpi_scale = 1;
-
-    int width = DisplayWidth(x11.dpy, x11.screen);
-    int height = DisplayHeight(x11.dpy, x11.screen);
-    int mm_width = DisplayWidthMM(x11.dpy, x11.screen);
-    int mm_height = DisplayHeightMM(x11.dpy, x11.screen);
-
-    if (mm_width > 0 && mm_height > 0) {
-        float dpi_x = width * 25.4f / mm_width;
-        float dpi_y = height * 25.4f / mm_height;
-        int scale_x = Q_rint(dpi_x / 96.0f);
-        int scale_y = Q_rint(dpi_y / 96.0f);
-        if (scale_x == scale_y)
-            x11.dpi_scale = Q_clip(scale_x, 1, 10);
-    }
+    if (!get_dpi_scale_xft())
+        get_dpi_scale_physical();
 
     XSizeHints hints = {
         .flags = PMinSize,
@@ -343,7 +380,7 @@ static bool init(void)
         XFree(list);
     }
 
-    if (cfg->debug) {
+    if (cfg.debug) {
         PFNGLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribsARB = NULL;
 
         if (x11.extensions & QGLX_ARB_create_context)

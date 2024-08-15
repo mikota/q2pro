@@ -18,6 +18,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #pragma once
 
+#if USE_CLIENT
+extern const char com_env_suf[6][3];
+#endif
+
 typedef enum {
     COLOR_BLACK,
     COLOR_RED,
@@ -70,8 +74,12 @@ unsigned Com_ParseExtensionString(const char *s, const char *const extnames[]);
 
 char *Com_MakePrintable(const char *s);
 
+// Bitmap chunks (for sparse bitmaps)
+#define BC_BITS         (sizeof(size_t) * CHAR_BIT)
+#define BC_COUNT(n)     (((n) + BC_BITS - 1) / BC_BITS)
+
 // Some mods actually exploit CS_STATUSBAR to take space up to CS_AIRACCEL
-static inline size_t CS_SIZE(const cs_remap_t *csr, int cs)
+static inline size_t Com_ConfigstringSize(const cs_remap_t *csr, int cs)
 {
     if (cs >= CS_STATUSBAR && cs < csr->airaccel)
         return MAX_QPATH * (csr->airaccel - cs);
@@ -83,7 +91,7 @@ static inline size_t CS_SIZE(const cs_remap_t *csr, int cs)
 }
 
 #if USE_FPS
-typedef struct frametime_s {
+typedef struct {
     int         time;      // variable server frame time
     int         div;       // BASE_FRAMETIME/frametime
 } frametime_t;
@@ -94,5 +102,4 @@ static inline frametime_t Com_ComputeFrametime(int rate)
     int framediv = Q_clip(rate / BASE_FRAMERATE, 1, MAX_FRAMEDIV);
     return (frametime_t){ .time = BASE_FRAMETIME / framediv, .div = framediv };
 }
-
 #endif // USE_FPS

@@ -229,7 +229,7 @@ Key_Event (int key, bool down, unsigned time);
 ===============================================================================
 */
 
-typedef struct kbutton_s {
+typedef struct {
     int         down[2];        // key nums holding it down
     unsigned    downtime;        // msec timestamp
     unsigned    msec;            // msec down this frame
@@ -415,7 +415,7 @@ CL_KeyState
 Returns the fraction of the frame that the key was down
 ===============
 */
-static float CL_KeyState(kbutton_t *key)
+static float CL_KeyState(const kbutton_t *key)
 {
     unsigned msec = key->msec;
 
@@ -1113,6 +1113,10 @@ static void CL_SendUserinfo(void)
 
 static void CL_SendReliable(void)
 {
+    if (Netchan_SeqTooBig(&cls.netchan)) {
+        Com_Error(ERR_DROP, "Outgoing sequence too big");
+    }
+
     if (cls.userinfo_modified) {
         CL_SendUserinfo();
         cls.userinfo_modified = 0;

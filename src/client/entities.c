@@ -255,7 +255,7 @@ static void set_active_state(void)
 {
     cls.state = ca_active;
 
-    cl.serverdelta = Q_align(cl.frame.number, CL_FRAMEDIV);
+    cl.serverdelta = Q_align_down(cl.frame.number, CL_FRAMEDIV);
     cl.time = cl.servertime = 0; // set time, needed for demos
 #if USE_FPS
     cl.keytime = cl.keyservertime = 0;
@@ -387,6 +387,13 @@ void CL_DeltaFrame(void)
 
     // set server time
     framenum = cl.frame.number - cl.serverdelta;
+
+    if (framenum < 0)
+        Com_Error(ERR_DROP, "%s: server time went backwards", __func__);
+
+    if (framenum > INT_MAX / CL_FRAMETIME)
+        Com_Error(ERR_DROP, "%s: server time overflowed", __func__);
+
     cl.servertime = framenum * CL_FRAMETIME;
 #if USE_FPS
     cl.keyservertime = (framenum / cl.frametime.div) * BASE_FRAMETIME;
@@ -503,9 +510,9 @@ static void CL_AddPacketEntities(void)
     autorotate = anglemod(cl.time * 0.1f);
 
     // brush models can auto animate their frames
-    autoanim = 2 * cl.time / 1000;
+    autoanim = cl.time / 500;
 
-    autobob = 5 * sin(cl.time / 400.0f);
+    autobob = 5 * sinf(cl.time / 400.0f);
 
     memset(&ent, 0, sizeof(ent));
 
@@ -615,7 +622,7 @@ static void CL_AddPacketEntities(void)
             goto skip;
         }
 #endif
-        if ((effects & EF_GIB) && !cl_gibs->integer)
+        if (effects & (EF_GIB | EF_GREENGIB) && !cl_gibs->integer)
             goto skip;
 
         // create a new entity
@@ -758,7 +765,7 @@ static void CL_AddPacketEntities(void)
                 VectorCopy(ent.origin, start);
             }
 
-            CL_Trace(&trace, start, vec3_origin, vec3_origin, end, mask);
+            CL_Trace(&trace, start, end, vec3_origin, vec3_origin, mask);
             LerpVector(start, end, cent->flashlightfrac, end);
             V_AddLight(end, 256, 1, 1, 1);
 
@@ -996,7 +1003,7 @@ static void CL_AddPacketEntities(void)
             V_AddLight(ent.origin, 225, 1.0f, 1.0f, 0.0f);
         } else if (effects & EF_TRACKERTRAIL) {
             if (effects & EF_TRACKER) {
-                float intensity = 50 + (500 * (sin(cl.time / 500.0f) + 1.0f));
+                float intensity = 50 + (500 * (sinf(cl.time / 500.0f) + 1.0f));
                 V_AddLight(ent.origin, intensity, -1.0f, -1.0f, -1.0f);
             } else {
                 CL_Tracker_Shell(cent, ent.origin);
@@ -1021,6 +1028,20 @@ static void CL_AddPacketEntities(void)
 skip:
         VectorCopy(ent.origin, cent->lerp_origin);
     }
+}
+
+static float player_alpha_hack(void)
+{
+    centity_t   *ent;
+
+    ent = &cl_entities[cl.frame.clientNum + 1];
+    if (ent->serverframe != cl.frame.number)
+        return 1;
+
+    if (!ent->current.modelindex || !ent->current.alpha)
+        return 1;
+
+    return ent->current.alpha;
 }
 
 static int shell_effect_hack(void)
@@ -1117,6 +1138,10 @@ static void CL_AddViewWeapon(void)
     if (cl_gunalpha->value != 1) {
         gun.alpha = Cvar_ClampValue(cl_gunalpha, 0.1f, 1.0f);
         gun.flags |= RF_TRANSLUCENT;
+    } else {
+        gun.alpha = player_alpha_hack();
+        if (gun.alpha != 1)
+            gun.flags |= RF_TRANSLUCENT;
     }
 
     V_AddEntity(&gun);
@@ -1210,8 +1235,8 @@ static void CL_SetupThirdPersionView(void)
 
     angle = DEG2RAD(cl_thirdperson_angle->value);
     range = cl_thirdperson_range->value;
-    fscale = cos(angle);
-    rscale = sin(angle);
+    fscale = cosf(angle);
+    rscale = sinf(angle);
     VectorMA(cl.refdef.vieworg, -range * fscale, cl.v_forward, cl.refdef.vieworg);
     VectorMA(cl.refdef.vieworg, -range * rscale, cl.v_right, cl.refdef.vieworg);
 
@@ -1224,7 +1249,7 @@ static void CL_SetupThirdPersionView(void)
     VectorSubtract(focus, cl.refdef.vieworg, focus);
     dist = sqrtf(focus[0] * focus[0] + focus[1] * focus[1]);
 
-    cl.refdef.viewangles[PITCH] = -RAD2DEG(atan2(focus[2], dist));
+    cl.refdef.viewangles[PITCH] = -RAD2DEG(atan2f(focus[2], dist));
     cl.refdef.viewangles[YAW] -= cl_thirdperson_angle->value;
 
     cl.thirdPersonView = true;
@@ -1438,9 +1463,9 @@ Called to get the sound spatialization origin
 */
 void CL_GetEntitySoundOrigin(unsigned entnum, vec3_t org)
 {
-    centity_t   *ent;
-    mmodel_t    *cm;
-    vec3_t      mid;
+    const centity_t *ent;
+    const mmodel_t  *mod;
+    vec3_t          mid;
 
     if (entnum >= cl.csr.max_edicts)
         Com_Error(ERR_DROP, "%s: bad entity", __func__);
@@ -1458,9 +1483,9 @@ void CL_GetEntitySoundOrigin(unsigned entnum, vec3_t org)
 
     // offset the origin for BSP models
     if (ent->current.solid == PACKED_BSP) {
-        cm = cl.model_clip[ent->current.modelindex];
-        if (cm) {
-            VectorAvg(cm->mins, cm->maxs, mid);
+        mod = cl.model_clip[ent->current.modelindex];
+        if (mod) {
+            VectorAvg(mod->mins, mod->maxs, mid);
             VectorAdd(org, mid, org);
         }
     }

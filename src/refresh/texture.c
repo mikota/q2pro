@@ -233,7 +233,7 @@ static void IMG_ResampleTexture(const byte *in, int inwidth, int inheight,
     }
 }
 
-static void IMG_MipMap(byte *out, byte *in, int width, int height)
+static void IMG_MipMap(byte *out, const byte *in, int width, int height)
 {
     int     i, j;
 
@@ -419,10 +419,10 @@ static void GL_ColorInvertTexture(byte *in, int inwidth, int inheight, imagetype
     }
 }
 
-static bool GL_TextureHasAlpha(byte *data, int width, int height)
+static bool GL_TextureHasAlpha(const byte *data, int width, int height)
 {
     int         i, c;
-    byte        *scan;
+    const byte  *scan;
 
     c = width * height;
     scan = data + 3;
@@ -613,7 +613,7 @@ static void GL_Upscale32(byte *data, int width, int height, int maxlevel, imaget
     if (upload_width != width || upload_height != height) {
         float du    = upload_width / (float)width;
         float dv    = upload_height / (float)height;
-        float bias  = -log(max(du, dv)) / M_LN2;
+        float bias  = -log2f(max(du, dv));
 
         if (gl_config.caps & QGL_CAP_TEXTURE_LOD_BIAS)
             qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, bias);
@@ -766,7 +766,7 @@ void IMG_ReadPixels(screenshot_t *s)
     qglGetIntegerv(GL_PACK_ALIGNMENT, &align);
 
     s->bpp = format == GL_RGBA ? 4 : 3;
-    s->rowbytes = ALIGN(r_config.width * s->bpp, align);
+    s->rowbytes = Q_ALIGN(r_config.width * s->bpp, align);
     s->pixels = Z_Malloc(s->rowbytes * r_config.height);
     s->width = r_config.width;
     s->height = r_config.height;

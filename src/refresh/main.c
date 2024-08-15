@@ -32,7 +32,7 @@ entity_t gl_world;
 
 refcfg_t r_config;
 
-int registration_sequence;
+unsigned r_registration_sequence;
 
 draw_selection_t draw_selection;
 draw_crosses_t draw_crosses[MAX_DRAW_CROSSES];
@@ -110,8 +110,8 @@ static void GL_SetupFrustum(void)
 
     // right/left
     angle = DEG2RAD(glr.fd.fov_x / 2);
-    sf = sin(angle);
-    cf = cos(angle);
+    sf = sinf(angle);
+    cf = cosf(angle);
 
     VectorScale(glr.viewaxis[0], sf, forward);
     VectorScale(glr.viewaxis[1], cf, left);
@@ -121,8 +121,8 @@ static void GL_SetupFrustum(void)
 
     // top/bottom
     angle = DEG2RAD(glr.fd.fov_y / 2);
-    sf = sin(angle);
-    cf = cos(angle);
+    sf = sinf(angle);
+    cf = cosf(angle);
 
     VectorScale(glr.viewaxis[0], sf, forward);
     VectorScale(glr.viewaxis[2], cf, up);
@@ -5911,9 +5911,12 @@ static void GL_OccludeFlares(void)
 
         if (!q) {
             glquery_t new = { 0 };
+            uint32_t map_size = HashMap_Size(gl_static.queries);
+            if (map_size >= MAX_EDICTS)
+                continue;
             qglGenQueries(1, &new.query);
-            HashMap_Insert(gl_static.queries, &e->skinnum, &new);
-            q = HashMap_GetValue(glquery_t, gl_static.queries, HashMap_Size(gl_static.queries) - 1);
+            Q_assert(!HashMap_Insert(gl_static.queries, &e->skinnum, &new));
+            q = HashMap_GetValue(glquery_t, gl_static.queries, map_size);
         }
 
         make_flare_quad(e, 2.5f, points);
@@ -6127,7 +6130,7 @@ static void GL_WaterWarp(void)
     qglDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
-void R_RenderFrame(refdef_t *fd)
+void R_RenderFrame(const refdef_t *fd)
 {
     GL_Flush2D();
 
@@ -6310,7 +6313,7 @@ static void GL_Strings_f(void)
 
 static size_t GL_ViewCluster_m(char *buffer, size_t size)
 {
-    return Q_scnprintf(buffer, size, "%d", glr.viewcluster1);
+    return Q_snprintf(buffer, size, "%d", glr.viewcluster1);
 }
 
 static void gl_lightmap_changed(cvar_t *self)
@@ -6443,9 +6446,9 @@ static void APIENTRY myDebugProc(GLenum source, GLenum type, GLuint id, GLenum s
     int level = PRINT_DEVELOPER;
 
     switch (severity) {
-    case GL_DEBUG_SEVERITY_HIGH:   level = PRINT_ERROR;   break;
-    case GL_DEBUG_SEVERITY_MEDIUM: level = PRINT_WARNING; break;
-    case GL_DEBUG_SEVERITY_LOW:    level = PRINT_ALL;     break;
+        case GL_DEBUG_SEVERITY_HIGH:   level = PRINT_ERROR;   break;
+        case GL_DEBUG_SEVERITY_MEDIUM: level = PRINT_WARNING; break;
+        case GL_DEBUG_SEVERITY_LOW:    level = PRINT_ALL;     break;
     }
 
     Com_LPrintf(level, "%s\n", message);
@@ -6484,20 +6487,20 @@ static void GL_InitTables(void)
 
     for (i = 0; i < NUMVERTEXNORMALS; i++) {
         v = bytedirs[i];
-        lat = acos(v[2]);
-        lng = atan2(v[1], v[0]);
-        gl_static.latlngtab[i][0] = (int)(lat * (float)(255 / (2 * M_PI))) & 255;
-        gl_static.latlngtab[i][1] = (int)(lng * (float)(255 / (2 * M_PI))) & 255;
+        lat = acosf(v[2]);
+        lng = atan2f(v[1], v[0]);
+        gl_static.latlngtab[i][0] = (int)(lat * (255 / (2 * M_PIf))) & 255;
+        gl_static.latlngtab[i][1] = (int)(lng * (255 / (2 * M_PIf))) & 255;
     }
 
     for (i = 0; i < 256; i++) {
-        gl_static.sintab[i] = sin(i * (2 * M_PI / 255));
+        gl_static.sintab[i] = sinf(i * (2 * M_PIf / 255));
     }
 }
 
 static void GL_PostInit(void)
 {
-    registration_sequence = 1;
+    r_registration_sequence = 1;
 
     GL_ClearState();
     GL_InitImages();
@@ -6639,29 +6642,28 @@ void R_Shutdown(bool total)
 R_GetGLConfig
 ===============
 */
-r_opengl_config_t *R_GetGLConfig(void)
+void R_GetGLConfig(r_opengl_config_t *cfg)
 {
-    static r_opengl_config_t cfg;
+    memset(cfg, 0, sizeof(*cfg));
 
-    cfg.colorbits    = Cvar_ClampInteger(Cvar_Get("gl_colorbits",    "0", CVAR_REFRESH), 0, 32);
-    cfg.depthbits    = Cvar_ClampInteger(Cvar_Get("gl_depthbits",    "0", CVAR_REFRESH), 0, 32);
-    cfg.stencilbits  = Cvar_ClampInteger(Cvar_Get("gl_stencilbits",  "8", CVAR_REFRESH), 0,  8);
-    cfg.multisamples = Cvar_ClampInteger(Cvar_Get("gl_multisamples", "0", CVAR_REFRESH), 0, 32);
+    cfg->colorbits    = Cvar_ClampInteger(Cvar_Get("gl_colorbits",    "0", CVAR_REFRESH), 0, 32);
+    cfg->depthbits    = Cvar_ClampInteger(Cvar_Get("gl_depthbits",    "0", CVAR_REFRESH), 0, 32);
+    cfg->stencilbits  = Cvar_ClampInteger(Cvar_Get("gl_stencilbits",  "8", CVAR_REFRESH), 0,  8);
+    cfg->multisamples = Cvar_ClampInteger(Cvar_Get("gl_multisamples", "0", CVAR_REFRESH), 0, 32);
 
-    if (cfg.colorbits == 0)
-        cfg.colorbits = 24;
+    if (cfg->colorbits == 0)
+        cfg->colorbits = 24;
 
-    if (cfg.depthbits == 0)
-        cfg.depthbits = cfg.colorbits > 16 ? 24 : 16;
+    if (cfg->depthbits == 0)
+        cfg->depthbits = cfg->colorbits > 16 ? 24 : 16;
 
-    if (cfg.depthbits < 24)
-        cfg.stencilbits = 0;
+    if (cfg->depthbits < 24)
+        cfg->stencilbits = 0;
 
-    if (cfg.multisamples < 2)
-        cfg.multisamples = 0;
+    if (cfg->multisamples < 2)
+        cfg->multisamples = 0;
 
-    cfg.debug = Cvar_Get("gl_debug", "0", CVAR_REFRESH)->integer;
-    return &cfg;
+    cfg->debug = Cvar_Get("gl_debug", "0", CVAR_REFRESH)->integer;
 }
 
 /*
@@ -6674,7 +6676,7 @@ void R_BeginRegistration(const char *name)
     char fullname[MAX_QPATH];
 
     gl_static.registering = true;
-    registration_sequence++;
+    r_registration_sequence++;
 
     memset(&glr, 0, sizeof(glr));
     glr.viewcluster1 = glr.viewcluster2 = -2;

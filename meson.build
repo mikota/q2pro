@@ -285,7 +285,7 @@ if system_wide
   homedir = get_option('homedir')
 endif
 
-common_args = ['-DHAVE_CONFIG_H', '-DUSE_PROTOCOL_EXTENSIONS=1']
+common_args = ['-DHAVE_CONFIG_H']
 if win32
   common_args += '-D_USE_MATH_DEFINES'
 else
@@ -310,6 +310,7 @@ if cc.get_argument_syntax() == 'gcc'
     '-fsigned-char',
     '-fms-extensions',
     '-fno-math-errno',
+    '-fno-trapping-math',
     '-Wpointer-arith',
     '-Wformat-security',
     '-Werror=vla',
@@ -347,6 +348,8 @@ add_project_link_arguments(common_link_args, language: 'c')
 
 config = configuration_data()
 
+texture_formats = []
+
 fallback_opt = ['default_library=static']
 
 zlib = dependency('zlib',
@@ -363,6 +366,9 @@ png = dependency('libpng',
   required:        get_option('libpng'),
   default_options: fallback_opt,
 )
+if png.found()
+  texture_formats += 'png'
+endif
 
 config.set10('USE_ZLIB', zlib.found())
 config.set10('USE_PNG', png.found())
@@ -405,11 +411,17 @@ if jpeg.found()
   endif
   if has_rgba
     client_deps += jpeg
+    texture_formats += 'jpg'
     config.set10('USE_JPG', true)
   endif
 endif
 
+if get_option('tga')
+  texture_formats += 'tga'
+endif
+
 openal = dependency('openal',
+  version:         '>= 1.18.0',
   required:        get_option('openal'),
   default_options: fallback_opt,
 )
@@ -619,6 +631,7 @@ if not win32
   config.set_quoted('LIBDIR',     libdir)
   config.set_quoted('HOMEDIR',    homedir)
 endif
+config.set_quoted('R_TEXTURE_FORMATS', ' '.join(texture_formats))
 config.set_quoted('VID_GEOMETRY', get_option('vid-geometry'))
 config.set_quoted('VID_MODELIST', get_option('vid-modelist'))
 
@@ -631,6 +644,7 @@ config.set10('USE_MD5',           get_option('md5'))
 config.set10('USE_PACKETDUP',     get_option('packetdup-hack'))
 config.set10('USE_TGA',           get_option('tga'))
 config.set10('USE_' + host_machine.endian().to_upper() + '_ENDIAN', true)
+config.set10('USE_PROTOCOL_EXTENSIONS', true)
 
 configure_file(output: 'config.h', configuration: config)
 

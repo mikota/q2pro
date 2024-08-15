@@ -57,8 +57,8 @@ the allow underflow flag as appropriate.
 */
 void MSG_Init(void)
 {
-    SZ_TagInit(&msg_read, msg_read_buffer, MAX_MSGLEN, "msg_read");
-    SZ_TagInit(&msg_write, msg_write_buffer, MAX_MSGLEN, "msg_write");
+    SZ_Init(&msg_read, msg_read_buffer, MAX_MSGLEN, "msg_read");
+    SZ_Init(&msg_write, msg_write_buffer, MAX_MSGLEN, "msg_write");
 }
 
 
@@ -450,20 +450,26 @@ void MSG_WriteDir(const vec3_t dir)
     MSG_WriteByte(best);
 }
 
+#define PACK_COORDS(out, in)        \
+    (out[0] = COORD2SHORT(in[0]),   \
+     out[1] = COORD2SHORT(in[1]),   \
+     out[2] = COORD2SHORT(in[2]))
+
+#define PACK_ANGLES(out, in)        \
+    (out[0] = ANGLE2SHORT(in[0]),   \
+     out[1] = ANGLE2SHORT(in[1]),   \
+     out[2] = ANGLE2SHORT(in[2]))
+
 void MSG_PackEntity(entity_packed_t *out, const entity_state_t *in, const entity_state_extension_t *ext)
 {
     // allow 0 to accomodate empty baselines
     Q_assert(in->number >= 0 && in->number < MAX_EDICTS);
     out->number = in->number;
-    out->origin[0] = COORD2SHORT(in->origin[0]);
-    out->origin[1] = COORD2SHORT(in->origin[1]);
-    out->origin[2] = COORD2SHORT(in->origin[2]);
-    out->angles[0] = ANGLE2SHORT(in->angles[0]);
-    out->angles[1] = ANGLE2SHORT(in->angles[1]);
-    out->angles[2] = ANGLE2SHORT(in->angles[2]);
-    out->old_origin[0] = COORD2SHORT(in->old_origin[0]);
-    out->old_origin[1] = COORD2SHORT(in->old_origin[1]);
-    out->old_origin[2] = COORD2SHORT(in->old_origin[2]);
+
+    PACK_COORDS(out->origin, in->origin);
+    PACK_COORDS(out->old_origin, in->old_origin);
+    PACK_ANGLES(out->angles, in->angles);
+
     out->modelindex = in->modelindex;
     out->modelindex2 = in->modelindex2;
     out->modelindex3 = in->modelindex3;
@@ -475,6 +481,7 @@ void MSG_PackEntity(entity_packed_t *out, const entity_state_t *in, const entity
     out->frame = in->frame;
     out->sound = in->sound;
     out->event = in->event;
+
     if (ext) {
         out->morefx = ext->morefx;
         out->alpha = Q_clip_uint8(ext->alpha * 255.0f);
@@ -782,24 +789,36 @@ void MSG_WriteDeltaEntity(const entity_packed_t *from,
 }
 
 #define OFFSET2CHAR(x)  Q_clip_int8((x) * 4)
+#define BLEND2BYTE(x)   Q_clip_uint8((x) * 255)
+
+#define PACK_OFFSET(out, in)        \
+    (out[0] = OFFSET2CHAR(in[0]),   \
+     out[1] = OFFSET2CHAR(in[1]),   \
+     out[2] = OFFSET2CHAR(in[2]))
+
+#define PACK_BLEND(out, in)        \
+    (out[0] = BLEND2BYTE(in[0]),   \
+     out[1] = BLEND2BYTE(in[1]),   \
+     out[2] = BLEND2BYTE(in[2]),   \
+     out[3] = BLEND2BYTE(in[3]))
 
 void MSG_PackPlayer(player_packed_t *out, const player_state_t *in)
 {
-    int i;
-
     out->pmove = in->pmove;
-    for (i = 0; i < 3; i++) out->viewangles[i] = ANGLE2SHORT(in->viewangles[i]);
-    for (i = 0; i < 3; i++) out->viewoffset[i] = OFFSET2CHAR(in->viewoffset[i]);
-    for (i = 0; i < 3; i++) out->kick_angles[i] = OFFSET2CHAR(in->kick_angles[i]);
-    for (i = 0; i < 3; i++) out->gunoffset[i] = OFFSET2CHAR(in->gunoffset[i]);
-    for (i = 0; i < 3; i++) out->gunangles[i] = OFFSET2CHAR(in->gunangles[i]);
+
+    PACK_ANGLES(out->viewangles, in->viewangles);
+    PACK_OFFSET(out->viewoffset, in->viewoffset);
+    PACK_OFFSET(out->kick_angles, in->kick_angles);
+    PACK_OFFSET(out->gunoffset, in->gunoffset);
+    PACK_OFFSET(out->gunangles, in->gunangles);
+
     out->gunindex = in->gunindex;
     out->gunframe = in->gunframe;
-    for (i = 0; i < 4; i++)
-        out->blend[i] = Q_clip_uint8(in->blend[i] * 255);
-    out->fov = (int)in->fov;
+    PACK_BLEND(out->blend, in->blend);
+    out->fov = Q_clip_uint8(in->fov);
     out->rdflags = in->rdflags;
-    for (i = 0; i < MAX_STATS; i++)
+
+    for (int i = 0; i < MAX_STATS; i++)
         out->stats[i] = in->stats[i];
 }
 
@@ -907,11 +926,8 @@ void MSG_WriteDeltaPlayerstate_Default(const player_packed_t *from, const player
     //
     // write the rest of the player_state_t
     //
-    if (pflags & PS_VIEWOFFSET) {
-        MSG_WriteChar(to->viewoffset[0]);
-        MSG_WriteChar(to->viewoffset[1]);
-        MSG_WriteChar(to->viewoffset[2]);
-    }
+    if (pflags & PS_VIEWOFFSET)
+        MSG_WriteData(to->viewoffset, sizeof(to->viewoffset));
 
     if (pflags & PS_VIEWANGLES) {
         MSG_WriteShort(to->viewangles[0]);
@@ -919,11 +935,8 @@ void MSG_WriteDeltaPlayerstate_Default(const player_packed_t *from, const player
         MSG_WriteShort(to->viewangles[2]);
     }
 
-    if (pflags & PS_KICKANGLES) {
-        MSG_WriteChar(to->kick_angles[0]);
-        MSG_WriteChar(to->kick_angles[1]);
-        MSG_WriteChar(to->kick_angles[2]);
-    }
+    if (pflags & PS_KICKANGLES)
+        MSG_WriteData(to->kick_angles, sizeof(to->kick_angles));
 
     if (pflags & PS_WEAPONINDEX) {
         if (flags & MSG_PS_EXTENSIONS)
@@ -934,20 +947,12 @@ void MSG_WriteDeltaPlayerstate_Default(const player_packed_t *from, const player
 
     if (pflags & PS_WEAPONFRAME) {
         MSG_WriteByte(to->gunframe);
-        MSG_WriteChar(to->gunoffset[0]);
-        MSG_WriteChar(to->gunoffset[1]);
-        MSG_WriteChar(to->gunoffset[2]);
-        MSG_WriteChar(to->gunangles[0]);
-        MSG_WriteChar(to->gunangles[1]);
-        MSG_WriteChar(to->gunangles[2]);
+        MSG_WriteData(to->gunoffset, sizeof(to->gunoffset));
+        MSG_WriteData(to->gunangles, sizeof(to->gunangles));
     }
 
-    if (pflags & PS_BLEND) {
-        MSG_WriteByte(to->blend[0]);
-        MSG_WriteByte(to->blend[1]);
-        MSG_WriteByte(to->blend[2]);
-        MSG_WriteByte(to->blend[3]);
-    }
+    if (pflags & PS_BLEND)
+        MSG_WriteData(to->blend, sizeof(to->blend));
 
     if (pflags & PS_FOV)
         MSG_WriteByte(to->fov);
@@ -1137,11 +1142,8 @@ int MSG_WriteDeltaPlayerstate_Enhanced(const player_packed_t    *from,
     //
     // write the rest of the player_state_t
     //
-    if (pflags & PS_VIEWOFFSET) {
-        MSG_WriteChar(to->viewoffset[0]);
-        MSG_WriteChar(to->viewoffset[1]);
-        MSG_WriteChar(to->viewoffset[2]);
-    }
+    if (pflags & PS_VIEWOFFSET)
+        MSG_WriteData(to->viewoffset, sizeof(to->viewoffset));
 
     if (pflags & PS_VIEWANGLES) {
         MSG_WriteShort(to->viewangles[0]);
@@ -1151,11 +1153,8 @@ int MSG_WriteDeltaPlayerstate_Enhanced(const player_packed_t    *from,
     if (eflags & EPS_VIEWANGLE2)
         MSG_WriteShort(to->viewangles[2]);
 
-    if (pflags & PS_KICKANGLES) {
-        MSG_WriteChar(to->kick_angles[0]);
-        MSG_WriteChar(to->kick_angles[1]);
-        MSG_WriteChar(to->kick_angles[2]);
-    }
+    if (pflags & PS_KICKANGLES)
+        MSG_WriteData(to->kick_angles, sizeof(to->kick_angles));
 
     if (pflags & PS_WEAPONINDEX) {
         if (flags & MSG_PS_EXTENSIONS)
@@ -1167,24 +1166,14 @@ int MSG_WriteDeltaPlayerstate_Enhanced(const player_packed_t    *from,
     if (pflags & PS_WEAPONFRAME)
         MSG_WriteByte(to->gunframe);
 
-    if (eflags & EPS_GUNOFFSET) {
-        MSG_WriteChar(to->gunoffset[0]);
-        MSG_WriteChar(to->gunoffset[1]);
-        MSG_WriteChar(to->gunoffset[2]);
-    }
+    if (eflags & EPS_GUNOFFSET)
+        MSG_WriteData(to->gunoffset, sizeof(to->gunoffset));
 
-    if (eflags & EPS_GUNANGLES) {
-        MSG_WriteChar(to->gunangles[0]);
-        MSG_WriteChar(to->gunangles[1]);
-        MSG_WriteChar(to->gunangles[2]);
-    }
+    if (eflags & EPS_GUNANGLES)
+        MSG_WriteData(to->gunangles, sizeof(to->gunangles));
 
-    if (pflags & PS_BLEND) {
-        MSG_WriteByte(to->blend[0]);
-        MSG_WriteByte(to->blend[1]);
-        MSG_WriteByte(to->blend[2]);
-        MSG_WriteByte(to->blend[3]);
-    }
+    if (pflags & PS_BLEND)
+        MSG_WriteData(to->blend, sizeof(to->blend));
 
     if (pflags & PS_FOV)
         MSG_WriteByte(to->fov);
@@ -1594,11 +1583,8 @@ void MSG_WriteDeltaPlayerstate_Packet(const player_packed_t *from,
     //
     // write the rest of the player_state_t
     //
-    if (pflags & PPS_VIEWOFFSET) {
-        MSG_WriteChar(to->viewoffset[0]);
-        MSG_WriteChar(to->viewoffset[1]);
-        MSG_WriteChar(to->viewoffset[2]);
-    }
+    if (pflags & PPS_VIEWOFFSET)
+        MSG_WriteData(to->viewoffset, sizeof(to->viewoffset));
 
     if (pflags & PPS_VIEWANGLES) {
         MSG_WriteShort(to->viewangles[0]);
@@ -1608,11 +1594,8 @@ void MSG_WriteDeltaPlayerstate_Packet(const player_packed_t *from,
     if (pflags & PPS_VIEWANGLE2)
         MSG_WriteShort(to->viewangles[2]);
 
-    if (pflags & PPS_KICKANGLES) {
-        MSG_WriteChar(to->kick_angles[0]);
-        MSG_WriteChar(to->kick_angles[1]);
-        MSG_WriteChar(to->kick_angles[2]);
-    }
+    if (pflags & PPS_KICKANGLES)
+        MSG_WriteData(to->kick_angles, sizeof(to->kick_angles));
 
     if (pflags & PPS_WEAPONINDEX) {
         if (flags & MSG_PS_EXTENSIONS)
@@ -1624,24 +1607,14 @@ void MSG_WriteDeltaPlayerstate_Packet(const player_packed_t *from,
     if (pflags & PPS_WEAPONFRAME)
         MSG_WriteByte(to->gunframe);
 
-    if (pflags & PPS_GUNOFFSET) {
-        MSG_WriteChar(to->gunoffset[0]);
-        MSG_WriteChar(to->gunoffset[1]);
-        MSG_WriteChar(to->gunoffset[2]);
-    }
+    if (pflags & PPS_GUNOFFSET)
+        MSG_WriteData(to->gunoffset, sizeof(to->gunoffset));
 
-    if (pflags & PPS_GUNANGLES) {
-        MSG_WriteChar(to->gunangles[0]);
-        MSG_WriteChar(to->gunangles[1]);
-        MSG_WriteChar(to->gunangles[2]);
-    }
+    if (pflags & PPS_GUNANGLES)
+        MSG_WriteData(to->gunangles, sizeof(to->gunangles));
 
-    if (pflags & PPS_BLEND) {
-        MSG_WriteByte(to->blend[0]);
-        MSG_WriteByte(to->blend[1]);
-        MSG_WriteByte(to->blend[2]);
-        MSG_WriteByte(to->blend[3]);
-    }
+    if (pflags & PPS_BLEND)
+        MSG_WriteData(to->blend, sizeof(to->blend));
 
     if (pflags & PPS_FOV)
         MSG_WriteByte(to->fov);
@@ -1817,7 +1790,7 @@ static inline float MSG_ReadCoord(void)
     return SHORT2COORD(MSG_ReadShort());
 }
 
-#if !USE_CLIENT
+#if USE_SERVER
 static inline
 #endif
 void MSG_ReadPos(vec3_t pos)

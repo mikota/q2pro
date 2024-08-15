@@ -73,12 +73,11 @@ static void CL_ParseDeltaEntity(server_frame_t           *frame,
     }
 }
 
-static void CL_ParsePacketEntities(server_frame_t *oldframe,
-                                   server_frame_t *frame)
+static void CL_ParsePacketEntities(const server_frame_t *oldframe, server_frame_t *frame)
 {
-    uint64_t        bits;
-    centity_state_t *oldstate;
-    int             i, oldindex, oldnum, newnum;
+    uint64_t                bits;
+    const centity_state_t   *oldstate;
+    int                     i, oldindex, oldnum, newnum;
 
     frame->firstEntity = cl.numEntityStates;
     frame->numEntities = 0;
@@ -92,8 +91,8 @@ static void CL_ParsePacketEntities(server_frame_t *oldframe,
         if (oldindex >= oldframe->numEntities) {
             oldnum = MAX_EDICTS;
         } else {
-            i = oldframe->firstEntity + oldindex;
-            oldstate = &cl.entityStates[i & PARSE_ENTITIES_MASK];
+            i = (oldframe->firstEntity + oldindex) & PARSE_ENTITIES_MASK;
+            oldstate = &cl.entityStates[i];
             oldnum = oldstate->number;
         }
     }
@@ -118,8 +117,8 @@ static void CL_ParsePacketEntities(server_frame_t *oldframe,
             if (oldindex >= oldframe->numEntities) {
                 oldnum = MAX_EDICTS;
             } else {
-                i = oldframe->firstEntity + oldindex;
-                oldstate = &cl.entityStates[i & PARSE_ENTITIES_MASK];
+                i = (oldframe->firstEntity + oldindex) & PARSE_ENTITIES_MASK;
+                oldstate = &cl.entityStates[i];
                 oldnum = oldstate->number;
             }
         }
@@ -139,8 +138,8 @@ static void CL_ParsePacketEntities(server_frame_t *oldframe,
             if (oldindex >= oldframe->numEntities) {
                 oldnum = MAX_EDICTS;
             } else {
-                i = oldframe->firstEntity + oldindex;
-                oldstate = &cl.entityStates[i & PARSE_ENTITIES_MASK];
+                i = (oldframe->firstEntity + oldindex) & PARSE_ENTITIES_MASK;
+                oldstate = &cl.entityStates[i];
                 oldnum = oldstate->number;
             }
             continue;
@@ -159,8 +158,8 @@ static void CL_ParsePacketEntities(server_frame_t *oldframe,
             if (oldindex >= oldframe->numEntities) {
                 oldnum = MAX_EDICTS;
             } else {
-                i = oldframe->firstEntity + oldindex;
-                oldstate = &cl.entityStates[i & PARSE_ENTITIES_MASK];
+                i = (oldframe->firstEntity + oldindex) & PARSE_ENTITIES_MASK;
+                oldstate = &cl.entityStates[i];
                 oldnum = oldstate->number;
             }
             continue;
@@ -189,8 +188,8 @@ static void CL_ParsePacketEntities(server_frame_t *oldframe,
         if (oldindex >= oldframe->numEntities) {
             oldnum = MAX_EDICTS;
         } else {
-            i = oldframe->firstEntity + oldindex;
-            oldstate = &cl.entityStates[i & PARSE_ENTITIES_MASK];
+            i = (oldframe->firstEntity + oldindex) & PARSE_ENTITIES_MASK;
+            oldstate = &cl.entityStates[i];
             oldnum = oldstate->number;
         }
     }
@@ -198,12 +197,11 @@ static void CL_ParsePacketEntities(server_frame_t *oldframe,
 
 static void CL_ParseFrame(int extrabits)
 {
-    uint32_t bits, extraflags;
-    int     currentframe, deltaframe,
-            delta, suppressed;
-    server_frame_t  frame, *oldframe;
-    player_state_t  *from;
-    int     length;
+    uint32_t                bits, extraflags;
+    int                     currentframe, deltaframe, delta, suppressed, length;
+    server_frame_t          frame;
+    const server_frame_t    *oldframe;
+    const player_state_t    *from;
 
     memset(&frame, 0, sizeof(frame));
 
@@ -261,6 +259,10 @@ static void CL_ParseFrame(int extrabits)
     } else {
         currentframe = MSG_ReadLong();
         deltaframe = MSG_ReadLong();
+
+        if (currentframe < 0) {
+            Com_Error(ERR_DROP, "%s: currentframe < 0", __func__);
+        }
 
         // BIG HACK to let old demos continue to work
         if (cls.serverProtocol != PROTOCOL_VERSION_OLD) {
@@ -471,7 +473,7 @@ static void CL_ParseConfigstring(int index)
     }
 
     s = cl.configstrings[index];
-    maxlen = CS_SIZE(&cl.csr, index);
+    maxlen = Com_ConfigstringSize(&cl.csr, index);
     len = MSG_ReadString(s, maxlen);
 
     SHOWNET(2, "    %d \"%s\"\n", index, Com_MakePrintable(s));
@@ -972,7 +974,7 @@ static void CL_ParseStartSoundPacket(void)
 {
     int flags, channel, entity;
 
-    flags = MSG_ReadByte();
+    snd.flags = flags = MSG_ReadByte();
 
     if (cl.csr.extended && flags & SND_INDEX16)
         snd.index = MSG_ReadWord();
@@ -1013,8 +1015,6 @@ static void CL_ParseStartSoundPacket(void)
     // positioned in space
     if (flags & SND_POS)
         MSG_ReadPos(snd.pos);
-
-    snd.flags = flags;
 
     SHOWNET(2, "    %s\n", cl.configstrings[cl.csr.sounds + snd.index]);
 }
@@ -1268,8 +1268,7 @@ static void CL_ParseZPacket(void)
     }
 
     temp = msg_read;
-    SZ_Init(&msg_read, buffer, sizeof(buffer));
-    msg_read.cursize = outlen;
+    SZ_InitRead(&msg_read, buffer, outlen);
 
     CL_ParseServerMessage();
 
@@ -1289,7 +1288,7 @@ static void set_server_fps(int value)
     // fix time delta
     if (cls.state == ca_active) {
         int delta = cl.frame.number - cl.servertime / cl.frametime.time;
-        cl.serverdelta = Q_align(delta, cl.frametime.div);
+        cl.serverdelta = Q_align_down(delta, cl.frametime.div);
     }
 
     Com_DPrintf("client framediv=%d time=%d delta=%d\n",
