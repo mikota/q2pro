@@ -245,17 +245,17 @@ qboolean BOTLIB_SV_Cmds(void)
 qboolean BOTLIB_Commands(edict_t* ent)
 {
 	char* cmd = gi.argv(0);
-	if (Q_stricmp(cmd, "dc_save_aas") == 0) // Save AAS
-	{
-		ACEND_SaveAAS(true);
-		return true;
-	}
-	else if (Q_stricmp(cmd, "an") == 0) // add node
-	{
-		ACEND_BSP(ent);
-		return true;
-	}
-	else if (Q_stricmp(cmd, "randomize_team_names") == 0) // Manually randomize team names
+	// if (Q_stricmp(cmd, "dc_save_aas") == 0) // Save AAS
+	// {
+	// 	ACEND_SaveAAS(true);
+	// 	return true;
+	// }
+	// else if (Q_stricmp(cmd, "an") == 0) // add node
+	// {
+	// 	ACEND_BSP(ent);
+	// 	return true;
+	// }
+	if (Q_stricmp(cmd, "randomize_team_names") == 0) // Manually randomize team names
 	{
 		BOTLIB_RandomizeTeamNames(ent);
 		return true;
