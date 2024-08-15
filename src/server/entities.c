@@ -293,6 +293,9 @@ static bool SV_EmitPacketEntities(client_t *client, const client_frame_t *from,
 
     MSG_WriteShort(0);      // end of packetentities
 
+// This was moved from SV_WriteFrameToClient_Aqtion() because its
+// return type changed from void to bool and it's now returning SV_EmitPacketEntities()
+// rather than just calling it
 #if AQTION_EXTENSION
     if(from)
         SV_Ghud_SendUpdateToClient(client, from, to);
