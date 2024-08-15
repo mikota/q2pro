@@ -541,6 +541,30 @@ static void dump_clients(void)
     }
 }
 
+
+static void dump_bot_clients(void)
+{
+    // Display nothing if no bots
+    if (!bot_clients[0].in_use) {
+        return;
+    }
+
+    Com_Printf(
+        "\n"
+        "Bot Clients.\n"
+        "num score ping name\n"
+        "--- ----- ---- ---------------\n");
+
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if(bot_clients[i].in_use) {
+            Com_Printf("%3i %5i ", bot_clients[i].number, bot_clients[i].score);
+            Com_Printf("%4i ", bot_clients[i].ping);
+            Com_Printf("%-15.15s ", bot_clients[i].name);
+            Com_Printf("\n");
+        }
+    }
+}
+
 static void dump_versions(void)
 {
     client_t    *client;
@@ -701,6 +725,11 @@ static void SV_Status_f(void)
         }
     }
     Com_Printf("\n");
+
+    #ifndef NO_BOTS
+    dump_bot_clients();
+    Com_Printf("\n");
+    #endif
 
     SV_MvdStatus_f();
 }

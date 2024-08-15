@@ -287,6 +287,13 @@ void LaserSightThink(edict_t * self)
 
 void Cmd_New_Reload_f(edict_t * ent)
 {
+	//rekkie -- walknodes -- s
+	if (ent->is_bot == false && dedicated->value == 0 && players[0] == ent && ent->bot.walknode.enabled)
+	{
+		BOTLIB_ChangeNodeFunction(ent); // Change the node function using reload key
+	}
+	//rekkie -- walknodes -- e
+
 //FB 6/1/99 - refuse to reload during LCA
 	if (lights_camera_action)
 		return;
@@ -1354,6 +1361,10 @@ void generate_uuid(void)
 }
 #endif
 
+
+//rekkie -- DEV_1 -- s
+// original code -- disabled
+/*
 #ifndef NO_BOTS
 void Cmd_Placenode_f (edict_t *ent)
 {
@@ -1367,6 +1378,8 @@ void Cmd_Placenode_f (edict_t *ent)
 		ACEND_AddNode(ent,NODE_MOVE);
 }
 #endif
+*/
+//rekkie -- DEV_1 -- e
 
 void Cmd_Volunteer_f(edict_t * ent)
 {

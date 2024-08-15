@@ -4,7 +4,7 @@ project('q2pro', 'c',
   meson_version: '>= 0.59.0',
   default_options: [
     'c_std=c11',
-    'buildtype=debugoptimized',
+    'buildtype=release',
   ],
 )
 
@@ -231,6 +231,22 @@ ltk_src = [
   'src/action/acesrc/botscan.c'
 ]
 
+botlib_src = [
+  'src/action/botlib/botlib_ai.c',
+  'src/action/botlib/botlib_cmd.c',
+  'src/action/botlib/botlib_communication.c',
+  'src/action/botlib/botlib_ctf.c',
+  'src/action/botlib/botlib_items.c',
+  'src/action/botlib/botlib_math.c',
+  'src/action/botlib/botlib_movement.c',
+  'src/action/botlib/botlib_nav.c',
+  'src/action/botlib/botlib_nodes.c',
+  'src/action/botlib/botlib_spawn.c',
+  'src/action/botlib/botlib_spawnpoints.c',
+  'src/action/botlib/botlib_weapons.c',
+  'src/action/botlib/botlib_personality.c'
+]
+
 cc = meson.get_compiler('c')
 
 win32 = host_machine.system() == 'windows'
@@ -240,6 +256,8 @@ cpuremap = {
   'x86': win32 ? 'x86' : 'i386',
   'aarch64': 'arm64',
 }
+
+inc_dirs = ['inc']
 
 cpu = host_machine.cpu_family()
 if cpu in cpuremap
@@ -318,10 +336,14 @@ if cc.get_argument_syntax() == 'gcc'
   endif
 elif cc.get_id() == 'msvc'
   common_args += ['/wd4146', '/wd4244', '/wd4305']
+else
+  dll_link_args += '--no-relax'
 endif
 
 add_project_arguments(common_args, language: 'c')
 add_project_link_arguments(common_link_args, language: 'c')
+# add_project_arguments('-fsanitize=address', language: 'c')
+# add_project_link_arguments('-fsanitize=address', language: 'c')
 
 config = configuration_data()
 
@@ -397,13 +419,29 @@ if openal.found()
   config.set10('USE_OPENAL', true)
 endif
 
+# libjansson required for botlib
+jansson_dep = dependency('jansson',
+  version:         '>= 2.8',
+  fallback:        ['jansson', 'jansson_dep'],
+  required:        true  # Or set to true/false as needed
+)
+if jansson_dep.found()
+  game_deps += jansson_dep
+  #dll_link_args += '-ljansson'
+endif
+
 if not win32
   uuid = dependency('uuid',
     required:        get_option('uuid'),
     allow_fallback:  win32,
     default_options: fallback_opt,
   )
-  game_deps += uuid
+  
+  if uuid.found()
+    client_deps += uuid
+    config.set10('USE_UUID', true)
+    dll_link_args += '-luuid'
+  endif
 endif
 
 if host_machine.system() == 'darwin'
@@ -414,6 +452,13 @@ if host_machine.system() == 'darwin'
     default_options: fallback_opt,
   )
   client_deps += opengl
+  if host_machine.cpu_family() == 'x86_64' # Intel
+    inc_dirs += '/usr/local/include'
+    dll_link_args += '-L/usr/local/lib'
+  else                                     # Apple Silicon
+    inc_dirs += '/opt/homebrew/include'
+    dll_link_args += '-L/opt/homebrew/lib'
+  endif
 endif
 
 # require FFmpeg >= 5.1.3
@@ -489,6 +534,7 @@ if get_option('aqtion-build')
   config.set10('AQTION_EXTENSION', true)
   config.set10('AQTION_HUD', true)
   action_src += ltk_src
+  action_src += botlib_src
 
   # Win32 winsock compat
   if win32
@@ -533,7 +579,7 @@ endif
 
 executable('q2pro', common_src, client_src, refresh_src,
   dependencies:          common_deps + client_deps,
-  include_directories:   'inc',
+  include_directories:   inc_dirs,
   gnu_symbol_visibility: 'hidden',
   win_subsystem:         'windows,6.0',
   link_args:             exe_link_args,
@@ -543,7 +589,7 @@ executable('q2pro', common_src, client_src, refresh_src,
 
 executable('q2proded', common_src, server_src,
   dependencies:          common_deps + server_deps,
-  include_directories:   'inc',
+  include_directories:   inc_dirs,
   gnu_symbol_visibility: 'hidden',
   win_subsystem:         'console,6.0',
   link_args:             exe_link_args,
@@ -554,7 +600,7 @@ executable('q2proded', common_src, server_src,
 shared_library('game' + cpu, action_src,
   name_prefix:           '',
   dependencies:          game_deps,
-  include_directories:   'inc',
+  include_directories:   inc_dirs,
   gnu_symbol_visibility: 'hidden',
   link_args:             dll_link_args,
   install:               system_wide,

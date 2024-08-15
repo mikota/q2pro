@@ -1264,6 +1264,60 @@ void AddSplat(edict_t * self, vec3_t point, trace_t * tr)
 	gi.linkentity(splat);
 }
 
+const char* PrintWeaponName( int weapon )
+{
+	switch( weapon )
+	{
+		case MK23_NUM:
+			return MK23_NAME;
+		case MP5_NUM:
+			return MP5_NAME;
+		case M4_NUM:
+			return M4_NAME;
+		case M3_NUM:
+			return M3_NAME;
+		case HC_NUM:
+			return HC_NAME;
+		case SNIPER_NUM:
+			return SNIPER_NAME;
+		case DUAL_NUM:
+			return DUAL_NAME;
+		case KNIFE_NUM:
+			return KNIFE_NAME;
+		case GRENADE_NUM:
+			return GRENADE_NAME;
+		default:
+			return "unknown";
+	}
+}
+
+const char* PrintItemName( int item )
+{
+	switch( item )
+	{
+		case KEV_NUM:
+			return KEV_NAME;
+		case LASER_NUM:
+			return LASER_NAME;
+		case SLIP_NUM:
+			return SLIP_NAME;
+		case SIL_NUM:
+			return SIL_NAME;
+		case BAND_NUM:
+			return BAND_NAME;
+		case HELM_NUM:
+			return HELM_NAME;
+		case C_KIT_NUM:
+			return C_KIT_NAME;
+		case S_KIT_NUM:
+			return S_KIT_NAME;
+		case A_KIT_NUM:
+			return A_KIT_NAME;
+		default:
+			return "unknown";
+	}
+}
+
 /* %-variables for chat msgs */
 
 void GetWeaponName( edict_t *ent, char *buf )

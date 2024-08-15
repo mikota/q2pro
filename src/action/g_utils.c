@@ -626,6 +626,8 @@ qboolean KillBox (edict_t * ent)
 		if (!tr.ent)
 			break;
 
+		if (tr.ent && tr.ent == ent) break; //rekkie -- prevent bots from killing themselves on first spawn
+
 		// nail it
 		T_Damage (tr.ent, ent, ent, vec3_origin, ent->s.origin, vec3_origin,
 			100000, 0, DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
@@ -760,4 +762,8 @@ based on variable FPS (HZ)
 */
 int eztimer(int seconds){
 	return (level.framenum + seconds * HZ);
+}
+
+float sigmoid(float x) {
+    return 1 / (1 + exp(-x));
 }

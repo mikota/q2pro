@@ -19,6 +19,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #pragma once
 
 #include "shared/list.h"
+#include "common/bsp.h"
 
 //
 // game.h -- game dll information visible to server
@@ -227,8 +228,28 @@ typedef struct {
 #if AQTION_EXTENSION
 	void *(*CheckForExtension)(char *text);
 #endif
-} game_import_t;
+//rekkie -- BSP -- s
+    bsp_t* (*Bsp)(void);
+    //rekkie -- BSP -- e
+    //rekkie -- surface data -- s
+    nav_t* (*Nav)(void);
+    //rekkie -- debug drawing -- s
+#if DEBUG_DRAWING
+    debug_draw_t* (*Draw)(void);
+//#if USE_REF
+//    void (*GL_DrawArrow)(vec3_t start, vec3_t end, const uint32_t color, float line_width);
+//#endif
+#endif
+    surface_data_t* (*SurfaceData)(void);
+    //rekkie -- surface data -- e
 
+    //rekkie -- Fake Bot Client -- s
+    void (*SV_BotUpdateInfo)(char* name, int ping, int score);
+    void (*SV_BotConnect)(char* name);
+    void (*SV_BotDisconnect)(char* name);
+    void (*SV_BotClearClients)(void);
+    //rekkie -- Fake Bot Client -- e
+} game_import_t;
 //
 // functions exported by the game subsystem
 //
