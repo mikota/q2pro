@@ -763,3 +763,7 @@ based on variable FPS (HZ)
 int eztimer(int seconds){
 	return (level.framenum + seconds * HZ);
 }
+
+float sigmoid(float x) {
+    return 1 / (1 + exp(-x));
+}

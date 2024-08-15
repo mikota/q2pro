@@ -26,11 +26,13 @@ void BOTLIB_Init(edict_t* self)
 
 	// Save previous data
 	float prev_skill = self->bot.skill;
+	int pId = self->bot.personality.pId;
 
 	memset(&self->bot, 0, sizeof(bot_t));
 
 	// Restore previous data
 	self->bot.skill = prev_skill;
+	self->bot.personality.pId = pId;
 
 	// Ping
 	// Set the average ping this bot will see
@@ -73,7 +75,6 @@ void BOTLIB_Init(edict_t* self)
 	self->bot.last_sniper_zoom_time = 0;
 	self->bot.last_weapon_change_time = 0;
 
-
 	if (teamplay->value) // Reset bot radio at the start of each round
 	{
 		// Radio
@@ -97,6 +98,18 @@ void BOTLIB_Init(edict_t* self)
 		AssignSkin(self, s, false /* nickChanged */);
 	}
 
+	// Bot personalities
+	if (bot_personality->value) {
+		BOTLIB_LoadBotPersonality(self);
+
+		// Bot skill adjustment based on map and other prefs
+		// Simple adjustments for now
+		int skillPlus = 0;
+		skillPlus += self->bot.personality.map_prefs;
+		self->bot.skill += skillPlus; // This will decrease skill if map_prefs is negative, max -1
+		if (self->bot.skill > MAX_BOTSKILL)
+			self->bot.skill = MAX_BOTSKILL;
+	}
 }
 
 //rekkie -- Quake3 -- s
@@ -775,8 +788,20 @@ void BOTLIB_Think(edict_t* self)
 
 	// Kill the bot if they've not moved between nodes in a timely manner, stuck!
 	//gi.dprintf("%s is currently at node %i\n", self->client->pers.netname, self->bot.current_node);
-	if (self->bot.node_travel_time > 120)
-		killPlayer(self, true);
+
+	// Non-teamplay stuck suicide
+	if (!teamplay->value) {
+		if (self->bot.node_travel_time > 120) {
+			killPlayer(self, true);
+		}
+		// Too often teamplay bots will suicide because there's a bit of waiting around
+	} else if (self->bot.node_travel_time > 160 && 
+		current_round_length > 60 && 
+		!lights_camera_action &&
+		!holding_on_tie_check) {
+			BOTLIB_PickLongRangeGoal(self);
+			//killPlayer(self, true);
+	}
 
 	// Find any short range goal
 	//ACEAI_PickShortRangeGoal(self);
@@ -814,6 +839,8 @@ void BOTLIB_Think(edict_t* self)
 		self->bot.see_enemies = BOTLIB_FindEnemy(self); // Find visible enemies
 		BOTLIB_Reload(self); // Reload the weapon if needed
 
+		// This doesn't mean that the bot sees itself as an enemy
+		// self->enemy is which bot the current self->bot is targeting
 		if (self->enemy)
 		{
 			// Chase after the new enemy

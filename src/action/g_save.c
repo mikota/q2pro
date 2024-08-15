@@ -328,6 +328,8 @@ void InitGame( void )
 
 	InitCommandList();
 
+	Q_srand(time(NULL));
+	
 	IRC_init();
 	gi.dprintf( "==== InitGame ====\n" );
 
@@ -690,11 +692,14 @@ void InitGame( void )
 	bot_showpath = gi.cvar("bot_showpath", "0", 0);
 	bot_maxteam = gi.cvar("bot_maxteam", "0", 0);
 	bot_rush = gi.cvar("bot_rush", "0", 0);
-	bot_randvoice = gi.cvar("bot_randvoice", "33", 0);
+	bot_randvoice = gi.cvar("bot_randvoice", "5", 0);
 	bot_randskill = gi.cvar("bot_randskill", "10", 0);
 	bot_randname = gi.cvar("bot_randname", "1", 0);
 	bot_chat = gi.cvar("bot_chat", "0", 0);
 	bot_personality = gi.cvar("bot_personality", "0", CVAR_LATCH);
+	bot_ragequit = gi.cvar("bot_ragequit", "0", 0);
+	bot_teamplay = gi.cvar("bot_teamplay", "0", 0);
+	bot_debug = gi.cvar("bot_debug", "0", 0);
 	//bot_randteamskin = gi.cvar("bot_randteamskin", "0", 0);
 	//rekkie -- DEV_1 -- e
 #endif

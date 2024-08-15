@@ -500,6 +500,7 @@ void Add_Frag(edict_t * ent, int mod)
 	// Random bot voice sounds
 
 	// Debug this, sometimes bots will repeat this over and over again
+	// TODO: Disable this if we get too close to the max sound limit
 	if (use_voice->value && ent->is_bot && bot_randvoice->value > 0)
 	{
 		if (bot_randvoice->value > 100) bot_randvoice->value = 100;
@@ -792,6 +793,18 @@ void Add_Frag(edict_t * ent, int mod)
 			break;
 		}
 	}
+
+	#ifndef NO_BOTS
+	//darksaint -- Bot Chat -- s
+	// Generates chat message if respawning (killed)
+	if (ent->is_bot) {
+		BOTLIB_Chat(ent, CHAT_INSULTS);
+		if(bot_personality->value && bot_ragequit->value) {
+			BotRageQuit(ent, false);
+		}
+	}
+	#endif
+	//darksaint -- Bot Chat -- e
 
 	// Announce kill streak to player if use_killcounts is enabled on server
 	if (use_killcounts->value) {
@@ -1572,8 +1585,11 @@ void ClientObituary(edict_t * self, edict_t * inflictor, edict_t * attacker)
 			#ifndef NO_BOTS
 			//darksaint -- Bot Chat -- s
 			// Generates chat message if respawning (killed)
-			if (bot_chat->value && self->is_bot) {
+			if (self->is_bot && mod < MOD_TOTAL) {  // Don't count 'killed him/herself' messages
 				BOTLIB_Chat(self, CHAT_KILLED);
+				if(bot_personality->value && bot_ragequit->value) {
+					BotRageQuit(self, true);
+				}
 			}
 			#endif
 			//darksaint -- Bot Chat -- e
@@ -3029,7 +3045,21 @@ void PutClientInServer(edict_t * ent)
 		if (ent->bot.bot_type == BOT_TYPE_BOTLIB) // BOTLIB
 		{
 			BOTLIB_Init(ent); // Initialize all the bot variables
-			BOTLIB_SmartWeaponSelection(ent);
+			if (!bot_personality->value) {
+				BOTLIB_SmartWeaponSelection(ent); // This is an excellent way to choose good weapon variety
+			} else {
+				// If using personalities, they have their own weapon/item preferences
+				BOTLIB_BotPersonalityChooseWeapon(ent);
+				if (item_kit_mode->value)
+					BOTLIB_BotPersonalityChooseItemKit(ent);
+				else
+					BOTLIB_BotPersonalityChooseItem(ent);
+			}
+			gi.dprintf("Bot %s has chosen %s and %s\n", 
+				ent->client->pers.netname, 
+				PrintWeaponName(ent->client->pers.chosenWeapon->typeNum),
+				PrintItemName(ent->client->pers.chosenItem->typeNum)
+			);
 		}
 		else // LTK bots
 		{
@@ -3607,6 +3637,12 @@ qboolean ClientConnect(edict_t * ent, char *userinfo)
 	//set connected on ClientBeginDeathmatch as clientconnect doesn't always
 	//guarantee a client is actually making it all the way into the game.
 	//ent->client->pers.connected = true;
+
+	#ifndef NO_BOTS
+	if(bot_chat->value)
+		BOTLIB_Chat(ent, CHAT_WELCOME);
+	#endif
+
 	return true;
 }
 
@@ -5251,7 +5287,7 @@ void ClientThink(edict_t * ent, usercmd_t * ucmd)
 #if DEBUG_DRAWING
 	if (1 && ent->is_bot == false && dedicated->value == 0 && numnodes && bot_showpath->value == 0 && ent->bot.walknode.enabled)
 	{
-		uint32_t color;
+		uint32_t color, link_color, arrow_color;
 
 		// Selection square
 		//uint32_t node_color = 0;
@@ -5440,11 +5476,21 @@ void ClientThink(edict_t * ent, usercmd_t * ucmd)
 					// Highlighted box
 					if (ent->bot.walknode.highlighted_node == node)
 						color = MakeColor(255, 0, 0, 255); // Red
+					else if (nodes[node].type == NODE_JUMPPAD)
+						color = MakeColor(128, 0, 128, 255); // Purple
 					else if (nodes[node].type == NODE_LADDER)
 						color = MakeColor(0, 255, 0, 255); // Green
+					else if (nodes[node].type == NODE_WATER)
+						color = MakeColor(255, 255, 255, 255); // White
+					else if (nodes[node].type == NODE_CROUCH)
+						color = MakeColor(255, 165, 0, 255); // Orange
+					else if (nodes[node].type == NODE_BOXJUMP)
+						color = MakeColor(128, 128, 128, 255); // Gray
 					else if (nodes[node].type == NODE_POI)
 						color = MakeColor(0, 255, 255, 255); // Cyan
-					else
+					else if (nodes[node].type == NODE_POI_LOOKAT)
+						color = MakeColor(0, 192, 192, 192); // Cyan-ish
+					else // NODE_MOVE
 						color = MakeColor(0, 0, 255, 255); // Blue
 
 					if (ent->bot.walknode.highlighted_node_type == HIGHLIGHTED_NODE_SELECT || ent->bot.walknode.highlighted_node_type == HIGHLIGHTED_NODE_SELECT_SMART)
@@ -5482,11 +5528,37 @@ void ClientThink(edict_t * ent, usercmd_t * ucmd)
 									if (ent->bot.walknode.prev_highlighted_node != INVALID && to != ent->bot.walknode.prev_highlighted_node && node != ent->bot.walknode.prev_highlighted_node)
 										continue;
 								}
+								switch (nodes[node].links[link].targetNodeType) {
+									case NODE_MOVE:
+										arrow_color = MakeColor(255, 255, 0, 255); // Yellow
+										break;
+									case NODE_JUMPPAD:
+										arrow_color = MakeColor(128, 0, 128, 255); // Purple
+										break;
+									case NODE_LADDER:
+										arrow_color = MakeColor(0, 255, 0, 255); // Green
+										break;
+									case NODE_WATER:
+										arrow_color = MakeColor(255, 255, 255, 255); // White
+										break;
+									case NODE_CROUCH:
+										arrow_color = MakeColor(255, 165, 0, 255); // Orange
+										break;
+									case NODE_BOXJUMP:
+										arrow_color = MakeColor(128, 128, 128, 255); // Gray
+										break;
+									case NODE_POI:
+										arrow_color = MakeColor(0, 255, 255, 255); // Cyan
+										break;
+									case NODE_POI_LOOKAT:
+										arrow_color = MakeColor(0, 192, 192, 192); // Cyan-ish
+										break;
+									default:
+										arrow_color = MakeColor(255, 255, 0, 255); // Yellow
+										break;
+								}
 
-								if (nodes[node].links[link].targetNodeType == NODE_POI_LOOKAT)
-									DrawArrow(linknum, nodes[node].origin, nodes[to].origin, MakeColor(0, 255, 255, 255), 1.0, 100, true); // Cyan node link
-								else
-									DrawArrow(linknum, nodes[node].origin, nodes[to].origin, U32_YELLOW, 1.0, 100, true); // Yellow node link
+								DrawArrow(linknum, nodes[node].origin, nodes[to].origin, arrow_color, 1.0, 100, true); // Draw node link
 								linknum++;
 							}
 						}
@@ -5499,8 +5571,38 @@ void ClientThink(edict_t * ent, usercmd_t * ucmd)
 						if (nodes[node].area > 0) // Only draw area num if > 0
 							DrawString(node, tv(nodes[node].origin[0], nodes[node].origin[1], nodes[node].origin[2] + 20), va("%d", nodes[node].area), U32_YELLOW, 100, true); // Draw area number
 					}
-					else
-						DrawString(node, tv(nodes[node].origin[0], nodes[node].origin[1], nodes[node].origin[2] + 20), va("%d", node), U32_YELLOW, 100, true); // Draw node number
+					else {
+						switch (nodes[node].links->targetNodeType) {
+							case NODE_MOVE:
+								link_color = MakeColor(255, 255, 0, 255); // Yellow
+								break;
+							case NODE_JUMPPAD:
+								link_color = MakeColor(128, 0, 128, 255); // Purple
+								break;
+							case NODE_LADDER:
+								link_color = MakeColor(0, 255, 0, 255); // Green
+								break;
+							case NODE_WATER:
+								link_color = MakeColor(255, 255, 255, 255); // White
+								break;
+							case NODE_CROUCH:
+								link_color = MakeColor(255, 165, 0, 255); // Orange
+								break;
+							case NODE_BOXJUMP:
+								link_color = MakeColor(128, 128, 128, 255); // Gray
+								break;
+							case NODE_POI:
+								link_color = MakeColor(0, 255, 255, 255); // Cyan
+								break;
+							case NODE_POI_LOOKAT:
+								link_color = MakeColor(0, 192, 192, 192); // Cyan-ish
+								break;
+							default:
+								link_color = MakeColor(255, 255, 0, 255); // Yellow
+								break;
+						}
+						DrawString(node, tv(nodes[node].origin[0], nodes[node].origin[1], nodes[node].origin[2] + 20), va("%d", node), link_color, 100, true); // Draw node number
+					}
 				}
 			}
 		}

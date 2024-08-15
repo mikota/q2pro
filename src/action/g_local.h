@@ -777,9 +777,25 @@ typedef struct
 
   // High Scores support from OpenFFA
   char        dir[MAX_OSPATH]; // where variable data is stored
+  
+  // Bot personalities loaded
+  #ifndef NO_BOTS
+  char* bot_file_path[MAX_QPATH];
+  int used_bot_personalities;
+  #endif
 }
 game_locals_t;
 
+// Map features, utilized by / requires bot_personality to be enabled
+typedef struct map_features_s
+{
+	float volume;
+	float openness;
+	float water_amt;
+	float lava_amt;
+	float slime_amt;
+
+} map_features_t;
 
 //
 // this structure is cleared as each map is entered
@@ -871,6 +887,9 @@ typedef struct
   // Point of interest
   vec3_t poi_origin;
   vec3_t poi_angle;
+
+  // Map features
+  map_features_t map_features;
 }
 level_locals_t;
 
@@ -1470,6 +1489,7 @@ qboolean infront( edict_t *self, edict_t *other );
 #endif
 void disablecvar(cvar_t *cvar, char *msg);
 int eztimer(int seconds);
+float sigmoid(float x);
 
 // Re-enabled for bots
 float *tv (float x, float y, float z);
@@ -2194,6 +2214,10 @@ typedef struct bot_personality_s
 	float chat_demeanor;					//-1 = Quiet | 1 = Chatty
 	int leave_percent; 						// Percentage calculated that the bot will leave the map.  Recalculated/increases every time the bot dies.
 
+	char skin_pref;			// Skin preference, if DM mode
+	int pId;                                // Personality id (used as an index)
+	qboolean isActive;                      // Determines if bot is active in game or not (avoid dupes)
+
 } bot_personality_t;
 
 typedef struct bot_s
@@ -2323,6 +2347,8 @@ typedef struct bot_s
 	qboolean radioReportKills;		// Flag if the bot reports its kills in radio and chat
 	//
 	int lastChatTime;				// Last time the bot chatted
+
+	bot_personality_t personality;	// Personality struct
 
 } bot_t;
 #endif
@@ -2676,6 +2702,8 @@ void Bandage (edict_t * ent);
 void ShowGun (edict_t * ent);	// hentai's vwep function added by zucc
 void FL_think (edict_t * self);	// TNG Flashlight
 void FL_make (edict_t * self);	// TNG Flashlight
+const char* PrintWeaponName( int weapon );
+const char* PrintItemName( int item );
 
 // spec functions
 void SetupSpecSpawn (void);

@@ -295,6 +295,7 @@ qboolean ACEAI_ChooseWeapon(edict_t *self);
 void ACEAI_Cmd_Choose( edict_t *ent, char *s );
 void ACEAI_Cmd_Choose_Weapon_Num( edict_t *ent, int num );
 void ACEAI_Cmd_Choose_Item_Num( edict_t *ent, int num );
+void ACEAI_Cmd_Choose_ItemKit_Num( edict_t *ent, int num );
 
 // acebot_cmds.c protos
 qboolean ACECM_Commands(edict_t *ent);
@@ -543,7 +544,9 @@ extern cvar_t* bot_randskill;
 extern cvar_t* bot_randname;
 extern cvar_t* bot_chat;
 extern cvar_t* bot_personality;
-
+extern cvar_t* bot_ragequit;
+extern cvar_t* bot_teamplay;
+extern cvar_t* bot_debug;
 //extern cvar_t* bot_randteamskin;
 
 

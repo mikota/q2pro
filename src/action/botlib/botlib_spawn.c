@@ -1379,7 +1379,7 @@ void BOTLIB_PutClientInServer(edict_t* bot, qboolean respawn, int team)
 	JoinTeam(bot, team, true);
 }
 
-// Spawn a bot
+// Spawn a bot*SelectTeamplaySpawnPoint
 void ClientBeginDeathmatch(edict_t* ent);
 edict_t* BOTLIB_SpawnBot(int team, int force_gender, char* force_name, char* force_skin) //char* userinfo)
 {
@@ -1400,7 +1400,46 @@ edict_t* BOTLIB_SpawnBot(int team, int force_gender, char* force_name, char* for
 	else if (team == TEAM3)
 		bot_connections.total_team3++;
 
-	BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);  // includes ClientConnect
+	if(bot_personality->value && (bot_personality_index == game.used_bot_personalities)) {
+		if(bot_debug->value)
+			gi.dprintf("%s: Ran out of bot personalities, loading random bots now.\n", __func__);
+		DeactivateBotPersonality();
+	}
+	if (bot_debug->value)
+		gi.dprintf("%s: trying to load personalities, loaded: %i used: %i\n", __func__, loaded_bot_personalities, game.used_bot_personalities);
+	
+
+	// Loading bot personalities and/or random bots
+	if (bot_personality->value == 2) {
+		if (rand() % 2) { // Randomly choose between 0 and 1, picking a personality or a random bot
+			if (!BOTLIB_SetPersonality(bot, team, force_gender)) {
+				if (bot_debug->value)
+					gi.dprintf("%s: bot_personality value %f BOTLIB_SetPersonality() failed to load bot personality.\n", __func__, bot_personality->value);
+				BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
+			}
+		} else {
+			BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
+		}
+	} else if (bot_personality->value == 1) { // We want to prioritize bot personalities, then go random if we run out
+		if (bot_personality_index > game.used_bot_personalities) {
+			if (!BOTLIB_SetPersonality(bot, team, force_gender)) {
+				if (bot_debug->value)
+					gi.dprintf("%s: bot_personality value %f BOTLIB_SetPersonality() failed to load bot personality.\n", __func__, bot_personality->value);
+				BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
+			}
+		} else {
+			if (bot_debug->value)
+				gi.dprintf("%s: Ran out of bot personalities, loading random bots now.\n", __func__);
+			BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
+		}
+	} else { // Use random bot data, no personalities
+		if (bot_debug->value)
+			gi.dprintf("%s: trying to load random bots\n", __func__);
+		BOTLIB_SetUserinfo(bot, team, force_gender, force_name, force_skin);
+	}
+
+	// Need to set this here for ClientBeginDeathmatch
+	bot->bot.bot_type = BOT_TYPE_BOTLIB;
 
 	ClientBeginDeathmatch(bot);
 
@@ -1458,9 +1497,10 @@ void BOTLIB_RemoveBot(char* name)
 					freed = true;
 					ClientDisconnect(bot);
 					game.bot_count--;
-					if (bot_chat->value && !remove_all)
-						BOTLIB_Chat(bot, CHAT_GOODBYE);
-					//gi.bprintf (PRINT_MEDIUM, "%s removed\n", bot->client->pers.netname);
+
+					if (bot_personality->value && bot->bot.personality.isActive)
+						BOTLIB_FreeBotPersonality(bot);
+
 					if (!remove_all)
 						break;
 				}
@@ -1501,10 +1541,9 @@ void BOTLIB_RemoveBot(char* name)
 			if (bot->is_bot && bot_to_kick == bot_count)
 			{
 				//darksaint -- Bot Chat -- s
-				// Generates chat message if respawning (goodbyes)
-				if (bot_chat->value) {
+				// Generates chat message (goodbyes)
+				if (bot_chat->value)
 					BOTLIB_Chat(bot, CHAT_GOODBYE);
-				}
 				//darksaint -- Bot Chat -- e
 
 				//rekkie -- Fake Bot Client -- s
@@ -1519,7 +1558,8 @@ void BOTLIB_RemoveBot(char* name)
 				freed = true;
 				ClientDisconnect(bot);
 				game.bot_count--;
-
+				if (bot_personality->value && bot->bot.personality.isActive)
+					BOTLIB_FreeBotPersonality(bot);
 				//gi.bprintf (PRINT_MEDIUM, "%s removed\n", bot->client->pers.netname);
 				break;
 			}

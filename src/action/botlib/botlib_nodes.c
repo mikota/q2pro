@@ -2880,12 +2880,13 @@ void BOTLIB_SaveNavCompressed(void)
 	FILE* fOut;
 	char filename[128];
 	int fileSize = 0;
-	int f, n, l; // File, nodes, links
+	int n, l; // File, nodes, links
 	int version = BOT_NAV_VERSION;
 	cvar_t* game_dir = gi.cvar("game", "action", 0);
 	cvar_t* botdir = gi.cvar("botdir", "bots", 0);		// Directory of the bot files in the gamelib
 
 #ifdef _WIN32
+	int f;
 	f = sprintf(filename, ".\\");
 	f += sprintf(filename + f, game_dir->string);
 	f += sprintf(filename + f, "\\");
@@ -2997,7 +2998,7 @@ void BOTLIB_LoadNavCompressed(void)
 	FILE* fIn;
 	char filename[128];
 	int fileSize = 0;
-	int f, n, l; // File, nodes, links
+	int n, l; // File, nodes, links
 	int version = 0; // Bot nav version
 	unsigned bsp_checksum = 0; // Map checksum
 	cvar_t* game_dir = gi.cvar("game", "action", 0);
@@ -3006,6 +3007,7 @@ void BOTLIB_LoadNavCompressed(void)
 	const vec3_t maxs = { 16, 16, 32 };
 
 #ifdef _WIN32
+	int f;
 	f = sprintf(filename, ".\\");
 	f += sprintf(filename + f, game_dir->string);
 	f += sprintf(filename + f, "\\");
@@ -4726,24 +4728,23 @@ void BOTLIB_Process_NMesh(edict_t* ent)
 	vec3_t  player_crouching_mins = { -16, -16, -24 };
 	vec3_t  player_crouching_maxs = { 16, 16, 4 };
 	//	Player when standing
-	vec3_t  player_standing_smaller_mins = { -14, -14, -24 };
-	vec3_t  player_standing_smaller_maxs = { 14, 14, 32 };
+	// vec3_t  player_standing_smaller_mins = { -14, -14, -24 };
+	// vec3_t  player_standing_smaller_maxs = { 14, 14, 32 };
 
-	const int MIN_STEP_WIDTH = 32; // min step width
-	qboolean hit_step = false; // If we hit a suspected step (not 100% sure)
-	qboolean hit_ledge = false; // If we hit a suspected ledge (not 100% sure)
+	//const int MIN_STEP_WIDTH = 32; // min step width
+	//qboolean hit_step = false; // If we hit a suspected step (not 100% sure)
+	//qboolean hit_ledge = false; // If we hit a suspected ledge (not 100% sure)
 
-	vec3_t mid_point = { 0 };
-	vec3_t ladder_bottom = { 0 };
-	vec3_t ladder_top = { 0 };
+	// vec3_t mid_point = { 0 };
+	// vec3_t ladder_bottom = { 0 };
+	// vec3_t ladder_top = { 0 };
 
-	float tmp = 0;
 	int f, e;
 
 	float normal_0, normal_1, normal_2;
-	int num_tris = 0;
-	int vert_count = 0; // Vertex count
-	int total_verts = 0;
+	//int num_tris = 0;
+	//int vert_count = 0; // Vertex count
+	//int total_verts = 0;
 	vec3_t pt0 = { 0 }; // Point 1 of a triangle
 	vec3_t pt1 = { 0 }; // Point 2 of a triangle
 	vec3_t pt2 = { 0 }; // Point 3 of a triangle
@@ -4756,9 +4757,9 @@ void BOTLIB_Process_NMesh(edict_t* ent)
 		normal_1 = nmesh.face[f].normal[1];
 		normal_2 = nmesh.face[f].normal[2];
 
-		num_tris = 0;
-		vert_count = 0;
-		total_verts = nmesh.face[f].num_verts;
+		int num_tris = 0;
+		int vert_count = 0;
+		int total_verts = nmesh.face[f].num_verts;
 		memset(pt0, 0, sizeof(vec3_t));
 		memset(pt1, 0, sizeof(vec3_t));
 		memset(pt2, 0, sizeof(vec3_t));

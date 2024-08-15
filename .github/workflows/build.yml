@@ -133,7 +133,7 @@ jobs:
           libcurl4-openssl-dev libx11-dev libxi-dev \
           libavcodec-dev libavformat-dev libavutil-dev \
           libswresample-dev libswscale-dev \
-          uuid-dev patchelf
+          uuid-dev patchelf libjansson-dev
           pip3 install meson ninja
 
       - name: Build
@@ -178,7 +178,7 @@ jobs:
           libwayland-dev wayland-protocols libdecor-0-dev \
           libavcodec-dev libavformat-dev libavutil-dev \
           libswresample-dev libswscale-dev \
-          uuid-dev patchelf
+          uuid-dev patchelf libjansson-dev
 
       - name: Build
         run: |
@@ -248,7 +248,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew install pkg-config meson libpng sdl2 openal-soft zlib curl ffmpeg jpeg-turbo
+          brew install pkg-config meson libpng sdl2 openal-soft zlib curl ffmpeg jpeg-turbo jansson ossp-uuid
 
       - name: Build
         run: |
@@ -279,7 +279,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew install pkg-config meson libpng sdl2 openal-soft zlib curl ffmpeg jpeg-turbo
+          brew install pkg-config meson libpng sdl2 openal-soft zlib curl ffmpeg jpeg-turbo jansson ossp-uuid
 
       - name: Build
         run: |

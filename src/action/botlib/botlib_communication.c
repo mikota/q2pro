@@ -4,6 +4,7 @@
 #include "../m_player.h" // For waving frame types, i.e: FRAME_flip01
 
 
+//
 // Delayed chat, somewhat more realistic
 #define MAX_MESSAGES 100
 
@@ -20,7 +21,7 @@ typedef struct {
 
 MessageQueue chatQueue = { .count = 0 };
 
-void AddMessageToQueue(edict_t* bot, const char* text, int frameReceived) {
+void AddMessageToChatQueue(edict_t* bot, const char* text, int frameReceived) {
     if (chatQueue.count < MAX_MESSAGES) {
         chatQueue.messages[chatQueue.count].bot = bot;
         strncpy(chatQueue.messages[chatQueue.count].text, text, sizeof(chatQueue.messages[chatQueue.count].text) - 1);
@@ -33,7 +34,7 @@ void AddMessageToQueue(edict_t* bot, const char* text, int frameReceived) {
 
 void ProcessChatQueue(int currentFrame) {
     for (int i = 0; i < chatQueue.count; i++) {
-        if (currentFrame > chatQueue.messages[i].frameReceived + 4 * HZ) {
+        if (currentFrame > chatQueue.messages[i].frameReceived + (rand() % HZ) + 4 * HZ) {
             // Send the chat message from the correct bot
             BOTLIB_Say(chatQueue.messages[i].bot, chatQueue.messages[i].text, false);
             //gi.dprintf("Sending delayed chat message from bot: %s\n", chatQueue.messages[i].text);
@@ -49,8 +50,34 @@ void ProcessChatQueue(int currentFrame) {
 }
 
 // Call this function periodically, e.g., in the main game loop
-void UpdateBotChat() {
+void UpdateBotChat(void) {
     ProcessChatQueue(level.framenum);
+}
+
+// Function to get a random bot
+edict_t* getRandomBot(void)
+{
+	edict_t* bots[MAX_CLIENTS];
+	int botCount = 0;
+    
+    // Populate the bots array with pointers to bots
+    for (int i = 0; i < num_players; i++)
+    {
+        if (players[i]->is_bot)
+        {
+            bots[botCount++] = players[i];
+        }
+    }
+    
+    // If we found any bots, return a random one
+    if (botCount > 0)
+    {
+        int randomIndex = rand() % botCount; // Generate a random index
+        return bots[randomIndex];
+    }
+    
+    // If no bots were found, return NULL
+    return NULL;
 }
 
 // Borrowed from LTK bots
@@ -73,7 +100,7 @@ char *botchat_goodbyes[DBC_GOODBYES] =
 	"sauna time"
 };
 
-#define DBC_KILLEDS 8
+#define DBC_KILLEDS 20
 char *botchat_killeds[DBC_KILLEDS] =
 {
 	"lol",
@@ -83,7 +110,19 @@ char *botchat_killeds[DBC_KILLEDS] =
 	"prkl",
 	"jajajaja",
 	"ffffffffff",
-	"woowwwww"
+	"woowwwww",
+	"ran outta ammo",
+	"ahhhhhhhh",
+	"damn",
+	"heh",
+	"rip",
+	":D",
+	":)))",
+	">:)",
+	"noooooo",
+	":<",
+	"oops",
+	"rofl",
 };
 
 #define DBC_INSULTS 11
@@ -102,22 +141,90 @@ char *botchat_insults[DBC_INSULTS] =
 	":>"
 };
 
-void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype) {
+#define DBC_VICTORY 3
+char *botchat_victory[DBC_VICTORY] =
+{
+	"smoked!",
+	"whew",
+	"too ez"
+};
+
+#define DBC_RAGE 8
+char *botchat_rage[DBC_RAGE] =
+{
+	"f this map",
+	"i never liked this map anyway gg",
+	"nope not today",
+	"I'm terrible at this map anyway",
+	"yeah gg",
+	"that's enough for me today",
+	"ASDKDDKJFJK",
+	"PERKELEEeeeee"
+};
+
+// This function is used to mix up chat so that multiple
+// phrases can be combined to create a more unique message
+// Currently onlt doing this for CHAT_KILLED
+char* _chatMix(char* msg, bot_chat_types_t chattype, int randval)
+{
+    char* text = NULL;
+	char buffer[1024];
+    buffer[0] = '\0';
+    int newrandval = 0;
+    switch (chattype) {
+        case CHAT_KILLED:
+            do {
+                newrandval = rand() % DBC_KILLEDS;
+            } while (newrandval == randval);
+            text = botchat_killeds[newrandval];
+            break;
+        default:
+            if (debug_mode)
+                gi.bprintf(PRINT_HIGH, "%s: Unknown chat type %d", __func__, chattype);
+            return msg; // Just return what was given to us
+    }
+
+    // Randomize whether to append or prepend
+    if (rand() % 2 == 0) {
+        // Prepend
+        snprintf(buffer, sizeof(buffer), "%s %s", text, msg);
+    } else {
+        // Append
+        snprintf(buffer, sizeof(buffer), "%s %s", msg, text);
+    }
+
+    // Return a dynamically allocated copy of the result
+    return strdup(buffer);
+}
+
+void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype)
+{
+	// Do nothing if bot_chat is disabled
+	if(!bot_chat->value)
+		return;
+
 	char* text = NULL;
 	qboolean delayed = true;
+	// bot_is_target means the bot edict provided to this function is not the talker, but the bot the other
+	// bots will talk to, such as 'Welcome <so and so>!'.  Bot chosen to speak will be random from the list
+	// of current/inuse bots
 
+	int killedsrandval = 0;
 	switch (chattype) {
-		case CHAT_WELCOME:
-			text = botchat_welcomes[rand() % DBC_WELCOMES];
-			break;
+		//case CHAT_WELCOME:
+			// CHAT_WELCOME is handled below outside of this switch statement
 		case CHAT_KILLED:
-			text = botchat_killeds[rand() % DBC_KILLEDS];
+			killedsrandval = rand() % DBC_KILLEDS;
+			text = botchat_killeds[killedsrandval];
 			break;
 		case CHAT_INSULTS:
 			text = botchat_insults[rand() % DBC_INSULTS];
 			break;
 		case CHAT_GOODBYE:
 			text = botchat_goodbyes[rand() % DBC_GOODBYES];
+			break;
+		case CHAT_RAGE:
+			text = botchat_rage[rand() % DBC_RAGE];
 			break;
 		default:
 			if (debug_mode)
@@ -142,19 +249,50 @@ void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype) {
 		if (bot->bot.lastChatTime > level.framenum - chatInterval) {
 			//gi.dprintf("Skipping chat due to interval limit (%i) needs to be 0 or smaller\n", (bot->bot.lastChatTime - (level.framenum - chatInterval)));
 			return;
+		} else if (chattype == CHAT_KILLED) { // Mix up the killed messages
+			if (rand() % 2 == 0) {
+				text = _chatMix(text, chattype, randval);
+			}
 		}
 	}
-	if (chattype == CHAT_GOODBYE)
-		randval = randval - 0.3; // Increase the chance of a goodbye message
+	// Goodbyes and rages happen without delay
+	if (chattype == CHAT_GOODBYE || chattype == CHAT_RAGE) {
+		randval = randval - 0.3; // Increase the chance of this type of message
 		delayed = false;
-	if (randval > 0.2) {
+	}
+
+	// In this one, the bot edict is not the talker, but the 'target' of the talker
+	// Then we switch the bot after we get the target's name, since the talker
+	// will be random
+	if (chattype == CHAT_WELCOME) {
+		int index = rand() % DBC_WELCOMES; // Choose a random message index
+		char message[256]; // Assuming 256 bytes is enough for the message
+		snprintf(message, sizeof(message), botchat_welcomes[index], bot->client->pers.netname);
+		
+		// Ensure 'text' buffer is large enough
+		char text[256]; // Increase the size of 'text' to match 'message'
+		
+		// Copy back to 'text'
+		snprintf(text, sizeof(text), "%s", message);
+		
+		if (getRandomBot() != NULL)
+			bot = getRandomBot();
+	}
+
+	// bot_personality
+	// This will let the bot chat based on their propensity to do so
+	if (bot_personality->value) {
+		if (!BOTLIB_DoIChat(bot)){
+			return;
+		}
+	} else if (randval > 0.2) { // 80% do not chat
 		//gi.dprintf("Skipping chat due to random chance (%f)\n", randval);
 		return; // Don't chat too often
 	}
 
     // Add the message to the queue if delayed
 	if (delayed)
-    	AddMessageToQueue(bot, text, level.framenum);
+    	AddMessageToChatQueue(bot, text, level.framenum);
 	else // instant message, such as a goodbye before leaving
 		BOTLIB_Say(bot, text, false);
 

@@ -172,6 +172,12 @@ typedef struct ctf_status_s
 } ctf_status_t;
 extern ctf_status_t bot_ctf_status;
 
+// ===========================================================================
+// botlib_esp.c
+// ===========================================================================
+int BOTLIB_ESP_Get_Target_Node(edict_t* ent);
+int BOTLIB_InterceptLeader(edict_t* self, int team, float distance);
+
 typedef struct esp_status_s
 {
 	edict_t* esp_target; // ETV: target edict
@@ -224,7 +230,9 @@ typedef enum
 	CHAT_WELCOME,
 	CHAT_KILLED,
 	CHAT_INSULTS,
-	CHAT_GOODBYE
+	CHAT_GOODBYE,
+	CHAT_VICTORY,
+	CHAT_RAGE,
 } bot_chat_types_t;
 
 void UpdateBotChat(void);
@@ -458,6 +466,7 @@ void BOTLIB_RemoveBot(char* name); // Remove bot by name or 'ALL' to remove all 
 void BOTLIB_RemoveTeamplayBot(int team); // Remove bot from team
 void BOTLIB_ChangeBotTeam(int from_team, int to_team); // Change a bot [from team] ==> [to team]
 void BOTLIB_CheckBotRules(void); // Adding/Removing/Auto-balance bots
+void BOTLIB_SetUserinfo(edict_t* bot, const int team, int force_gender, char* force_name, char* force_skin);
 
 // ===========================================================================
 // botlib_spawnpoints.c
@@ -505,5 +514,43 @@ int BOTLIB_LocateFloorItem(edict_t* self, int* items_to_get, int items_counter);
 int BOTLIB_GetEquipment(edict_t* self);
 //rekkie -- collecting weapons, items, ammo -- e
 
+// ===========================================================================
+// botlib_personality.c
+// ===========================================================================
+// Copy of bot_personality_t struct
+// Most float values here are between -1 and 1
+typedef struct temp_bot_personality_s
+{
+	float weapon_prefs[10];   				//-1 = Will never choose, 1 = Will always choose
+	float item_prefs[6];       				//-1 = Will never choose, 1 = Will always choose
+	float map_prefs;                        //-1 = Hate, 0 = Neutral, 1 = Love
+	float combat_demeanor;                  //-1 = Timid | 1 = Aggressive
+	float chat_demeanor;                    //-1 = Quiet | 1 = Chatty
+	int leave_percent;                      // Percentage calculated that the bot will leave the map.  Recalculated/increases every time the bot dies.
+	char* skin_pref;                        // Skin preference, if DM mode
+	int pId;                                // Personality id (used as an index)
+	qboolean isActive;                      // Determines if bot is active in game or not (avoid dupes)
+} temp_bot_personality_t;
 
+typedef struct {
+    char* name;
+    temp_bot_personality_t personality;
+} temp_bot_mapping_t;
+extern temp_bot_mapping_t bot_mappings[100];
+
+void BOTLIB_PersonalityFile(void);
+temp_bot_mapping_t* BOTLIB_LoadPersonalities(const char* filename);
+void DeactivateBotPersonality(void);
+qboolean BOTLIB_SetPersonality(edict_t* bot, int team, int force_gender);
+void BOTLIB_LoadBotPersonality(edict_t* self);
+void BOTLIB_FreeBotPersonality(edict_t* bot);
+qboolean BotRageQuit(edict_t* self, qboolean frag_or_death);
+qboolean BOTLIB_DoIChat(edict_t* bot);
+void BOTLIB_BotPersonalityChooseWeapon(edict_t* bot);
+void BOTLIB_BotPersonalityChooseItem(edict_t* bot);
+void BOTLIB_BotPersonalityChooseItemKit(edict_t* bot);
+qboolean BOTLIB_SpawnRush(edict_t* bot);
+
+extern int loaded_bot_personalities;
+extern int bot_personality_index;
 #endif // _BOTLIB_H

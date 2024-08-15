@@ -229,7 +229,8 @@ void BOTLIB_PickLongRangeGoal(edict_t* self)
 		}
 
 		// At LCA, randomly pick a spawn spot. This breaks up the bots at LCA, so they spread out.
-		if (random() < 0.2 || (teamplay->value && lights_camera_action)) // Greater than LCA!
+		// BOTLIB_Spawnrush will take into account bot personality and current weaponry
+		if (random() < 0.2 || (teamplay->value && lights_camera_action) || BOTLIB_SpawnRush(self)) // Greater than LCA!
 		{
 			// Find all the spawn points
 			int sp_counter = 0;
@@ -2044,4 +2045,25 @@ void ACEAI_Cmd_Choose_Item_Num( edict_t *ent, int num )
 
 	if( num )
 		ent->client->pers.chosenItem = FindItemByNum(num);
+}
+
+void ACEAI_Cmd_Choose_ItemKit_Num( edict_t *ent, int num )
+{
+	// Item Kits ignore item bans, for simplicity
+
+	if( num == KEV_NUM ) {
+		ent->client->pers.chosenItem = FindItemByNum(KEV_NUM);
+	} else if ( num == C_KIT_NUM ) {
+		ent->client->pers.chosenItem = FindItemByNum(BAND_NUM);
+		ent->client->pers.chosenItem2 = FindItemByNum(HELM_NUM);
+	} else if ( num == S_KIT_NUM ) {
+		ent->client->pers.chosenItem = FindItemByNum(SLIP_NUM);
+		ent->client->pers.chosenItem2 = FindItemByNum(SIL_NUM);
+    } else if ( num == A_KIT_NUM ) {
+		ent->client->pers.chosenItem = FindItemByNum(LASER_NUM);
+		ent->client->pers.chosenItem2 = FindItemByNum(SIL_NUM);
+	} else { // For safety
+		gi.dprintf("%s: num value here is not an item kit or kevlar vest (%i)\n", __func__, num);
+		ent->client->pers.chosenItem = FindItemByNum(KEV_NUM);
+	}
 }

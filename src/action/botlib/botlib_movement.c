@@ -5229,6 +5229,30 @@ void BOTLIB_Look(edict_t* self, usercmd_t* ucmd)
 	}
 }
 
+void BOTLIB_CrouchFire(edict_t* self)
+{
+	if (self == NULL || self->client == NULL || self->client->weapon == NULL) {
+        return; // Early exit if self, client, or weapon is NULL
+    }
+	gitem_t* clweapon = self->client->weapon;
+
+	// More skillful bots will crouch when firing
+	if (self->bot.skill >= 5) {
+		if ((self->bot.bi.actionflags & ACTION_MOVELEFT) == 0 && 
+			(self->bot.bi.actionflags & ACTION_MOVERIGHT) == 0)
+		{
+			// Raptor007: Don't crouch if it blocks the shot.
+			float old_z = self->s.origin[2];
+			self->s.origin[2] -= 14;
+			if (ACEAI_CheckShot(self))
+			{
+				self->bot.bi.actionflags |= ACTION_CROUCH;
+			}
+			self->s.origin[2] = old_z;
+		}
+	}
+}
+
 void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 {
 	//if (teamplay->value && lights_camera_action > 0)
@@ -5864,10 +5888,9 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 			self->just_spawned_go = true; // Bot is ready, when wander_timeout is reached.
 
 			// If enemy is in sight, don't wait too long
-			if (self->enemy)
+			if (self->enemy) {
 				self->just_spawned_timeout = level.framenum + random() * HZ;			// Short wait
-			else
-			{
+			} else if (!bot_personality->value) {
 				// Otherwise pick from various wait times before moving out
 				int rnd_rng = rand() % 4;
 				if (rnd_rng == 0)
@@ -5878,6 +5901,18 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 					self->just_spawned_timeout = level.framenum + (random() * 2) * HZ;  // Short wait
 				else
 					self->just_spawned_timeout = 0;										// No wait
+			} else { // bot_personality is enabled, let's make it more realistic
+				int rnd_rng = rand() % 4;
+				float skill_factor = 1.0f - (self->bot.skill / 10.0f); // Scale factor based on skill (0 to 1)
+
+				if (rnd_rng == 0)
+					self->just_spawned_timeout = level.framenum + (random() * 10 * skill_factor) * HZ; // Long wait
+				else if (rnd_rng == 1)
+					self->just_spawned_timeout = level.framenum + (random() * 5 * skill_factor) * HZ;  // Medium wait
+				else if (rnd_rng == 2)
+					self->just_spawned_timeout = level.framenum + (random() * 2 * skill_factor) * HZ;  // Short wait
+				else
+					self->just_spawned_timeout = 0; // No wait
 			}
 
 			self->bot.bi.actionflags |= ACTION_HOLDPOS;
@@ -6323,17 +6358,19 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 
 		if (self->bot.next_node == INVALID)
 		{
-			Com_Printf("%s %s invalid next_node node:curr/next/goal[%d %d %d]  type:curr/next[%d %d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.next_node, self->bot.goal_node, current_node_type, next_node_type);
+			if(bot_debug->value)
+				Com_Printf("%s %s invalid next_node node:curr/next/goal[%d %d %d]  type:curr/next[%d %d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.next_node, self->bot.goal_node, current_node_type, next_node_type);
 			self->bot.state = BOT_MOVE_STATE_NAV;
 			return;
 		}
 		if (self->bot.current_node == self->bot.next_node && self->bot.current_node == self->bot.goal_node)
 		{
-			Com_Printf("%s %s reached goal node:curr/next/goal[%d %d %d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.next_node, self->bot.goal_node);
+			if(bot_debug->value)
+				Com_Printf("%s %s reached goal node:curr/next/goal[%d %d %d]\n", __func__, self->client->pers.netname, self->bot.current_node, self->bot.next_node, self->bot.goal_node);
 			////if (nav_area.total_areas > 0)
 			////	self->bot.state = BOT_MOVE_STATE_NAV_NEXT;
 			////else
-				self->bot.state = BOT_MOVE_STATE_NAV;
+			self->bot.state = BOT_MOVE_STATE_NAV;
 			return;
 		}
 		else if (self->bot.next_node != INVALID && VectorDistance(nodes[self->bot.next_node].origin, self->s.origin) <= 128)
@@ -6840,6 +6877,8 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 
 		// Try strafing around enemy
 		trace_t tr = gi.trace(self->s.origin, NULL, NULL, tv(self->s.origin[0], self->s.origin[1], self->s.origin[2] - 32), self, MASK_SHOT);
+		gitem_t* clweapon = self->client->weapon;
+		
 		if (dodging && tr.plane.normal[2] > 0.85) // Not too steep
 		{
 			// Try strafing continually in a general direction, if possible
@@ -6856,7 +6895,7 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 					self->bot_strafe = 0; // Neither - skip strafing this turn
 			}
 
-			if (self->client->weapon == FindItem(HC_NAME))
+			if (clweapon == FindItem(HC_NAME))
 				self->bot_strafe = 0; // Don't strafe with HC, just go straight for them
 
 			if (self->bot_strafe < 0 && random() > 0.15) // Going left 85% of the time
@@ -6899,22 +6938,29 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 			// Back off if getting too close (unless we have a HC or knife)
 			if (self->bot.enemy_dist < 256)
 			{
-				if (self->client->weapon == FindItem(HC_NAME) && self->client->cannon_rds)
+				if (clweapon == FindItem(HC_NAME) && self->client->cannon_rds)
 				{
 					// Come in close for the kill
 					if (ACEMV_CanMove(self, MOVE_FORWARD))
 						self->bot.bi.actionflags |= ACTION_MOVEFORWARD;
 				}
-				else if (self->client->weapon == FindItem(KNIFE_NAME))
+				else if (clweapon == FindItem(KNIFE_NAME))
 				{
 					// Come in close for the kill
 					if (ACEMV_CanMove(self, MOVE_FORWARD))
 						self->bot.bi.actionflags |= ACTION_MOVEFORWARD;
-				}
 				// Try move backwards
-				else if (BOTLIB_CanMove(self, MOVE_BACK))
+				} else if (BOTLIB_CanMove(self, MOVE_BACK))
 				{
 					self->bot.bi.actionflags |= ACTION_MOVEBACK;
+				}
+
+				if ((clweapon == FindItem(M4_NAME) || 
+					clweapon == FindItem(MP5_NAME) || 
+					clweapon == FindItem(DUAL_NAME) || 
+					clweapon == FindItem(MK23_NAME)) &&
+					INV_AMMO(self, LASER_NUM) == false) {
+						BOTLIB_CrouchFire(self); // Utilize crouching for better accuracy
 				}
 			}
 			// If distance is far, consider crouching to increase accuracy
@@ -6922,9 +6968,9 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 			{
 				// Check if bot should be crouching based on weapon and if strafing
 				if (INV_AMMO(self, LASER_NUM) == false && 
-					self->client->weapon != FindItem(SNIPER_NAME) && 
-					self->client->weapon != FindItem(HC_NAME) && 
-					self->client->weapon != FindItem(M3_NAME) && 
+					clweapon != FindItem(SNIPER_NAME) && 
+					clweapon != FindItem(HC_NAME) && 
+					clweapon != FindItem(M3_NAME) && 
 					(self->bot.bi.actionflags & ACTION_MOVELEFT) == 0 && 
 					(self->bot.bi.actionflags & ACTION_MOVERIGHT) == 0)
 				{
@@ -6942,12 +6988,12 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 			else
 			{
 				// Keep distance with sniper
-				if (self->bot.enemy_dist < 1024 && self->client->weapon == FindItemByNum(SNIPER_NUM) && BOTLIB_CanMove(self, MOVE_BACK))
+				if (self->bot.enemy_dist < 1024 && clweapon == FindItemByNum(SNIPER_NUM) && BOTLIB_CanMove(self, MOVE_BACK))
 				{
 					self->bot.bi.actionflags |= ACTION_MOVEBACK;
 				}
 				// Keep distance with grenade
-				if (self->bot.enemy_dist < 1024 && self->client->weapon == FindItemByNum(GRENADE_NUM) && BOTLIB_CanMove(self, MOVE_BACK))
+				if (self->bot.enemy_dist < 1024 && clweapon == FindItemByNum(GRENADE_NUM) && BOTLIB_CanMove(self, MOVE_BACK))
 				{
 					self->bot.bi.actionflags |= ACTION_MOVEBACK;
 				}
