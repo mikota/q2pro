@@ -1136,7 +1136,7 @@ randomly choose a spawnpoint for each team, based on the es->custom_spawns[index
 
 This is reset back to default in EspEndOfRoundCleanup()
 */
-edict_t *SelectEspCustomSpawnPoint(edict_t * ent)
+edict_t *SelectEspCustomSpawnPoint(edict_t* ent)
 {
 	espsettings_t *es = &espsettings;
     int teamNum = ent->client->resp.team;
@@ -1174,9 +1174,10 @@ edict_t *SelectEspCustomSpawnPoint(edict_t * ent)
 	// 	gi.dprintf("For team %d, random index is %d, but the spawn point is NULL\n", teamNum, esp_spawnpoint_index[teamNum]);
 	// }
 
-	if (spawn_point)
+	if (spawn_point) {
+		espsettings.round_spawnpoint[teamNum] = spawn_point;
 		return spawn_point;
-	else {
+	} else {
 		gi.dprintf("%s: No spawnpoint found, safely return NULL so we can try another one\n", __func__);
 		return NULL;
 	}
@@ -2045,8 +2046,10 @@ void EspEndOfRoundCleanup(void)
 
 	// Reset the last spawnpoint index, this is reset to 
 	// -1 because 0 is a valid index
+	// Also reset last round's spawnpoint edict
 	for (i = TEAM1; i <= teamCount; i++) {
 		esp_spawnpoint_index[i] = -1;
+		espsettings.round_spawnpoint[i] = NULL;
 	}
 
 	// Reset these three timed stats for the next round for each player

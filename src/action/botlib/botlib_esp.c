@@ -369,522 +369,221 @@ float BOTLIB_DistanceToEnemyLeader(edict_t* self, int flagType)
 }
 
 
-void BOTLIB_CTF_Goals(edict_t* self)
+void BOTLIB_ESP_Goals(edict_t* self)
 {
-	if (team_round_going == false || lights_camera_action) return; // Only allow during a real match (after LCA and before win/loss announcement)
+	if (!lights_camera_action && !espsettings.esp_live_round) return; // Only allow during a real match (after LCA and before win/loss announcement)
 
-	// Get flag
-	if (self->bot.bot_ctf_state != BOT_CTF_STATE_GET_ENEMY_FLAG && 
-		self->bot.bot_ctf_state != BOT_CTF_STATE_GET_DROPPED_ENEMY_FLAG &&
-		self->bot.bot_ctf_state != BOT_CTF_STATE_RETURN_TEAM_FLAG)
-	{
-		if (self->client->resp.team == TEAM1 && bot_ctf_status.player_has_flag2 == NULL && bot_ctf_status.flag2_is_home)
-		{
-			int n = bot_ctf_status.flag2_home_node;
-			if (BOTLIB_CanGotoNode(self, n, false)) // Make sure we can visit the node they're at
-			{
-				//Com_Printf("%s %s heading for enemy blue flag at node %i dist[%f]\n", __func__, self->client->pers.netname, n, VectorDistance(bot_ctf_status.flag2->s.origin, self->s.origin));
-				self->bot.bot_ctf_state = BOT_CTF_STATE_GET_ENEMY_FLAG;
-				//self->bot.state = BOT_MOVE_STATE_MOVE;
-				//BOTLIB_SetGoal(self, n);
-				return;
-			}
-		}
-		if (self->client->resp.team == TEAM2 && bot_ctf_status.player_has_flag1 == NULL && bot_ctf_status.flag2_is_home)
-		{
-			int n = bot_ctf_status.flag1_home_node;
-			if (BOTLIB_CanGotoNode(self, n, false)) // Make sure we can visit the node they're at
-			{
-				//Com_Printf("%s %s heading for enemy red flag at node %i dist[%f]\n", __func__, self->client->pers.netname, n, VectorDistance(bot_ctf_status.flag1->s.origin, self->s.origin));
-				self->bot.bot_ctf_state = BOT_CTF_STATE_GET_ENEMY_FLAG;
-				//self->bot.state = BOT_MOVE_STATE_MOVE;
-				//BOTLIB_SetGoal(self, n);
-				return;
-			}
-		}
-	}
+	espsettings_t *es = &espsettings;
+	// Team related variables
+	int myTeam = self->client->resp.team;
+	int totalTeammates = TotalPlayersOnTeam(myTeam);
+	int aliveTeammates = TotalPlayersAliveOnTeam(myTeam);
+	float percentAlive = (float)aliveTeammates / (float)totalTeammates * 100;
 
-	// Take flag home, if home flag is home
-	if (BOTLIB_Carrying_Flag(self))
-	{
-		if (self->bot.bot_ctf_state != BOT_CTF_STATE_CAPTURE_ENEMY_FLAG && 
-			self->bot.bot_ctf_state != BOT_CTF_STATE_ATTACK_ENEMY_CARRIER && 
-			self->bot.bot_ctf_state != BOT_CTF_STATE_RETURN_TEAM_FLAG &&
-			self->bot.bot_ctf_state != BOT_CTF_STATE_FORCE_MOVE_TO_FLAG)
-		{
-			int n = INVALID;
-			if (self->client->resp.team == TEAM1 && VectorDistance(nodes[bot_ctf_status.flag1_home_node].origin, self->s.origin) > 128)
-				n = bot_ctf_status.flag1_home_node;
-			else if (self->client->resp.team == TEAM2 && VectorDistance(nodes[bot_ctf_status.flag2_home_node].origin, self->s.origin) > 128)
-				n = bot_ctf_status.flag2_home_node;
-
-			// If team flag is dropped and nearby, don't head to home. Allow bot to pickup the dropped team flag.
-			if (self->client->resp.team == TEAM1 && bot_ctf_status.flag1_is_dropped && VectorDistance(bot_ctf_status.flag1->s.origin, self->s.origin) < 768)
-			{
-				n = INVALID;
-				//Com_Printf("%s %s abort capturing flag, red flag was dropped nearby\n", __func__, self->client->pers.netname);
-			}
-			if (self->client->resp.team == TEAM2 && bot_ctf_status.flag2_is_dropped && VectorDistance(bot_ctf_status.flag2->s.origin, self->s.origin) < 768)
-			{
-				n = INVALID;
-				//Com_Printf("%s %s abort capturing flag, blue flag was dropped nearby\n", __func__, self->client->pers.netname);
-			}
-
-			// If both teams have the flag, and there's no other players/bots to go attack the flag carrier
-			if (self->client->resp.team == TEAM1 && bot_ctf_status.player_has_flag1 && bot_connections.total_team1 <= 1)
-			{
-				n = INVALID;
-				//Com_Printf("%s %s abort capturing flag, other team has our red flag and there's no support to go get it back\n", __func__, self->client->pers.netname);
-			}
-			// If both teams have the flag, and there's no other players/bots to go attack the flag carrier
-			if (self->client->resp.team == TEAM2 && bot_ctf_status.player_has_flag2 && bot_connections.total_team2 <= 1)
-			{
-				n = INVALID;
-				//Com_Printf("%s %s abort capturing flag, other team has our red flag and there's no support to go get it back\n", __func__, self->client->pers.netname);
-			}
-
-			//Com_Printf("%s %s goal_node[%d]  flag1_home_node[%i]  state[%d]\n", __func__, self->client->pers.netname, self->bot.goal_node, bot_ctf_status.flag1_home_node, self->state);
-			//if (n != INVALID) Com_Printf("%s %s self->bot.goal_node %i  flag node %i\n", __func__, self->client->pers.netname, self->bot.goal_node, n);
-
-			if (BOTLIB_CanGotoNode(self, n, false))
-			{
-				if (self->client->resp.team == TEAM1)
-				{
-					//Com_Printf("%s %s Taking blue flag home to node %i dist[%f]\n", __func__, self->client->pers.netname, n, VectorDistance(nodes[bot_ctf_status.flag1_home_node].origin, self->s.origin));
-				}
-				else
-				{
-					//Com_Printf("%s %s Taking red flag home to node %i dist[%f]\n", __func__, self->client->pers.netname, n, VectorDistance(nodes[bot_ctf_status.flag2_home_node].origin, self->s.origin));
-				}
-				self->bot.bot_ctf_state = BOT_CTF_STATE_CAPTURE_ENEMY_FLAG;
-				//self->bot.state = BOT_MOVE_STATE_MOVE;
-				//BOTLIB_SetGoal(self, n);
-				return;
-			}
-		}
-	}
-
-	// Bot was on its way to the enemy flag, but got picked up by a team member before the bot could reach it. Therefore, try to support the flag carrrier who got it.
-	if (self->bot.bot_ctf_state == BOT_CTF_STATE_GET_ENEMY_FLAG && BOTLIB_Carrying_Flag(self) == false)
-	{
-		if (self->client->resp.team == TEAM1 && bot_ctf_status.player_has_flag2)
-		{
-			//Com_Printf("%s %s Red flag was picked first up by another player [%s]\n", __func__, self->client->pers.netname, bot_ctf_status.player_has_flag2->client->pers.netname);
-
-			// Support ally if they're close
-			if (VectorDistance(self->s.origin, bot_ctf_status.player_has_flag2->s.origin) < 1024)
-			{
-				int n = bot_ctf_status.player_has_flag2->bot.current_node;
-				if (BOTLIB_CanGotoNode(self, n, false))
-				{
-					//Com_Printf("%s %s supporting blue flag carrier %s at node %i\n", __func__, self->client->pers.netname, bot_ctf_status.player_has_flag2->client->pers.netname, n);
-					self->bot.bot_ctf_state = BOT_CTF_STATE_COVER_FLAG_CARRIER;
-					self->bot.ctf_support_time = level.framenum + 10.0 * HZ;
-					//self->bot.state = BOT_MOVE_STATE_MOVE;
-					//BOTLIB_SetGoal(self, n);
-					return;
-				}
-			}
-
-			//self->bot.bot_ctf_state = BOT_CTF_STATE_NONE;
-			//self->bot.state = BOT_MOVE_STATE_NAV;
-		}
-		if (self->client->resp.team == TEAM2 && bot_ctf_status.player_has_flag1)
-		{
-			//Com_Printf("%s %s Blue flag was picked first up by another player [%s]\n", __func__, self->client->pers.netname, bot_ctf_status.player_has_flag1->client->pers.netname);
-
-			// Support ally if they're close
-			if (VectorDistance(self->s.origin, bot_ctf_status.player_has_flag1->s.origin) < 1024)
-			{
-				int n = bot_ctf_status.player_has_flag1->bot.current_node;
-				if (BOTLIB_CanGotoNode(self, n, false))
-				{
-					//Com_Printf("%s %s supporting red flag carrier %s at node %i\n", __func__, self->client->pers.netname, bot_ctf_status.player_has_flag1->client->pers.netname, n);
-					self->bot.bot_ctf_state = BOT_CTF_STATE_COVER_FLAG_CARRIER;
-					self->bot.ctf_support_time = level.framenum + 10.0 * HZ;
-					//self->bot.state = BOT_MOVE_STATE_MOVE;
-					//BOTLIB_SetGoal(self, n);
-					return;
-				}
-			}
-
-			//self->bot.bot_ctf_state = BOT_CTF_STATE_NONE;
-			//self->bot.state = BOT_MOVE_STATE_NAV;
-		}
-	}
-
-	// Continue supporting flag carrier
-	if (self->bot.bot_ctf_state != BOT_CTF_STATE_COVER_FLAG_CARRIER && BOTLIB_Carrying_Flag(self) == false)
-	{
-		if (self->client->resp.team == TEAM1 && bot_ctf_status.player_has_flag2 && self->bot.ctf_support_time < level.framenum)
-		{
-			self->bot.ctf_support_time = level.framenum + 5.0 * HZ;
-
-			//if (bot_ctf_status.team1_carrier_dist_to_home > 512)
-			//	Com_Printf("%s %s continue supporting blue flag carrier %s dist from home [%f]\n", __func__, self->client->pers.netname, bot_ctf_status.player_has_flag2->client->pers.netname, bot_ctf_status.team1_carrier_dist_to_home);
-
-
-			// Support flag carrier if they're away from the home flag
-			float dist = VectorDistance(self->s.origin, bot_ctf_status.player_has_flag2->s.origin);
-			if (dist > 256 && dist < 4024 && bot_ctf_status.team1_carrier_dist_to_home > 512)
-			{
-				int n = bot_ctf_status.player_has_flag2->bot.current_node;
-				if (BOTLIB_CanGotoNode(self, n, false))
-				{
-					//Com_Printf("%s %s continue supporting blue flag carrier %s at node %i\n", __func__, self->client->pers.netname, bot_ctf_status.player_has_flag2->client->pers.netname, n);
-					self->bot.bot_ctf_state = BOT_CTF_STATE_COVER_FLAG_CARRIER;
-					//self->bot.state = BOT_MOVE_STATE_MOVE;
-					//BOTLIB_SetGoal(self, n);
-					return;
-				}
-			}
-		}
-
-		if (self->client->resp.team == TEAM2 && bot_ctf_status.player_has_flag1 && self->bot.ctf_support_time < level.framenum)
-		{
-			self->bot.ctf_support_time = level.framenum + 5.0 * HZ;
-
-			//if (bot_ctf_status.team2_carrier_dist_to_home > 512)
-			//	Com_Printf("%s %s continue supporting red flag carrier %s dist from home [%f]\n", __func__, self->client->pers.netname, bot_ctf_status.player_has_flag1->client->pers.netname, bot_ctf_status.team2_carrier_dist_to_home);
-
-			// Support flag carrier if they're around
-			float dist = VectorDistance(self->s.origin, bot_ctf_status.player_has_flag1->s.origin);
-			if (dist > 256 && dist < 4024 && bot_ctf_status.team1_carrier_dist_to_home > 512)
-			{
-				int n = bot_ctf_status.player_has_flag1->bot.current_node;
-				if (BOTLIB_CanGotoNode(self, n, false))
-				{
-					//Com_Printf("%s %s continue supporting red flag carrier %s at node %i\n", __func__, self->client->pers.netname, bot_ctf_status.player_has_flag1->client->pers.netname, n);
-					self->bot.bot_ctf_state = BOT_CTF_STATE_COVER_FLAG_CARRIER;
-					//self->bot.state = BOT_MOVE_STATE_MOVE;
-					//BOTLIB_SetGoal(self, n);
-					return;
-				}
-			}
-		}
-	}
-
-
-
+	// Keep track of current round's spawnpoint if we need to flee
+	//edict_t* roundSpawnPoint = espsettings.round_spawnpoint[myTeam];
+	edict_t *roundSpawnPoint = es->custom_spawns[myTeam][esp_spawnpoint_index[myTeam]];
+	int closestSpawnPointNode = ACEND_FindClosestReachableNode(roundSpawnPoint, NODE_DENSITY, NODE_ALL);
 	
-	// Retrieve dropped T1/T2 flags if nearby
-	if (self->client->resp.team == TEAM1)
-	{
-		int flag_to_get = 0; // Flag that is dropped
+	// Logic time: Discerning between leader vs non-leader
+	// TODO: Better logic later on when we utilize bot.skill!
+	if (IS_LEADER(self))
+		goto bot_leader_think;
+	else
+		goto bot_crew_think;
 
-		// If both team and ememy flag is dropped, go for closest flag
-		if (bot_ctf_status.flag1_is_dropped && bot_ctf_status.flag2_is_dropped)
-		{
-			// If team flag is closer
-			if (VectorDistance(self->s.origin, bot_ctf_status.flag1->s.origin) < VectorDistance(self->s.origin, bot_ctf_status.flag2->s.origin))
-			{
-				flag_to_get = FLAG_T1_NUM; // Dropped team flag
-				//Com_Printf("%s %s [team] dropped red flag is closer. [%f] is less than [%f]\n", __func__, self->client->pers.netname, VectorDistance(self->s.origin, bot_ctf_status.flag1->s.origin), VectorDistance(self->s.origin, bot_ctf_status.flag2->s.origin));
-			}
-			else
-			{
-				flag_to_get = FLAG_T2_NUM; // Dropped enemy flag
-				//Com_Printf("%s %s [enemy] dropped blue flag is closer. [%f] is less than [%f]\n", __func__, self->client->pers.netname, VectorDistance(self->s.origin, bot_ctf_status.flag2->s.origin), VectorDistance(self->s.origin, bot_ctf_status.flag1->s.origin));
-			}
-		}
-		else if (bot_ctf_status.flag1_is_dropped) // Dropped team flag
-			flag_to_get = FLAG_T1_NUM;
-		else if (bot_ctf_status.flag2_is_dropped) // Dropped enemy flag
-			flag_to_get = FLAG_T2_NUM;
-
-		if (flag_to_get && self->bot.bot_ctf_state != BOT_CTF_STATE_RETURN_TEAM_FLAG
-			&& self->bot.bot_ctf_state != BOT_CTF_STATE_GET_DROPPED_ENEMY_FLAG
-			&& self->bot.bot_ctf_state != BOT_CTF_STATE_FORCE_MOVE_TO_FLAG)
-		{
-			int n = INVALID;
-			if (flag_to_get == FLAG_T1_NUM)
-				n = bot_ctf_status.flag1_curr_node;
-			if (flag_to_get == FLAG_T2_NUM)
-				n = bot_ctf_status.flag2_curr_node;
-
-			if (BOTLIB_CanGotoNode(self, nodes[n].nodenum, false))
-			{
-				if (flag_to_get == FLAG_T1_NUM) // Dropped team flag
-				{
-					self->bot.bot_ctf_state = BOT_CTF_STATE_RETURN_TEAM_FLAG;
-					//Com_Printf("%s %s retrieving [team] dropped red flag %s at node %d dist[%f]\n", __func__, self->client->pers.netname, bot_ctf_status.flag1->classname, nodes[n].nodenum, VectorDistance(self->s.origin, nodes[n].origin));
+// Logic splits here, between ATL and ETV modes
+bot_leader_think:
+	if (EspModeCheck() == ESPMODE_ATL) {
+		// If percentage of teammates alive is < 50% then :
+		if (percentAlive < 50) {
+			// 50% chance to go for the enemy leader
+			if (rand() % 2 == 0) {
+				int enemyNode = BOTLIB_InterceptEnemyLeader(self);
+				if (enemyNode != INVALID) {
+					self->bot.state = BOT_MOVE_STATE_MOVE;
+					self->bot.bot_esp_state = BOT_ESP_ATTACK_TARGET;
+					BOTLIB_CanVisitNode(self, enemyNode, true, INVALID, false);
+					return;
 				}
-				if (flag_to_get == FLAG_T2_NUM) // Dropped enemy flag
-				{
-					self->bot.bot_ctf_state = BOT_CTF_STATE_GET_DROPPED_ENEMY_FLAG;
-					//Com_Printf("%s %s retrieving [enemy] dropped blue flag %s at node %d dist[%f]\n", __func__, self->client->pers.netname, bot_ctf_status.flag2->classname, nodes[n].nodenum, VectorDistance(self->s.origin, nodes[n].origin));
+			} else {
+				// 50% chance to flee (run back to original spawnpoint)
+				if (roundSpawnPoint) {
+					self->bot.state = BOT_MOVE_STATE_MOVE;
+					self->bot.bot_esp_state = BOT_ESP_RETREAT;
+					BOTLIB_CanVisitNode(self, closestSpawnPointNode, true, INVALID, false);
+					return;
 				}
-
-				//self->bot.state = BOT_MOVE_STATE_MOVE;
-				//BOTLIB_SetGoal(self, nodes[n].nodenum);
-				return;
 			}
-		}
-	}
-	if (self->client->resp.team == TEAM2)
-	{
-		int flag_to_get = 0; // Flag that is dropped
-
-		// If both team and ememy flag is dropped, go for closest flag
-		if (bot_ctf_status.flag1_is_dropped && bot_ctf_status.flag2_is_dropped)
-		{
-			// If team flag is closer
-			if (VectorDistance(self->s.origin, bot_ctf_status.flag2->s.origin) < VectorDistance(self->s.origin, bot_ctf_status.flag1->s.origin))
-			{
-				flag_to_get = FLAG_T2_NUM; // Dropped team flag
-				Com_Printf("%s %s [team] dropped blue flag is closer. [%f] is less than [%f]\n", __func__, self->client->pers.netname, VectorDistance(self->s.origin, bot_ctf_status.flag2->s.origin), VectorDistance(self->s.origin, bot_ctf_status.flag1->s.origin));
-			}
-			else
-			{
-				flag_to_get = FLAG_T1_NUM; // Dropped enemy flag
-				Com_Printf("%s %s [enemy] dropped red flag is closer. [%f] is less than [%f]\n", __func__, self->client->pers.netname, VectorDistance(self->s.origin, bot_ctf_status.flag1->s.origin), VectorDistance(self->s.origin, bot_ctf_status.flag2->s.origin));
-			}
-		}
-		else if (bot_ctf_status.flag2_is_dropped) // Dropped team flag
-			flag_to_get = FLAG_T2_NUM;
-		else if (bot_ctf_status.flag1_is_dropped) // Dropped enemy flag
-			flag_to_get = FLAG_T1_NUM;
-
-		if (flag_to_get && self->bot.bot_ctf_state != BOT_CTF_STATE_RETURN_TEAM_FLAG
-			&& self->bot.bot_ctf_state != BOT_CTF_STATE_GET_DROPPED_ENEMY_FLAG
-			&& self->bot.bot_ctf_state != BOT_CTF_STATE_FORCE_MOVE_TO_FLAG)
-		{
-			int n = INVALID;
-			if (flag_to_get == FLAG_T2_NUM)
-				n = bot_ctf_status.flag2_curr_node;
-			if (flag_to_get == FLAG_T1_NUM)
-				n = bot_ctf_status.flag1_curr_node;
-
-			if (BOTLIB_CanGotoNode(self, nodes[n].nodenum, false))
-			{
-				if (flag_to_get == FLAG_T2_NUM) // Dropped team flag
-				{
-					self->bot.bot_ctf_state = BOT_CTF_STATE_RETURN_TEAM_FLAG;
-					//Com_Printf("%s %s retrieving [team] dropped blue flag %s at node %d dist[%f]\n", __func__, self->client->pers.netname, bot_ctf_status.flag2->classname, nodes[n].nodenum, VectorDistance(self->s.origin, nodes[n].origin));
+		} else {
+			// 33% chance to go for the enemy leader
+			if (rand() % 3 == 0) {
+				int enemyNode = BOTLIB_InterceptEnemyLeader(self);
+				if (enemyNode != INVALID) {
+					self->bot.state = BOT_MOVE_STATE_MOVE;
+					self->bot.bot_esp_state = BOT_ESP_ATTACK_TARGET;
+					BOTLIB_CanVisitNode(self, enemyNode, true, INVALID, false);
+					return;
 				}
-				if (flag_to_get == FLAG_T1_NUM) // Dropped enemy flag
-				{
-					self->bot.bot_ctf_state = BOT_CTF_STATE_GET_DROPPED_ENEMY_FLAG;
-					//Com_Printf("%s %s retrieving [enemy] dropped red flag %s at node %d dist[%f]\n", __func__, self->client->pers.netname, bot_ctf_status.flag1->classname, nodes[n].nodenum, VectorDistance(self->s.origin, nodes[n].origin));
+			} else if (rand() % 3 == 1) {
+				// 33% chance to flee
+				if (roundSpawnPoint) {
+					self->bot.state = BOT_MOVE_STATE_MOVE;
+					self->bot.bot_esp_state = BOT_ESP_RETREAT;
+					BOTLIB_CanVisitNode(self, closestSpawnPointNode, true, INVALID, false);
+					return;
 				}
-
-				//self->bot.state = BOT_MOVE_STATE_MOVE;
-				//BOTLIB_SetGoal(self, nodes[n].nodenum);
-				return;
-			}
-		}
-	}
-
-
-	// When the bot is close to the flag from following nodes, flags are not always on a node exactly,
-	// therefore when the bot gets close enough to the flag, force move the bot toward the flag.
-	if (self->bot.goal_node == INVALID)
-	{
-
-		//if (self->bot.bot_ctf_state == BOT_CTF_STATE_GET_ENEMY_FLAG || self->bot.bot_ctf_state == BOT_CTF_STATE_GET_DROPPED_ENEMY_FLAG || self->bot.bot_ctf_state == BOT_CTF_STATE_CAPTURE_ENEMY_FLAG || self->bot.bot_ctf_state == BOT_CTF_STATE_RETURN_TEAM_FLAG)
-		{
-			// TEAM 1 - Walk to home flag (Capture)
-			if (self->client->resp.team == TEAM1 && BOTLIB_Carrying_Flag(self) && bot_ctf_status.flag1_is_home
-				&& bot_ctf_status.flag1 && VectorDistance(self->s.origin, bot_ctf_status.flag1->s.origin) < 256)
-			{
-				//Com_Printf("%s %s is being forced toward home red flag [%f]\n", __func__, self->client->pers.netname, VectorDistance(self->s.origin, bot_ctf_status.flag1->s.origin));
-				vec3_t walkdir;
-				VectorSubtract(bot_ctf_status.flag1->s.origin, self->s.origin, walkdir); // Head to flag
-				VectorNormalize(walkdir);
-				vec3_t hordir; //horizontal direction
-				hordir[0] = walkdir[0];
-				hordir[1] = walkdir[1];
-				hordir[2] = 0;
-				VectorNormalize(hordir);
-				VectorCopy(hordir, self->bot.bi.dir);
-				self->bot.bi.speed = 400;
-				self->bot.bot_ctf_state = BOT_CTF_STATE_FORCE_MOVE_TO_FLAG;
-				return;
-			}
-			// TEAM 2 - Walk to home flag (Capture)
-			if (self->client->resp.team == TEAM2 && BOTLIB_Carrying_Flag(self) && bot_ctf_status.flag2_is_home
-				&& bot_ctf_status.flag2 && VectorDistance(self->s.origin, bot_ctf_status.flag2->s.origin) < 256)
-			{
-				//Com_Printf("%s %s is being forced toward home blue flag [%f]\n", __func__, self->client->pers.netname, VectorDistance(self->s.origin, bot_ctf_status.flag2->s.origin));
-				vec3_t walkdir;
-				VectorSubtract(bot_ctf_status.flag2->s.origin, self->s.origin, walkdir); // Head to flag
-				VectorNormalize(walkdir);
-				vec3_t hordir; //horizontal direction
-				hordir[0] = walkdir[0];
-				hordir[1] = walkdir[1];
-				hordir[2] = 0;
-				VectorNormalize(hordir);
-				VectorCopy(hordir, self->bot.bi.dir);
-				self->bot.bi.speed = 400;
-				self->bot.bot_ctf_state = BOT_CTF_STATE_FORCE_MOVE_TO_FLAG;
-				return;
-			}
-			// TEAM 1 - Walk to enemy flag (Take)
-			if (self->client->resp.team == TEAM1 && BOTLIB_Carrying_Flag(self) == false && bot_ctf_status.player_has_flag2 == false && bot_ctf_status.flag2_is_home
-				&& bot_ctf_status.flag2 && VectorDistance(self->s.origin, bot_ctf_status.flag2->s.origin) < 256)
-			{
-				//Com_Printf("%s %s is being forced toward enemy home blue flag [%f]\n", __func__, self->client->pers.netname, VectorDistance(self->s.origin, bot_ctf_status.flag2->s.origin));
-				vec3_t walkdir;
-				VectorSubtract(bot_ctf_status.flag2->s.origin, self->s.origin, walkdir); // Head to flag
-				VectorNormalize(walkdir);
-				vec3_t hordir; //horizontal direction
-				hordir[0] = walkdir[0];
-				hordir[1] = walkdir[1];
-				hordir[2] = 0;
-				VectorNormalize(hordir);
-				VectorCopy(hordir, self->bot.bi.dir);
-				self->bot.bi.speed = 400;
-				self->bot.bot_ctf_state = BOT_CTF_STATE_FORCE_MOVE_TO_FLAG;
-				return;
-			}
-			// TEAM 2 - Walk to enemy flag (Take)
-			if (self->client->resp.team == TEAM2 && BOTLIB_Carrying_Flag(self) == false && bot_ctf_status.player_has_flag1 == false && bot_ctf_status.flag1_is_home
-				&& bot_ctf_status.flag1 && VectorDistance(self->s.origin, bot_ctf_status.flag1->s.origin) < 256)
-			{
-				//Com_Printf("%s %s is being forced toward enemy home red flag [%f]\n", __func__, self->client->pers.netname, VectorDistance(self->s.origin, bot_ctf_status.flag1->s.origin));
-				vec3_t walkdir;
-				VectorSubtract(bot_ctf_status.flag1->s.origin, self->s.origin, walkdir); // Head to flag
-				VectorNormalize(walkdir);
-				vec3_t hordir; //horizontal direction
-				hordir[0] = walkdir[0];
-				hordir[1] = walkdir[1];
-				hordir[2] = 0;
-				VectorNormalize(hordir);
-				VectorCopy(hordir, self->bot.bi.dir);
-				self->bot.bi.speed = 400;
-				self->bot.bot_ctf_state = BOT_CTF_STATE_FORCE_MOVE_TO_FLAG;
-				return;
-			}
-			// Walk to dropped RED flag
-			if (bot_ctf_status.flag1_is_dropped && bot_ctf_status.flag1 && VectorDistance(self->s.origin, bot_ctf_status.flag1->s.origin) < 256)
-			{
-				//Com_Printf("%s %s is being forced toward dropped red flag [%f]\n", __func__, self->client->pers.netname, VectorDistance(self->s.origin, bot_ctf_status.flag1->s.origin));
-				vec3_t walkdir;
-				VectorSubtract(bot_ctf_status.flag1->s.origin, self->s.origin, walkdir); // Head to flag
-				VectorNormalize(walkdir);
-				vec3_t hordir; //horizontal direction
-				hordir[0] = walkdir[0];
-				hordir[1] = walkdir[1];
-				hordir[2] = 0;
-				VectorNormalize(hordir);
-				VectorCopy(hordir, self->bot.bi.dir);
-				self->bot.bi.speed = 400;
-				self->bot.bot_ctf_state = BOT_CTF_STATE_FORCE_MOVE_TO_FLAG;
-				return;
-			}
-			// Walk to dropped BLUE flag
-			if (bot_ctf_status.flag2_is_dropped && bot_ctf_status.flag2 && VectorDistance(self->s.origin, bot_ctf_status.flag2->s.origin) < 256)
-			{
-				//Com_Printf("%s %s is being forced toward dropped blue flag [%f]\n", __func__, self->client->pers.netname, VectorDistance(self->s.origin, bot_ctf_status.flag2->s.origin));
-				vec3_t walkdir;
-				VectorSubtract(bot_ctf_status.flag2->s.origin, self->s.origin, walkdir); // Head to flag
-				VectorNormalize(walkdir);
-				vec3_t hordir; //horizontal direction
-				hordir[0] = walkdir[0];
-				hordir[1] = walkdir[1];
-				hordir[2] = 0;
-				VectorNormalize(hordir);
-				VectorCopy(hordir, self->bot.bi.dir);
-				self->bot.bi.speed = 400;
-				self->bot.bot_ctf_state = BOT_CTF_STATE_FORCE_MOVE_TO_FLAG;
-				return;
-			}
-		}
-
-		// Check if bot is closer to enemy flag carrier or the enemy flag at home
-		int flag_to_get = 0;
-		if (self->client->resp.team == TEAM1 && bot_ctf_status.player_has_flag1)
-		{
-			if (bot_ctf_status.flag2 && bot_ctf_status.flag2_is_home) // If enemy flag is home
-			{
-				// If we're closer to the enemy flag, go after that instead of intercepting enemy flag carrier
-				if (VectorDistance(self->s.origin, bot_ctf_status.flag2->s.origin) < VectorDistance(self->s.origin, bot_ctf_status.player_has_flag1->s.origin))
-				{
-					flag_to_get = FLAG_T2_NUM; // Go after enemy flag
-					//Com_Printf("%s %s closer to blue flag than blue enemy flag carrier %s\n", __func__, self->client->pers.netname, bot_ctf_status.player_has_flag1->client->pers.netname);
-				}
-				else
-					flag_to_get = FLAG_T1_NUM; // Go after enemy carrier
-			}
-			else
-				flag_to_get = FLAG_T1_NUM; // If both flags gone, go after enemy carrier
-		}
-		else if (self->client->resp.team == TEAM2 && bot_ctf_status.player_has_flag2)
-		{
-			if (bot_ctf_status.flag1 && bot_ctf_status.flag1_is_home) // If enemy flag is home
-			{
-				// If we're closer to the enemy flag, go after that instead of intercepting enemy flag carrier
-				if (VectorDistance(self->s.origin, bot_ctf_status.flag1->s.origin) < VectorDistance(self->s.origin, bot_ctf_status.player_has_flag2->s.origin))
-				{
-					flag_to_get = FLAG_T1_NUM; // Go after enemy flag
-					//Com_Printf("%s %s closer to red flag than red enemy flag carrier %s\n", __func__, self->client->pers.netname, bot_ctf_status.player_has_flag2->client->pers.netname);
-				}
-				else
-					flag_to_get = FLAG_T2_NUM; // Go after enemy carrier
-			}
-			else
-				flag_to_get = FLAG_T2_NUM; // If both flags gone, go after enemy carrier
-		}
-
-		// Intercept enemy flag carrier if we're closer to them than the enemy flag
-		if (self->client->resp.team == TEAM1 && bot_ctf_status.player_has_flag1 && flag_to_get == FLAG_T1_NUM)
-		{
-			// If both teams have the flag, and there's no other players/bots to go attack the flag carrier
-			qboolean force_incercept = false;
-			if (BOTLIB_Carrying_Flag(self) && bot_connections.total_team1 <= 1)
-			{
-				force_incercept = true;
-				//Com_Printf("%s %s abort capturing flag, other team has our red flag and there's no support to go get it back\n", __func__, self->client->pers.netname);
-			}
-
-			self->bot.state = BOT_MOVE_STATE_MOVE;
-
-			float dist = 999999999;
-			dist = VectorDistance(self->s.origin, bot_ctf_status.player_has_flag1->s.origin);
-			if (dist > 256 && (BOTLIB_Carrying_Flag(self) == false || force_incercept))
-			{
-				int n = bot_ctf_status.player_has_flag1->bot.current_node; //bot_ctf_status.flag2_curr_node;
-				if (BOTLIB_CanGotoNode(self, n, false)) // Make sure we can visit the node they're at
-				{
-					//Com_Printf("%s %s intercepting blue flag carrier %s at node %i\n", __func__, self->client->pers.netname, bot_ctf_status.player_has_flag1->client->pers.netname, n);
-					self->bot.bot_ctf_state = BOT_CTF_STATE_ATTACK_ENEMY_CARRIER;
-					//self->bot.state = BOT_MOVE_STATE_MOVE;
-					//BOTLIB_SetGoal(self, n);
+			} else if (rand() % 3 == 2) {
+				// 33% chance to wander
+				if (roundSpawnPoint) {
+					self->bot.state = BOT_MOVE_STATE_MOVE;
+					self->bot.bot_esp_state = BOT_ESP_WANDER;
+					BOTLIB_PickLongRangeGoal(self);
 					return;
 				}
 			}
 		}
-		if (self->client->resp.team == TEAM2 && bot_ctf_status.player_has_flag2 && flag_to_get == FLAG_T2_NUM)
-		{
-			// If both teams have the flag, and there's no other players/bots to go attack the flag carrier
-			qboolean force_incercept = false;
-			if (BOTLIB_Carrying_Flag(self) && bot_connections.total_team2 <= 1)
-			{
-				force_incercept = true;
-				//Com_Printf("%s %s abort capturing flag, other team has our blue flag and there's no support to go get it back\n", __func__, self->client->pers.netname);
-			}
-
-			self->bot.state = BOT_MOVE_STATE_MOVE;
-
-			float dist = 999999999;
-			dist = VectorDistance(self->s.origin, bot_ctf_status.player_has_flag2->s.origin);
-			if (dist > 256 && (BOTLIB_Carrying_Flag(self) == false || force_incercept))
-			{
-				int n = bot_ctf_status.player_has_flag2->bot.current_node; //bot_ctf_status.flag1_curr_node;
-				if (BOTLIB_CanGotoNode(self, n, false)) // Make sure we can visit the node they're at
-				{
-					//Com_Printf("%s %s intercepting red flag carrier %s at node %i\n", __func__, self->client->pers.netname, bot_ctf_status.player_has_flag2->client->pers.netname, n);
-					self->bot.bot_ctf_state = BOT_CTF_STATE_ATTACK_ENEMY_CARRIER;
-					//self->bot.state = BOT_MOVE_STATE_MOVE;
-					//BOTLIB_SetGoal(self, n);
+	} else if (EspModeCheck() == ESPMODE_ETV && myTeam == TEAM1) {
+		// If percentage of teammates alive is < 50% then :
+		if (percentAlive < 50) {
+			// 50% chance to go for the ETV target
+			if (rand() % 2 == 0) {
+				int targetNode = BOTLIB_ESPGetTargetNode(self, NULL);
+				if (targetNode != INVALID) {
+					self->bot.state = BOT_MOVE_STATE_MOVE;
+					self->bot.bot_esp_state = BOT_ESP_ATTACK_TARGET;
+					BOTLIB_CanVisitNode(self, targetNode, true, INVALID, false);
+					return;
+				}
+			} else {
+				// 50% chance to flee
+				if (roundSpawnPoint) {
+					self->bot.state = BOT_MOVE_STATE_MOVE;
+					self->bot.bot_esp_state = BOT_ESP_RETREAT;
+					BOTLIB_CanVisitNode(self, closestSpawnPointNode, true, INVALID, false);
 					return;
 				}
 			}
+		} else {
+			// We shouldn't get here but in case we do, do something
+			if (roundSpawnPoint) {
+				self->bot.state = BOT_MOVE_STATE_MOVE;
+				self->bot.bot_esp_state = BOT_ESP_WANDER;
+				BOTLIB_PickLongRangeGoal(self);
+				return;
+			}
+		}
+	} else if (EspModeCheck() == ESPMODE_ETV && myTeam == TEAM2) {
+		// Defend target
+		if (rand() % 2 == 0) {
+			int targetNode = BOTLIB_ESPGetTargetNode(self, NULL);
+			if (targetNode != INVALID) {
+				self->bot.state = BOT_MOVE_STATE_MOVE;
+				self->bot.bot_esp_state = BOT_ESP_DEFEND_TARGET;
+				BOTLIB_CanVisitNode(self, targetNode, true, INVALID, false);
+				return;
+			}
+		} else if (rand() % 2 == 1) {
+			// Attack team1's leader
+			int enemyNode = BOTLIB_InterceptEnemyLeader(self);
+			if (enemyNode != INVALID) {
+				self->bot.state = BOT_MOVE_STATE_MOVE;
+				self->bot.bot_esp_state = BOT_ESP_ATTACK_TARGET;
+				BOTLIB_CanVisitNode(self, enemyNode, true, INVALID, false);
+				return;
+			}
+		} else {
+			// We shouldn't get here but in case we do, do something
+			if (roundSpawnPoint) {
+				self->bot.state = BOT_MOVE_STATE_MOVE;
+				self->bot.bot_esp_state = BOT_ESP_WANDER;
+				BOTLIB_PickLongRangeGoal(self);
+				return;
+			}
 		}
 
-		self->bot.bot_ctf_state = BOT_CTF_STATE_NONE;
-		self->bot.ctf_support_time = 0;
-
+// Main difference between crew and leader is that the crew are
+// expendable, protect the leader at all costs!
+bot_crew_think:
+	if (EspModeCheck() == ESPMODE_ATL) {
+		// If percentage of teammates alive is < 50% then :
+		if (percentAlive < 50) {
+			// 50% chance to stay with team leader
+			if (rand() % 2 == 0) {
+				int leaderNode = BOTLIB_FindMyLeaderNode(self);
+				if (leaderNode != INVALID) {
+					self->bot.state = BOT_MOVE_STATE_MOVE;
+					self->bot.bot_esp_state = BOT_ESP_COVER_TEAM_LEADER;
+					BOTLIB_CanVisitNode(self, leaderNode, true, INVALID, false);
+					return;
+				}
+			} else {
+				// 50% chance to attack enemy leader
+				int enemyNode = BOTLIB_InterceptEnemyLeader(self);
+				if (enemyNode != INVALID) {
+					self->bot.state = BOT_MOVE_STATE_MOVE;
+					self->bot.bot_esp_state = BOT_ESP_ATTACK_TARGET;
+					BOTLIB_CanVisitNode(self, enemyNode, true, INVALID, false);
+					return;
+				}
+			}
+		} else {
+			// 33% chance to stay with team leader
+			if (rand() % 3 == 0) {
+				int leaderNode = BOTLIB_FindMyLeaderNode(self);
+				if (leaderNode != INVALID) {
+					self->bot.state = BOT_MOVE_STATE_MOVE;
+					self->bot.bot_esp_state = BOT_ESP_COVER_TEAM_LEADER;
+					BOTLIB_CanVisitNode(self, leaderNode, true, INVALID, false);
+					return;
+				}
+			} else if (rand() % 3 == 1) {
+				// 33% chance to attack enemy leader
+				int enemyNode = BOTLIB_InterceptEnemyLeader(self);
+				if (enemyNode != INVALID) {
+					self->bot.state = BOT_MOVE_STATE_MOVE;
+					self->bot.bot_esp_state = BOT_ESP_ATTACK_TARGET;
+					BOTLIB_CanVisitNode(self, enemyNode, true, INVALID, false);
+					return;
+				}
+			} else if (rand() % 3 == 2) {
+				// 33% chance to wander
+				self->bot.state = BOT_MOVE_STATE_MOVE;
+				self->bot.bot_esp_state = BOT_ESP_WANDER;
+				BOTLIB_PickLongRangeGoal(self);
+				return;
+			}
+		}
+	} else if (EspModeCheck() == ESPMODE_ETV) {
+		// If percentage of teammates alive is < 50% then :
+		if (percentAlive < 50) {
+			// 50% chance to go for the ETV target
+			if (rand() % 2 == 0) {
+				int targetNode = BOTLIB_ESPGetTargetNode(self, NULL);
+				if (targetNode != INVALID) {
+					self->bot.state = BOT_MOVE_STATE_MOVE;
+					self->bot.bot_esp_state = BOT_ESP_ATTACK_TARGET;
+					BOTLIB_CanVisitNode(self, targetNode, true, INVALID, false);
+					return;
+				}
+			} else {
+				// 50% chance to stay with team leader
+				int leaderNode = BOTLIB_FindMyLeaderNode(self);
+				if (leaderNode != INVALID) {
+					self->bot.state = BOT_MOVE_STATE_MOVE;
+					self->bot.bot_esp_state = BOT_ESP_COVER_TEAM_LEADER;
+					BOTLIB_CanVisitNode(self, leaderNode, true, INVALID, false);
+					return;
+				}
+			}
+		} else {
+			// We shouldn't get here but in case we do, do something
+			self->bot.state = BOT_MOVE_STATE_MOVE;
+			self->bot.bot_esp_state = BOT_ESP_WANDER;
+			BOTLIB_PickLongRangeGoal(self);
+			return;
+		}
+	}
 	}
 
 	/*

@@ -2363,9 +2363,11 @@ static void StartLCA(void)
 	if ((gameSettings & (GS_WEAPONCHOOSE|GS_ROUNDBASED)))
 		CleanLevel();
 
-	if (esp->value)
+	if (esp->value) {
 		// Re-skin everyone to ensure only one leader skin
 		EspSkinCheck();
+		espsettings.esp_live_round = true;
+	}
 
 	if (use_tourney->value && !tourney_lca->value)
 	{
@@ -3053,6 +3055,7 @@ int CheckTeamRules (void)
 				if (EspCheckRules()){
 					EndDMLevel();
 					team_round_going = team_round_countdown = team_game_going = 0;
+					espsettings.esp_live_round = false;
 					return 1;
 				}
 				GenerateMedKit(false);
@@ -4227,4 +4230,54 @@ int OtherTeam(int teamNum)
 
 	// Returns zero if teamNum is not 1 or 2
 	return 0;
+}
+
+/*
+Return the total amount of players on a team
+*/
+
+int TotalPlayersOnTeam(int teamNum)
+{
+    int players[TEAM_TOP] = { 0 };
+    int i = 0;
+    edict_t *ent;
+
+    for (i = 0; i < game.maxclients; i++){
+        ent = &g_edicts[1 + i];
+        if (!ent->inuse || ent->solid == SOLID_NOT)
+            continue;
+
+        int currentTeam = game.clients[i].resp.team;
+        if (currentTeam == NOTEAM)
+            continue;
+
+        players[currentTeam]++;
+    }
+
+    return players[teamNum];
+}
+
+/* 
+Return the total players on a team that are alive
+*/
+
+int TotalPlayersAliveOnTeam(int teamNum)
+{
+    int count = 0;
+    edict_t *ent;
+
+    for (int i = 0; i < game.maxclients; i++)
+    {
+        ent = &g_edicts[i + 1];
+        if (!ent->inuse)
+            continue;
+        if (game.clients[i].resp.subteam)
+            continue;
+        if (game.clients[i].resp.team == teamNum && IS_ALIVE(ent))
+        {
+            count++;
+        }
+    }
+
+    return count;
 }

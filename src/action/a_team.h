@@ -107,6 +107,10 @@ void OpenPMItemMenu (edict_t * ent);
 //Expose auto-join functionality
 void JoinTeamAutobalance (edict_t * ent);
 
+//Utility functions
+int TotalPlayersOnTeam(int teamNum);
+int TotalPlayersAliveOnTeam(int teamNum);
+
 typedef struct spawn_distances_s
 {
   float distance;

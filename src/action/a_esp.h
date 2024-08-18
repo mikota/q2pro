@@ -59,6 +59,8 @@ typedef struct espsettings_s
 	char target_name[MAX_ESP_STRLEN];
 	edict_t *capturepoint;
 	edict_t *lastkilledleader;
+	qboolean esp_live_round;
+	edict_t *round_spawnpoint[TEAM_TOP];
 } espsettings_t;
 
 extern espsettings_t espsettings;
@@ -130,3 +132,4 @@ void EspRespawnLCA(edict_t *ent);
 void EspCleanUp(void);
 void EspDebug(void);
 extern qboolean esp_punishment_phase;
+extern int esp_spawnpoint_index[TEAM_TOP];
