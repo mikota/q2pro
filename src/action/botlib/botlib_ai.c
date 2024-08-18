@@ -721,6 +721,11 @@ void BOTLIB_Think(edict_t* self)
 	{
 		BOTLIB_CTF_Goals(self);
 	}
+	else if (esp->value) // ESP Goals
+	{
+		BOTLIB_ESP_Goals(self);
+	}
+
 	// Check if the bot is in a NAV state (I need a nav) or if NONE
 	else if (self->bot.state == BOT_MOVE_STATE_NAV || self->bot.state == BOT_MOVE_STATE_NONE)
 	{
