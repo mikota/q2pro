@@ -133,3 +133,5 @@ void EspCleanUp(void);
 void EspDebug(void);
 extern qboolean esp_punishment_phase;
 extern int esp_spawnpoint_index[TEAM_TOP];
+extern edict_t* chosenSpawnpoint[TEAM_TOP];
+extern edict_t* etvTarget;

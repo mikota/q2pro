@@ -2860,6 +2860,9 @@ int CheckTeamRules (void)
 				gi.sound (&g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD,
 				gi.soundindex ("world/10_0.wav"), 1.0, ATTN_NONE, 0.0);
 
+				// Advertizing Discord and the forums
+				//PrintAdNotification(NULL);
+
 				#if USE_AQTION
 				// Cleanup and remove all bots, it's go time!
 				if (warmup_bots->value){
@@ -4280,4 +4283,23 @@ int TotalPlayersAliveOnTeam(int teamNum)
     }
 
     return count;
+}
+
+void PrintAdNotification(edict_t* ent)
+{
+    // Don't spam this in matchmode
+    if (matchmode->value)
+        return;
+
+    // Do not send to bots
+    if (ent->is_bot)
+        return;
+
+    const char *msg = "Get in on the Action! Join us in Discord at\n https://discord.aq2world.com\nand the forums at\n https://www.aq2world.com\n";
+
+    // If ent is null, send to all clients, else send to client
+    if (ent == NULL)
+        gi.bprintf(PRINT_MEDIUM, "%s", msg);
+    else
+        gi.cprintf(ent, PRINT_MEDIUM, "%s", msg);
 }

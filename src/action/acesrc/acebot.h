@@ -386,6 +386,7 @@ void     ACESP_RemoveBot(char *name);
 void	 safe_cprintf (edict_t *ent, int printlevel, const char *fmt, ...);
 void     safe_centerprintf (edict_t *ent, const char *fmt, ...);
 void     debug_printf (char *fmt, ...);
+int 	 ACEND_FindClosestReachableNode(edict_t *self, int range, int type);
 
 // bot_ai.c protos
 qboolean	BOTAI_NeedToBandage(edict_t *bot);

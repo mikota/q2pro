@@ -15,7 +15,6 @@ int BOTLIB_ESPGetTargetNode(edict_t *ent, edict_t* leader)
 	if (ent == NULL)
 		return INVALID;
 
-	edict_t *tmp = NULL;
 	edict_t *target = NULL;
 
 	// Reset escortcap value
@@ -23,9 +22,7 @@ int BOTLIB_ESPGetTargetNode(edict_t *ent, edict_t* leader)
 
 	// If leader is null, it means we're looking for an ETV target
 	if(leader == NULL) {
-		while ((tmp = G_Find(ent, FOFS(classname), "item_flag")) != NULL) {
-			target = tmp;
-		}
+		target = etvTarget;
 	} else { // Target is leader
 		target = leader;
 	}
@@ -207,7 +204,7 @@ int BOTLIB_FindMyLeaderNode(edict_t* self)
 	edict_t* leader = teams[myTeam].leader;
 	//float distance;
 
-	if (IS_ALIVE(leader)) {
+	if (leader != NULL && IS_ALIVE(leader)) {
 		if (leader->is_bot) {  // No need to do fancy stuff if leader is a bot
 			return leader->bot.current_node;
 		} else {
@@ -270,14 +267,23 @@ int BOTLIB_InterceptLeader_3Team(edict_t* self)
 int BOTLIB_InterceptLeader_2Team(edict_t* self)
 {
 	int myTeam = self->client->resp.team;
+	int espMode = EspModeCheck();
 
-	if (myTeam == TEAM1) {
-		if (IS_ALIVE(EspGetLeader(TEAM2))) {
-			return BOTLIB_FindEnemyLeaderNode(self, TEAM2);
+	if (espMode == ESPMODE_ATL) {
+		if (myTeam == TEAM1) {
+			if (IS_ALIVE(EspGetLeader(TEAM2))) {
+				return BOTLIB_FindEnemyLeaderNode(self, TEAM2);
+			}
+		} else {
+			if (IS_ALIVE(EspGetLeader(TEAM1))) {
+				return BOTLIB_FindEnemyLeaderNode(self, TEAM1);
+			}
 		}
-	} else {
-		if (IS_ALIVE(EspGetLeader(TEAM1))) {
-			return BOTLIB_FindEnemyLeaderNode(self, TEAM1);
+	} else if (espMode == ESPMODE_ETV) {
+		if (myTeam == TEAM2) {
+			if (IS_ALIVE(EspGetLeader(TEAM1))) {
+				return BOTLIB_ESPGetTargetNode(self, NULL);
+			}
 		}
 	}
 	return INVALID; // No team leaders are alive, so no node to intercept
@@ -285,7 +291,7 @@ int BOTLIB_InterceptLeader_2Team(edict_t* self)
 
 int BOTLIB_InterceptLeader_ETV(edict_t* self)
 {
-	
+	return BOTLIB_InterceptLeader_2Team(self);
 }
 
 // Intercept enemy team leader (bad guy)
@@ -369,22 +375,94 @@ float BOTLIB_DistanceToEnemyLeader(edict_t* self, int flagType)
 }
 
 
+/*
+
+BOT Espionage Behaviors
+
+*/
+
+void _EspWander(edict_t* self)
+{
+	self->bot.bot_esp_state = BOT_ESP_WANDER;
+	BOTLIB_PickLongRangeGoal(self);
+	BOTLIB_Debug("%s: ATL Leader %s is wandering\n", __func__, self->client->pers.netname);
+	
+}
+
+qboolean _EspFlee(edict_t* self, int closestSpawnPointNode)
+{
+	char* debugName = "leader";
+
+	if (!IS_LEADER(self)) {
+		debugName = "crew";
+	}
+
+	self->bot.bot_esp_state = BOT_ESP_RETREAT;
+	if (BOTLIB_CanVisitNode(self, closestSpawnPointNode, true, INVALID, false)) {
+		BOTLIB_Debug("%s: ATL %s %s is fleeing back to %i)\n", __func__, debugName, self->client->pers.netname, closestSpawnPointNode);
+		return true;
+	}
+	return false; // Could not flee
+}
+
+qboolean _EspAttackLeader(edict_t* self, int enemyNode)
+{
+	char* debugName = "leader";
+
+	if (!IS_LEADER(self)) {
+		debugName = "crew";
+	}
+
+	self->bot.bot_esp_state = BOT_ESP_ATTACK_TARGET;
+	if (BOTLIB_CanVisitNode(self, enemyNode, true, INVALID, false)) {
+		BOTLIB_Debug("%s: ATL %s %s going for enemy leader at node %i\n", __func__, debugName, self->client->pers.netname, enemyNode);
+		return true;
+	}
+	return false;
+}
+
+qboolean _EspAttackTarget(edict_t* self, int targetNode)
+{
+	self->bot.bot_esp_state = BOT_ESP_ATTACK_TARGET;
+	if (BOTLIB_CanVisitNode(self, targetNode, true, INVALID, false)) {
+		BOTLIB_Debug("%s: ETV Leader %s going for ETV target at node %i\n", __func__, self->client->pers.netname, targetNode);
+		return true;
+	}
+	return false;
+}
+
+qboolean _EspDefendLeader(edict_t* self, int leaderNode)
+{
+
+	self->bot.bot_esp_state = BOT_ESP_ATTACK_TARGET;
+	if (BOTLIB_CanVisitNode(self, leaderNode, true, INVALID, false)) {
+		BOTLIB_Debug("%s: ATL %s crew going for enemy leader at node %i\n", __func__, self->client->pers.netname, leaderNode);
+		return true;
+	}
+	return false;
+}
+
+
 void BOTLIB_ESP_Goals(edict_t* self)
 {
 	if (!lights_camera_action && !espsettings.esp_live_round) return; // Only allow during a real match (after LCA and before win/loss announcement)
 
-	espsettings_t *es = &espsettings;
+	int espMode = EspModeCheck();
 	// Team related variables
 	int myTeam = self->client->resp.team;
 	int totalTeammates = TotalPlayersOnTeam(myTeam);
 	int aliveTeammates = TotalPlayersAliveOnTeam(myTeam);
 	float percentAlive = (float)aliveTeammates / (float)totalTeammates * 100;
 
-	// Keep track of current round's spawnpoint if we need to flee
-	//edict_t* roundSpawnPoint = espsettings.round_spawnpoint[myTeam];
-	edict_t *roundSpawnPoint = es->custom_spawns[myTeam][esp_spawnpoint_index[myTeam]];
-	int closestSpawnPointNode = ACEND_FindClosestReachableNode(roundSpawnPoint, NODE_DENSITY, NODE_ALL);
-	
+	// Refactor this so it is only calculated once, at the beginning of each round
+	int closestSpawnPointNode = ACEND_FindClosestReachableNode(chosenSpawnpoint[myTeam], NODE_DENSITY, NODE_ALL);
+	// End Refactor
+
+	// Relevant node info
+	int targetNode = BOTLIB_ESPGetTargetNode(self, NULL);
+	int enemyNode = BOTLIB_InterceptEnemyLeader(self);
+	int leaderNode = BOTLIB_FindMyLeaderNode(self);
+
 	// Logic time: Discerning between leader vs non-leader
 	// TODO: Better logic later on when we utilize bot.skill!
 	if (IS_LEADER(self))
@@ -394,196 +472,164 @@ void BOTLIB_ESP_Goals(edict_t* self)
 
 // Logic splits here, between ATL and ETV modes
 bot_leader_think:
-	if (EspModeCheck() == ESPMODE_ATL) {
+	if (espMode == ESPMODE_ATL) {
 		// If percentage of teammates alive is < 50% then :
 		if (percentAlive < 50) {
 			// 50% chance to go for the enemy leader
 			if (rand() % 2 == 0) {
-				int enemyNode = BOTLIB_InterceptEnemyLeader(self);
 				if (enemyNode != INVALID) {
-					self->bot.state = BOT_MOVE_STATE_MOVE;
-					self->bot.bot_esp_state = BOT_ESP_ATTACK_TARGET;
-					BOTLIB_CanVisitNode(self, enemyNode, true, INVALID, false);
+					_EspAttackLeader(self, enemyNode);
+					return;
+				} else {
+					// Can't find enemy leader?  Wander time
+					_EspWander(self);
 					return;
 				}
 			} else {
 				// 50% chance to flee (run back to original spawnpoint)
-				if (roundSpawnPoint) {
-					self->bot.state = BOT_MOVE_STATE_MOVE;
-					self->bot.bot_esp_state = BOT_ESP_RETREAT;
-					BOTLIB_CanVisitNode(self, closestSpawnPointNode, true, INVALID, false);
-					return;
+				if (chosenSpawnpoint[myTeam] != NULL) {
+					_EspFlee(self, closestSpawnPointNode);
 				}
 			}
 		} else {
 			// 33% chance to go for the enemy leader
 			if (rand() % 3 == 0) {
-				int enemyNode = BOTLIB_InterceptEnemyLeader(self);
 				if (enemyNode != INVALID) {
-					self->bot.state = BOT_MOVE_STATE_MOVE;
-					self->bot.bot_esp_state = BOT_ESP_ATTACK_TARGET;
-					BOTLIB_CanVisitNode(self, enemyNode, true, INVALID, false);
+					_EspAttackLeader(self, enemyNode);
 					return;
 				}
 			} else if (rand() % 3 == 1) {
 				// 33% chance to flee
-				if (roundSpawnPoint) {
-					self->bot.state = BOT_MOVE_STATE_MOVE;
-					self->bot.bot_esp_state = BOT_ESP_RETREAT;
-					BOTLIB_CanVisitNode(self, closestSpawnPointNode, true, INVALID, false);
+				if (chosenSpawnpoint[myTeam] != NULL) {
+					_EspFlee(self, closestSpawnPointNode);
 					return;
 				}
 			} else if (rand() % 3 == 2) {
 				// 33% chance to wander
-				if (roundSpawnPoint) {
-					self->bot.state = BOT_MOVE_STATE_MOVE;
-					self->bot.bot_esp_state = BOT_ESP_WANDER;
-					BOTLIB_PickLongRangeGoal(self);
+				if (chosenSpawnpoint[myTeam] != NULL) {
+					_EspWander(self);
 					return;
 				}
 			}
 		}
-	} else if (EspModeCheck() == ESPMODE_ETV && myTeam == TEAM1) {
+	} else if (espMode == ESPMODE_ETV && myTeam == TEAM1) {
 		// If percentage of teammates alive is < 50% then :
 		if (percentAlive < 50) {
 			// 50% chance to go for the ETV target
 			if (rand() % 2 == 0) {
-				int targetNode = BOTLIB_ESPGetTargetNode(self, NULL);
 				if (targetNode != INVALID) {
-					self->bot.state = BOT_MOVE_STATE_MOVE;
-					self->bot.bot_esp_state = BOT_ESP_ATTACK_TARGET;
-					BOTLIB_CanVisitNode(self, targetNode, true, INVALID, false);
+					_EspAttackTarget(self, targetNode);
 					return;
 				}
 			} else {
 				// 50% chance to flee
-				if (roundSpawnPoint) {
-					self->bot.state = BOT_MOVE_STATE_MOVE;
-					self->bot.bot_esp_state = BOT_ESP_RETREAT;
-					BOTLIB_CanVisitNode(self, closestSpawnPointNode, true, INVALID, false);
+				if (chosenSpawnpoint[myTeam] != NULL) {
+					_EspFlee(self, closestSpawnPointNode);
+					return;
+				} else {
+					_EspWander(self);
 					return;
 				}
 			}
-		} else {
-			// We shouldn't get here but in case we do, do something
-			if (roundSpawnPoint) {
-				self->bot.state = BOT_MOVE_STATE_MOVE;
-				self->bot.bot_esp_state = BOT_ESP_WANDER;
-				BOTLIB_PickLongRangeGoal(self);
-				return;
-			}
-		}
-	} else if (EspModeCheck() == ESPMODE_ETV && myTeam == TEAM2) {
-		// Defend target
-		if (rand() % 2 == 0) {
-			int targetNode = BOTLIB_ESPGetTargetNode(self, NULL);
+		} else { // More than 50% alive, let's attack the target!
 			if (targetNode != INVALID) {
-				self->bot.state = BOT_MOVE_STATE_MOVE;
-				self->bot.bot_esp_state = BOT_ESP_DEFEND_TARGET;
-				BOTLIB_CanVisitNode(self, targetNode, true, INVALID, false);
-				return;
-			}
-		} else if (rand() % 2 == 1) {
-			// Attack team1's leader
-			int enemyNode = BOTLIB_InterceptEnemyLeader(self);
-			if (enemyNode != INVALID) {
-				self->bot.state = BOT_MOVE_STATE_MOVE;
-				self->bot.bot_esp_state = BOT_ESP_ATTACK_TARGET;
-				BOTLIB_CanVisitNode(self, enemyNode, true, INVALID, false);
-				return;
-			}
-		} else {
-			// We shouldn't get here but in case we do, do something
-			if (roundSpawnPoint) {
-				self->bot.state = BOT_MOVE_STATE_MOVE;
-				self->bot.bot_esp_state = BOT_ESP_WANDER;
-				BOTLIB_PickLongRangeGoal(self);
+				_EspAttackTarget(self, targetNode);
 				return;
 			}
 		}
+		// We shouldn't get here but in case we do, do something
+			_EspWander(self);
+			return;
+	}
 
 // Main difference between crew and leader is that the crew are
 // expendable, protect the leader at all costs!
 bot_crew_think:
-	if (EspModeCheck() == ESPMODE_ATL) {
+	if (espMode == ESPMODE_ATL) {
 		// If percentage of teammates alive is < 50% then :
 		if (percentAlive < 50) {
 			// 50% chance to stay with team leader
 			if (rand() % 2 == 0) {
-				int leaderNode = BOTLIB_FindMyLeaderNode(self);
 				if (leaderNode != INVALID) {
-					self->bot.state = BOT_MOVE_STATE_MOVE;
-					self->bot.bot_esp_state = BOT_ESP_COVER_TEAM_LEADER;
-					BOTLIB_CanVisitNode(self, leaderNode, true, INVALID, false);
+					_EspDefendLeader(self, leaderNode);
 					return;
 				}
 			} else {
 				// 50% chance to attack enemy leader
-				int enemyNode = BOTLIB_InterceptEnemyLeader(self);
 				if (enemyNode != INVALID) {
-					self->bot.state = BOT_MOVE_STATE_MOVE;
-					self->bot.bot_esp_state = BOT_ESP_ATTACK_TARGET;
-					BOTLIB_CanVisitNode(self, enemyNode, true, INVALID, false);
-					return;
+					_EspAttackLeader(self, enemyNode);
 				}
 			}
-		} else {
+		} else { // More than 50% alive, let's figure something out
 			// 33% chance to stay with team leader
 			if (rand() % 3 == 0) {
-				int leaderNode = BOTLIB_FindMyLeaderNode(self);
 				if (leaderNode != INVALID) {
-					self->bot.state = BOT_MOVE_STATE_MOVE;
-					self->bot.bot_esp_state = BOT_ESP_COVER_TEAM_LEADER;
-					BOTLIB_CanVisitNode(self, leaderNode, true, INVALID, false);
+					_EspDefendLeader(self, leaderNode);
 					return;
 				}
 			} else if (rand() % 3 == 1) {
 				// 33% chance to attack enemy leader
-				int enemyNode = BOTLIB_InterceptEnemyLeader(self);
 				if (enemyNode != INVALID) {
-					self->bot.state = BOT_MOVE_STATE_MOVE;
-					self->bot.bot_esp_state = BOT_ESP_ATTACK_TARGET;
-					BOTLIB_CanVisitNode(self, enemyNode, true, INVALID, false);
+					_EspAttackLeader(self, enemyNode);
 					return;
 				}
 			} else if (rand() % 3 == 2) {
 				// 33% chance to wander
-				self->bot.state = BOT_MOVE_STATE_MOVE;
-				self->bot.bot_esp_state = BOT_ESP_WANDER;
-				BOTLIB_PickLongRangeGoal(self);
+				_EspWander(self);
 				return;
 			}
 		}
-	} else if (EspModeCheck() == ESPMODE_ETV) {
+	} else if (espMode == ESPMODE_ETV && myTeam == TEAM1) {
 		// If percentage of teammates alive is < 50% then :
 		if (percentAlive < 50) {
 			// 50% chance to go for the ETV target
 			if (rand() % 2 == 0) {
-				int targetNode = BOTLIB_ESPGetTargetNode(self, NULL);
 				if (targetNode != INVALID) {
-					self->bot.state = BOT_MOVE_STATE_MOVE;
-					self->bot.bot_esp_state = BOT_ESP_ATTACK_TARGET;
-					BOTLIB_CanVisitNode(self, targetNode, true, INVALID, false);
+					_EspAttackTarget(self, targetNode);
 					return;
 				}
-			} else {
+			} else{
 				// 50% chance to stay with team leader
-				int leaderNode = BOTLIB_FindMyLeaderNode(self);
 				if (leaderNode != INVALID) {
-					self->bot.state = BOT_MOVE_STATE_MOVE;
-					self->bot.bot_esp_state = BOT_ESP_COVER_TEAM_LEADER;
-					BOTLIB_CanVisitNode(self, leaderNode, true, INVALID, false);
+					_EspDefendLeader(self, leaderNode);
 					return;
 				}
 			}
-		} else {
-			// We shouldn't get here but in case we do, do something
-			self->bot.state = BOT_MOVE_STATE_MOVE;
-			self->bot.bot_esp_state = BOT_ESP_WANDER;
-			BOTLIB_PickLongRangeGoal(self);
-			return;
+		} else { // More than 50% alive, let's attack the target!
+			if (targetNode != INVALID) {
+				_EspAttackTarget(self, targetNode);
+				return;
+			} else {
+				_EspWander(self);
+				return;
+			}
 		}
-	}
+	} else if (espMode == ESPMODE_ETV && myTeam == TEAM2) {
+		// If percentage of teammates alive is < 50% then :
+		if (percentAlive < 50) {
+			// 50% chance to go for the ETV target
+			if (rand() % 2 == 0) {
+				if (targetNode != INVALID) {
+					_EspAttackTarget(self, targetNode);
+					return;
+				}
+			} else {
+				// 50% chance to attack enemy leader
+				if (enemyNode != INVALID) {
+					_EspAttackLeader(self, enemyNode);
+					return;
+				}
+			}
+		} else { // More than 50%, attack that leader!
+			if (enemyNode != INVALID) {
+				_EspAttackLeader(self, enemyNode);
+				return;
+			}
+		}
+	} else {
+		// We shouldn't get here but in case we do, do something
+		_EspWander(self);
+		return;
 	}
 
 	/*
@@ -594,7 +640,7 @@ bot_crew_think:
 		if (item_node != INVALID)
 		{
 			{
-				self->bot.state = BOT_MOVE_STATE_MOVE;
+				self->bot.state = BOT_MOVE_STATE_NAV;
 				BOTLIB_SetGoal(self, nodes[item_node].nodenum);
 				self->bot.bot_ctf_state == BOT_CTF_STATE_GET_DROPPED_ITEMS;
 				//Com_Printf("%s %s going for %s at node %d\n", __func__, self->client->pers.netname, self->bot.get_item->classname, nodes[item_node].nodenum);

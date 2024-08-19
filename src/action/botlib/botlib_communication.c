@@ -151,7 +151,7 @@ char *botchat_victory[DBC_VICTORY] =
 	"too ez"
 };
 
-#define DBC_RAGE 8
+#define DBC_RAGE 9
 char *botchat_rage[DBC_RAGE] =
 {
 	"f this map",
@@ -161,12 +161,13 @@ char *botchat_rage[DBC_RAGE] =
 	"yeah gg",
 	"that's enough for me today",
 	"ASDKDDKJFJK",
-	"PERKELEEeeeee"
+	"PERKELEEeeeee",
+	"FYFAAAAN"
 };
 
 // This function is used to mix up chat so that multiple
 // phrases can be combined to create a more unique message
-// Currently onlt doing this for CHAT_KILLED
+// Currently only doing this for CHAT_KILLED
 char* _chatMix(char* msg, bot_chat_types_t chattype, int randval)
 {
     char* text = NULL;

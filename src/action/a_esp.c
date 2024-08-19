@@ -14,6 +14,8 @@ espsettings_t espsettings;
 int esp_last_chosen_spawn = 0;
 int esp_spawnpoint_index[TEAM_TOP] = {-1};
 
+edict_t* chosenSpawnpoint[TEAM_TOP] = {NULL};
+edict_t* etvTarget = NULL;
 
 unsigned int esp_team_effect[] = {
 	EF_BLASTER | EF_ROTATE | EF_TELEPORTER,
@@ -515,6 +517,9 @@ void EspMakeCapturePoint(edict_t *flag)
 		}
 	}
 	#endif
+
+	// Globally accessible capturepoint
+	etvTarget = flag;
 	
 	esp_flag_count ++;
 }
@@ -1214,6 +1219,7 @@ edict_t *SelectEspSpawnPoint(edict_t *ent)
 
 	char 		*cname;
 	int			teamNum = ent->client->resp.team;
+	edict_t* 	chosen_spawn_point = NULL;
 
 	ent->client->resp.esp_state = ESP_STATE_PLAYING;
 
@@ -1262,7 +1268,10 @@ edict_t *SelectEspSpawnPoint(edict_t *ent)
 	} else {
 		// Custom spawns take precedence over standard spawns
 		if ((EspSpawnpointCount(teamNum) > 0)) {
-			return SelectEspCustomSpawnPoint(ent);
+			chosen_spawn_point = SelectEspCustomSpawnPoint(ent);
+			// Keeping track of the chosen spawnpoint
+			chosenSpawnpoint[teamNum] = chosen_spawn_point;
+			return chosen_spawn_point;
 
 		// but if there are none, then we go back to old faithful
 		} else {
@@ -1270,10 +1279,17 @@ edict_t *SelectEspSpawnPoint(edict_t *ent)
 				gi.dprintf("%s: No custom spawns, defaulting to teamplay spawn\n", __func__);
 
 			// NULL check, if there are no teamplay (info_player_team...) spawns, then default to deathmatch spawns
-			if (SelectTeamplaySpawnPoint(ent))
-				return SelectTeamplaySpawnPoint(ent);
-			else
-				return SelectDeathmatchSpawnPoint();
+			if (SelectTeamplaySpawnPoint(ent)) {
+				chosen_spawn_point = SelectTeamplaySpawnPoint(ent);
+				// Keeping track of the chosen spawnpoint
+				chosenSpawnpoint[teamNum] = chosen_spawn_point;
+				return chosen_spawn_point;
+			} else {
+				chosen_spawn_point = SelectDeathmatchSpawnPoint();
+				// Keeping track of the chosen spawnpoint
+				chosenSpawnpoint[teamNum] = chosen_spawn_point;
+				return chosen_spawn_point;
+			}
 		}
 	}
 	// All else fails, use deathmatch spawn points

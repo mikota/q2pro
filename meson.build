@@ -245,7 +245,8 @@ botlib_src = [
   'src/action/botlib/botlib_spawn.c',
   'src/action/botlib/botlib_spawnpoints.c',
   'src/action/botlib/botlib_weapons.c',
-  'src/action/botlib/botlib_personality.c'
+  'src/action/botlib/botlib_personality.c',
+  'src/action/botlib/botlib_utils.c',
 ]
 
 cc = meson.get_compiler('c')

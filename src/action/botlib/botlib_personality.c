@@ -760,13 +760,13 @@ qboolean BOTLIB_SpawnRush(edict_t* bot) {
     bool isRushing = randomValue <= probabilityThreshold;
 
     // Decide based on the probability threshold
-    if (bot_debug->value) {
-        gi.dprintf("%s: %s's probabilityThreshold = %f, randomValue = %f, isRushing = %s\n", 
-                __func__, 
-                bot->client->pers.netname, 
-                probabilityThreshold, 
-                randomValue, 
-                isRushing ? "YES" : "NO");
-        }
+    // if (bot_debug->value) {
+    //     gi.dprintf("%s: %s's probabilityThreshold = %f, randomValue = %f, isRushing = %s\n", 
+    //             __func__, 
+    //             bot->client->pers.netname, 
+    //             probabilityThreshold, 
+    //             randomValue, 
+    //             isRushing ? "YES" : "NO");
+    //     }
     return isRushing;
 }

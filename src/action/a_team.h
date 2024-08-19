@@ -110,6 +110,7 @@ void JoinTeamAutobalance (edict_t * ent);
 //Utility functions
 int TotalPlayersOnTeam(int teamNum);
 int TotalPlayersAliveOnTeam(int teamNum);
+void PrintAdNotification(edict_t* ent);
 
 typedef struct spawn_distances_s
 {
