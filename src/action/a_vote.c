@@ -114,8 +114,8 @@ int _numclients (void)
 		if (!other->inuse || !other->client || !other->client->pers.connected || other->client->pers.mvdspec)
 			continue;
 #ifndef NO_BOTS
-		// If bot_teamplay is enabled, then do not continue/ignore bots
-		if(!bot_teamplay->value) {
+		// If bot_countashuman is enabled, then do not continue/ignore bots
+		if(!bot_countashuman->value) {
 			if (other->is_bot)
 				continue;
 		}
