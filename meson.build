@@ -236,6 +236,7 @@ botlib_src = [
   'src/action/botlib/botlib_cmd.c',
   'src/action/botlib/botlib_communication.c',
   'src/action/botlib/botlib_ctf.c',
+  'src/action/botlib/botlib_esp.c',
   'src/action/botlib/botlib_items.c',
   'src/action/botlib/botlib_math.c',
   'src/action/botlib/botlib_movement.c',
