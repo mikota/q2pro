@@ -385,8 +385,7 @@ void _EspWander(edict_t* self)
 {
 	self->bot.bot_esp_state = BOT_ESP_WANDER;
 	BOTLIB_PickLongRangeGoal(self);
-	BOTLIB_Debug("%s: ATL Leader %s is wandering\n", __func__, self->client->pers.netname);
-	
+	BOTLIB_Debug("%s: ATL %s is wandering\n", __func__, self->client->pers.netname);
 }
 
 qboolean _EspFlee(edict_t* self, int closestSpawnPointNode)
@@ -401,6 +400,10 @@ qboolean _EspFlee(edict_t* self, int closestSpawnPointNode)
 	if (BOTLIB_CanVisitNode(self, closestSpawnPointNode, true, INVALID, false)) {
 		BOTLIB_Debug("%s: ATL %s %s is fleeing back to %i)\n", __func__, debugName, self->client->pers.netname, closestSpawnPointNode);
 		return true;
+	} else {
+		BOTLIB_Debug("%s: ATL %s %s could not flee back to %i, picking another goal\n", __func__, debugName, self->client->pers.netname, closestSpawnPointNode);
+		BOTLIB_PickLongRangeGoal(self);
+		return false;
 	}
 	return false; // Could not flee
 }
@@ -415,8 +418,12 @@ qboolean _EspAttackLeader(edict_t* self, int enemyNode)
 
 	self->bot.bot_esp_state = BOT_ESP_ATTACK_TARGET;
 	if (BOTLIB_CanVisitNode(self, enemyNode, true, INVALID, false)) {
-		BOTLIB_Debug("%s: ATL %s %s going for enemy leader at node %i\n", __func__, debugName, self->client->pers.netname, enemyNode);
+		BOTLIB_Debug("%s: %s %s going for enemy leader at node %i\n", __func__, debugName, self->client->pers.netname, enemyNode);
 		return true;
+	} else {
+		BOTLIB_Debug("%s: %s %s could not attack enemy leader at %i, picking another goal\n", __func__, debugName, self->client->pers.netname, enemyNode);
+		BOTLIB_PickLongRangeGoal(self);
+		return false;
 	}
 	return false;
 }
@@ -427,6 +434,10 @@ qboolean _EspAttackTarget(edict_t* self, int targetNode)
 	if (BOTLIB_CanVisitNode(self, targetNode, true, INVALID, false)) {
 		BOTLIB_Debug("%s: ETV Leader %s going for ETV target at node %i\n", __func__, self->client->pers.netname, targetNode);
 		return true;
+	} else {
+		BOTLIB_Debug("%s: %s could attack ETV target at %i, picking another goal\n", __func__, self->client->pers.netname, targetNode);
+		BOTLIB_PickLongRangeGoal(self);
+		return false;
 	}
 	return false;
 }
@@ -438,6 +449,10 @@ qboolean _EspDefendLeader(edict_t* self, int leaderNode)
 	if (BOTLIB_CanVisitNode(self, leaderNode, true, INVALID, false)) {
 		BOTLIB_Debug("%s: ATL %s crew going for enemy leader at node %i\n", __func__, self->client->pers.netname, leaderNode);
 		return true;
+	} else {
+		BOTLIB_Debug("%s: %s could reach leader at %i, picking another goal\n", __func__, self->client->pers.netname, leaderNode);
+		BOTLIB_PickLongRangeGoal(self);
+		return false;
 	}
 	return false;
 }
@@ -455,7 +470,7 @@ void BOTLIB_ESP_Goals(edict_t* self)
 	float percentAlive = (float)aliveTeammates / (float)totalTeammates * 100;
 
 	// Refactor this so it is only calculated once, at the beginning of each round
-	int closestSpawnPointNode = ACEND_FindClosestReachableNode(chosenSpawnpoint[myTeam], NODE_DENSITY, NODE_ALL);
+	int closestSpawnPointNode = teamplay_spawn_node[myTeam];
 	// End Refactor
 
 	// Relevant node info

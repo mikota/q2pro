@@ -331,6 +331,7 @@ edict_t *potential_spawns[MAX_SPAWNS];
 int num_potential_spawns;
 edict_t *teamplay_spawns[MAX_TEAMS];
 trace_t trace_t_temp;		// used by our trace replace macro in ax_team.h
+int teamplay_spawn_node[MAX_TEAMS];	// used to keep track of the closest BOTLIB node to the spawnpoint
 
 // <TNG:Freud New spawning variables>
 int NS_num_used_farteamplay_spawns[MAX_TEAMS];
@@ -2214,8 +2215,9 @@ static void SpawnPlayers(void)
 	int i;
 	edict_t *ent;
 
-	if (esp->value)
+	if (esp->value) {
 		NS_SetupTeamSpawnPoints ();
+	}
 
 	if (gameSettings & GS_ROUNDBASED)
 	{
@@ -4204,6 +4206,9 @@ void NS_SetupTeamSpawnPoints (void)
 	for (l = 0; l < MAX_TEAMS; l++) {
 		teamplay_spawns[l] = NULL;
 		teams_assigned[l] = false;
+		#ifndef NO_BOTS
+		teamplay_spawn_node[l] = ACEND_FindClosestReachableNode(chosenSpawnpoint[l], NODE_DENSITY, NODE_ALL);
+		#endif
 	}
 
 	if (NS_SelectRandomTeamplaySpawnPoint (NS_randteam, teams_assigned) == false)

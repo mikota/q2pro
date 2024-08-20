@@ -141,6 +141,7 @@ extern int day_cycle_at;
 extern int teamCount;
 extern int in_warmup;
 extern qboolean teams_changed;
+extern int teamplay_spawn_node[MAX_TEAMS];
 
 typedef struct menu_list_weapon
 {
