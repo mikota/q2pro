@@ -11,9 +11,5 @@ void BOTLIB_Debug(const char *debugmsg, ...)
 {
     if (!bot_debug->value)
         return;
-
-    va_list argptr;
-    va_start(argptr, debugmsg);
-    Com_Printf(debugmsg, argptr);
-    va_end(argptr);
+    gi.dprintf(debugmsg);
 }

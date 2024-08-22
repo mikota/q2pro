@@ -548,6 +548,9 @@ extern cvar_t* bot_personality;
 extern cvar_t* bot_ragequit;
 extern cvar_t* bot_countashuman;
 extern cvar_t* bot_debug;
+extern cvar_t* bot_count_min;
+extern cvar_t* bot_count_max;
+extern cvar_t* bot_rotate;
 //extern cvar_t* bot_randteamskin;
 
 #define MAX_BOT_NAMES 64

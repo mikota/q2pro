@@ -26,7 +26,7 @@ edict_t* BOTLIB_FindFreeEntity(void)
 qboolean BOTLIB_GetRandomBotFileLine(const char* file, char* buffer)
 {
 	FILE* f;
-	int		comments_num = 0;		// Keep track of how many comments the file has
+	//int		comments_num = 0;		// Keep track of how many comments the file has
 	int		line_num = 0;			// Keep track of lines
 	int		curr_len;				// Current length of the line
 	char	curr_line[1024];		// Accounts for reading lines that could be fairly long (comments)
@@ -35,8 +35,8 @@ qboolean BOTLIB_GetRandomBotFileLine(const char* file, char* buffer)
 	cvar_t* game_dir = gi.cvar("game", "action", 0); // Directory of the gamelib
 	cvar_t* botdir = gi.cvar("botdir", "bots", 0);	 // Directory of the bot files in the gamelib
 	char	filename[MAX_QPATH];	// Filename to load from
-	int	i;							// Keep track where we are in the filename array
 #ifdef	_WIN32
+	int	i;							// Keep track where we are in the filename array
 	i = sprintf(filename, ".\\");
 	i += sprintf(filename + i, game_dir->string);
 	i += sprintf(filename + i, "\\");
@@ -63,7 +63,7 @@ qboolean BOTLIB_GetRandomBotFileLine(const char* file, char* buffer)
 
 	// Find how many lines the file has
 	int random_line;
-	while (fgets(curr_line, sizeof(curr_line), f))
+	while (fgets(curr_line, sizeof(curr_line), f) != NULL)
 	{
 		line_num++;
 	}
@@ -79,7 +79,7 @@ qboolean BOTLIB_GetRandomBotFileLine(const char* file, char* buffer)
 		line_num = -1;
 
 		// Read each line
-		while (fgets(curr_line, sizeof(curr_line), f))
+		while (fgets(curr_line, sizeof(curr_line), f) != NULL)
 		{
 			line_num++; // Advance forward
 
@@ -189,6 +189,49 @@ qboolean BOTLIB_SaveBotsFromPreviousMap(void)
 	return true;
 }
 
+int BOTLIB_BotCountManager(void)
+{
+	// If we aren't rotating bots, just return existing desire_bots value
+	if (!bot_rotate->value)
+		return bot_connections.desire_bots;
+
+	int bcmin = bot_count_min->value;
+	int bcmax = bot_count_max->value;
+	int bc = bot_connections.desire_bots;
+	// int bc1 = bot_connections.desire_team1;
+	// int bc2 = bot_connections.desire_team2;
+	// int bc3 = bot_connections.desire_team3;
+	// int tbots = bot_connections.total_bots;
+
+	// Basic value validation
+	if (bcmin < 0) {
+		gi.dprintf("%s: bot_count_min < 0, setting it to 0\n", __func__);
+		bcmin = 0;
+	}
+	if (bcmax > maxclients->value) {
+		gi.dprintf("%s: bot_count_max > maxclients, setting it to maxclients\n", __func__);
+		bcmax = maxclients->value;
+	}
+	if (bcmin > bcmax) {
+		gi.dprintf("%s: bot_count_min > bot_count_max, setting them to be the same\n", __func__);
+		gi.cvar_forceset(bot_count_min->string, va("%s", bot_count_max->string));
+		bcmin = bcmax;
+	}
+
+	// Choose a random number between bcmin and bcmax, minimum count of bots is bcmin
+	int bot_count_rotate = bcmin + rand() % (bcmax - bcmin + 1);
+
+
+	// Make the change
+	if (bot_count_rotate == bc){
+		return bc; // No change
+	} else {  // Set desired bots to be how many we rotate in or out
+		bot_connections.desire_bots = bot_count_rotate;
+		return bot_count_rotate;
+	}
+
+}
+
 // Add bots from the previous map from file
 // Parameters: 
 // percent of bots to keep from previous map
@@ -216,8 +259,9 @@ qboolean BOTLIB_AddBotsFromPreviousMap(float percent)
 	cvar_t* game_dir = gi.cvar("game", "action", 0); // Directory of the gamelib
 	cvar_t* botdir = gi.cvar("botdir", "bots", 0);	 // Directory of the bot files in the gamelib
 	char	filename[MAX_QPATH];	// Filename to load from
-	int	i;							// Keep track where we are in the filename array
+
 #ifdef	_WIN32
+	int	i;							// Keep track where we are in the filename array
 	i = sprintf(filename, ".\\");
 	i += sprintf(filename + i, game_dir->string);
 	i += sprintf(filename + i, "\\");
@@ -407,7 +451,7 @@ void BOTLIB_RandomizeTeamNames(edict_t* bot)
 	int len = 0;
 	const int max_name_size = sizeof(teams[TEAM1].name); // Team names are limited to 20 characters (19 chars + terminator)
 
-	qboolean same_name = false;
+	//qboolean same_name = false;
 	for (int i = 0; i < MAX_TEAMS; i++) // For each team
 	{
 		// Try for random team names that fit within 18 characters
@@ -2012,7 +2056,12 @@ void BOTLIB_CheckBotRules(void)
 	//if (bot_connections.desire_bots < 0) bot_connections.desire_bots = 0;
 
 	//int bots_to_spawn = abs(bot_connections.total_bots - bot_connections.desire_bots);
-	int bots_to_spawn = bot_connections.desire_bots - bot_connections.total_bots;
+	int bots_to_spawn = 0;
+	if (bot_rotate->value) {
+		bots_to_spawn = BOTLIB_BotCountManager();
+	} else {
+		bots_to_spawn = bot_connections.desire_bots - bot_connections.total_bots;
+	}
 
 	// Shuffle bots around
 	//if (teamplay->value && bots_to_spawn == 0)

@@ -700,6 +700,9 @@ void InitGame( void )
 	bot_ragequit = gi.cvar("bot_ragequit", "0", 0);
 	bot_countashuman = gi.cvar("bot_countashuman", "0", 0);
 	bot_debug = gi.cvar("bot_debug", "0", 0);
+	bot_count_min = gi.cvar("bot_count_min", "0", 0);
+	bot_count_max = gi.cvar("bot_count_max", "0", 0);
+	bot_rotate = gi.cvar("bot_rotate", "0", 0);
 	//bot_randteamskin = gi.cvar("bot_randteamskin", "0", 0);
 	//rekkie -- DEV_1 -- e
 #endif

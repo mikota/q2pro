@@ -2385,6 +2385,12 @@ static void StartLCA(void)
 	SpawnPlayers();
 
 	if (esp->value) {
+		#ifndef NO_BOTS
+		int l;
+		for (l = 1; l < MAX_TEAMS; l++) {
+			teamplay_spawn_node[l] = ACEND_FindClosestReachableNode(chosenSpawnpoint[l], NODE_DENSITY, NODE_ALL);
+		}
+		#endif
 		esp_punishment_phase = false;
 		EspResetCapturePoint();
 		EspAnnounceDetails(false);
@@ -4206,9 +4212,6 @@ void NS_SetupTeamSpawnPoints (void)
 	for (l = 0; l < MAX_TEAMS; l++) {
 		teamplay_spawns[l] = NULL;
 		teams_assigned[l] = false;
-		#ifndef NO_BOTS
-		teamplay_spawn_node[l] = ACEND_FindClosestReachableNode(chosenSpawnpoint[l], NODE_DENSITY, NODE_ALL);
-		#endif
 	}
 
 	if (NS_SelectRandomTeamplaySpawnPoint (NS_randteam, teams_assigned) == false)
