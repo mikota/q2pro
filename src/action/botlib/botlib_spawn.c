@@ -189,47 +189,111 @@ qboolean BOTLIB_SaveBotsFromPreviousMap(void)
 	return true;
 }
 
+// This will return when we should rotate bots, default false
+qboolean BotCountManagerTimer(void)
+{
+	// Consider rotating when the map has freshly loaded
+	if (level.framenum < 100) {
+		BOTLIB_Debug("%s: BotCountManagerTimer: framenum\n");
+		return true;
+	}
+	// Consider rotating when the map has ended
+	if (level.intermission_framenum) {
+		BOTLIB_Debug("%s: BotCountManagerTimer: intermission\n");
+		return true;
+	}
+	// Consider rotating at 5% chance
+	if (rand() % 100 < 5) {
+		BOTLIB_Debug("%s: BotCountManagerTimer: percent\n");
+		return true;
+	}
+
+	return false;
+}
+
 int BOTLIB_BotCountManager(void)
 {
+	int bots_desired = bot_connections.desire_bots;
+	gi.dprintf("%s: desire_bots[%i]\n", __func__, bot_connections.desire_bots);
+
 	// If we aren't rotating bots, just return existing desire_bots value
-	if (!bot_rotate->value)
-		return bot_connections.desire_bots;
+	if (!BotCountManagerTimer() || !bot_rotate->value)
+		return (bots_desired - bot_connections.total_bots);
 
 	int bcmin = bot_count_min->value;
 	int bcmax = bot_count_max->value;
-	int bc = bot_connections.desire_bots;
-	// int bc1 = bot_connections.desire_team1;
-	// int bc2 = bot_connections.desire_team2;
-	// int bc3 = bot_connections.desire_team3;
-	// int tbots = bot_connections.total_bots;
+
+	// Percent is used in tandem with BotCountManagerTimer to determine when to rotate bots
+	float percent = (float)(bot_connections.total_humans_playing + bot_connections.total_bots) / maxclients->value * 100;
+
+	// This value determines if we add, remove or keep the same amount of bots
+	// 1 = add, -1 = remove, 0 = keep the same
+	int up_down_same = 0;
 
 	// Basic value validation
 	if (bcmin < 0) {
 		gi.dprintf("%s: bot_count_min < 0, setting it to 0\n", __func__);
+		gi.cvar_forceset(bot_count_min->name, "0");
 		bcmin = 0;
 	}
 	if (bcmax > maxclients->value) {
 		gi.dprintf("%s: bot_count_max > maxclients, setting it to maxclients\n", __func__);
+		gi.cvar_forceset(bot_count_max->name, va("%s", maxclients->name));
 		bcmax = maxclients->value;
 	}
 	if (bcmin > bcmax) {
 		gi.dprintf("%s: bot_count_min > bot_count_max, setting them to be the same\n", __func__);
-		gi.cvar_forceset(bot_count_min->string, va("%s", bot_count_max->string));
+		gi.cvar_forceset(bot_count_min->name, va("%s", bot_count_max->name));
 		bcmin = bcmax;
 	}
-
-	// Choose a random number between bcmin and bcmax, minimum count of bots is bcmin
-	int bot_count_rotate = bcmin + rand() % (bcmax - bcmin + 1);
-
-
-	// Make the change
-	if (bot_count_rotate == bc){
-		return bc; // No change
-	} else {  // Set desired bots to be how many we rotate in or out
-		bot_connections.desire_bots = bot_count_rotate;
-		return bot_count_rotate;
+	if (bcmin == 0 && bcmax == 0)
+	{
+		gi.dprintf("%s: bot_count_min and bot_count_max are both 0, not rotating bots, setting bot_rotate to 0\n", __func__);
+		gi.cvar_forceset(bot_rotate->name, "0");
+		return (bots_desired - bot_connections.total_bots);
 	}
 
+	//The following logic only applies if BotCountManagerTimer() returns true
+	
+	/* 
+	  If we have more than 80% of the server filled with players and bots, remove bots
+	     else if we're low on clients, consider adding bots
+	       else keep the same amount of bots
+	*/
+
+	// Don't add more bots if we're at the max
+	BOTLIB_Debug("%s: desire_bots[%i] total_bots[%i] total_humans[%i] percent[%f]\n", __func__, bots_desired, bot_connections.total_bots, bot_connections.total_humans_playing, percent);
+	if (bot_connections.total_bots < bcmax) {
+		if (rand() % 2 == 0) {
+			if (percent > 80)
+				up_down_same = -1;
+			else if (percent < 30)
+				up_down_same = 1;
+			else
+				up_down_same = 0;
+		} else {
+			// Bot just feels like leaving
+			if (rand() % 100 < 5)
+				up_down_same = -1;
+		}
+	} else {
+		return (bot_connections.desire_bots - bot_connections.total_bots);
+	}
+
+	// This will add, remove or keep the same amount of bots
+	bot_connections.desire_bots += up_down_same;
+	return (bot_connections.desire_bots);
+
+	// // Choose a random number between bcmin and bcmax, minimum count of bots is bcmin
+	// int bot_count_rotate = bcmin + rand() % (bcmax - bcmin + 1);
+
+	// // Make the change
+	// if (bot_count_rotate == bc){
+	// 	return bc; // No change
+	// } else {  // Set desired bots to be how many we rotate in or out
+	// 	bot_connections.desire_bots = bot_count_rotate;
+	// 	return bot_count_rotate;
+	// }
 }
 
 // Add bots from the previous map from file
@@ -2056,12 +2120,18 @@ void BOTLIB_CheckBotRules(void)
 	//if (bot_connections.desire_bots < 0) bot_connections.desire_bots = 0;
 
 	//int bots_to_spawn = abs(bot_connections.total_bots - bot_connections.desire_bots);
+
 	int bots_to_spawn = 0;
-	if (bot_rotate->value) {
-		bots_to_spawn = BOTLIB_BotCountManager();
-	} else {
-		bots_to_spawn = bot_connections.desire_bots - bot_connections.total_bots;
-	}
+	bots_to_spawn = bot_connections.desire_bots - bot_connections.total_bots;
+
+	// TODO: Fix BOTLIB_BotCountManager() to work
+	// if (!teamplay->value) {
+	// 	if (bot_rotate->value) {
+	// 		bots_to_spawn = BOTLIB_BotCountManager();
+	// 	} else {
+	// 		bots_to_spawn = bot_connections.desire_bots - bot_connections.total_bots;
+	// 	}
+	// }
 
 	// Shuffle bots around
 	//if (teamplay->value && bots_to_spawn == 0)
