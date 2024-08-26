@@ -575,9 +575,9 @@ typedef struct {
 //#if USE_REF
     lightgrid_t     lightgrid;
 
-    bool            lm_decoupled;
+    qboolean        lm_decoupled;
 //#endif
-    bool            extended;
+    qboolean        extended;
 
     char            name[1];
 } bsp_t;

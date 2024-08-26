@@ -1170,12 +1170,12 @@ void SV_InitGameProgs(void)
     unsigned max_size = INT_MAX / svs.csr.max_edicts;
 
     if (ge->edict_size < min_size || ge->edict_size > max_size || ge->edict_size % q_alignof(edict_t)) {
-        Com_Error(ERR_DROP, "Game library returned bad size of edict_t");
+        Com_Error(ERR_DROP, "Game library returned bad size of edict_t: %i", ge->edict_size);
     }
 
     // sanitize max_edicts
     if (ge->max_edicts <= sv_maxclients->integer || ge->max_edicts > svs.csr.max_edicts) {
-        Com_Error(ERR_DROP, "Game library returned bad number of max_edicts");
+        Com_Error(ERR_DROP, "Game library returned bad number of max_edicts: %i", ge->max_edicts);
     }
 
 #if AQTION_EXTENSION
