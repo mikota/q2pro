@@ -57,10 +57,10 @@ static void setup_dotshading(void)
 
     // matches the anormtab.h precalculations
     yaw = -DEG2RAD(glr.ent->angles[YAW]);
-    cy = cos(yaw);
-    sy = sin(yaw);
-    cp = cos(-M_PI / 4);
-    sp = sin(-M_PI / 4);
+    cy = cosf(yaw);
+    sy = sinf(yaw);
+    cp = cosf(-M_PIf / 4);
+    sp = sinf(-M_PIf / 4);
     shadedir[0] = cp * cy;
     shadedir[1] = cp * sy;
     shadedir[2] = -sp;
@@ -377,7 +377,7 @@ static void setup_color(void)
         }
 
         if (flags & RF_GLOW) {
-            f = 0.1f * sin(glr.fd.time * 7);
+            f = 0.1f * sinf(glr.fd.time * 7);
             for (i = 0; i < 3; i++) {
                 m = color[i] * 0.8f;
                 color[i] += f;
@@ -402,23 +402,15 @@ static void setup_celshading(void)
 {
     float value = Cvar_ClampValue(gl_celshading, 0, 10);
 
-    celscale = 0;
-
-    if (value == 0)
-        return;
-
-    if (glr.ent->flags & (RF_TRANSLUCENT | RF_SHELL_MASK))
-        return;
-
-    if (!qglPolygonMode)
-        return;
-
-    celscale = 1.0f - Distance(origin, glr.fd.vieworg) / 700.0f;
+    if (value == 0 || (glr.ent->flags & (RF_TRANSLUCENT | RF_SHELL_MASK)) || !qglPolygonMode)
+        celscale = 0;
+    else
+        celscale = 1.0f - Distance(origin, glr.fd.vieworg) / 700.0f;
 }
 
 static void draw_celshading(const QGL_INDEX_TYPE *indices, int num_indices)
 {
-    if (celscale < 0.01f || celscale > 1)
+    if (celscale < 0.01f)
         return;
 
     GL_BindTexture(0, TEXNUM_BLACK);
@@ -560,7 +552,8 @@ static void draw_alias_mesh(const QGL_INDEX_TYPE *indices, int num_indices,
     // fall back to entity matrix
     GL_LoadMatrix(glr.entmatrix);
 
-    // avoid drawing hidden faces for transparent gun
+    // avoid drawing hidden faces for transparent gun by pre-filling depth buffer
+    // muzzle flashes are excluded by checking for RF_FULLBRIGHT bit
     if ((glr.ent->flags & (RF_TRANSLUCENT | RF_WEAPONMODEL | RF_FULLBRIGHT)) == (RF_TRANSLUCENT | RF_WEAPONMODEL)) {
         GL_StateBits(GLS_DEFAULT);
         GL_ArrayBits(GLA_VERTEX);
@@ -635,13 +628,10 @@ static inline void calc_skel_vert(const md5_vertex_t *vert,
         const md5_weight_t *weight = &weights[vert->start + i];
         const md5_joint_t *joint = &skeleton[weight->joint];
 
-        vec3_t local_pos;
-        VectorScale(weight->pos, joint->scale, local_pos);
-
         vec3_t wv;
-        Quat_RotatePoint(joint->orient, local_pos, wv);
+        Quat_RotatePoint(joint->orient, weight->pos, wv);
 
-        VectorAdd(joint->pos, wv, wv);
+        VectorMA(joint->pos, joint->scale, wv, wv);
         VectorMA(out_position, weight->bias, wv, out_position);
 
         if (out_normal) {

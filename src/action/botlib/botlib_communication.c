@@ -3,6 +3,8 @@
 #include "botlib.h"
 #include "../m_player.h" // For waving frame types, i.e: FRAME_flip01
 
+// Bot chat
+int last_bot_chat_time;  // So the chat isn't super spammy with lots of bots
 
 //
 // Delayed chat, somewhat more realistic
@@ -149,7 +151,7 @@ char *botchat_victory[DBC_VICTORY] =
 	"too ez"
 };
 
-#define DBC_RAGE 8
+#define DBC_RAGE 9
 char *botchat_rage[DBC_RAGE] =
 {
 	"f this map",
@@ -159,12 +161,13 @@ char *botchat_rage[DBC_RAGE] =
 	"yeah gg",
 	"that's enough for me today",
 	"ASDKDDKJFJK",
-	"PERKELEEeeeee"
+	"PERKELEEeeeee",
+	"FYFAAAAN"
 };
 
 // This function is used to mix up chat so that multiple
 // phrases can be combined to create a more unique message
-// Currently onlt doing this for CHAT_KILLED
+// Currently only doing this for CHAT_KILLED
 char* _chatMix(char* msg, bot_chat_types_t chattype, int randval)
 {
     char* text = NULL;
@@ -288,13 +291,17 @@ void BOTLIB_Chat(edict_t* bot, bot_chat_types_t chattype)
 	} else if (randval > 0.2) { // 80% do not chat
 		//gi.dprintf("Skipping chat due to random chance (%f)\n", randval);
 		return; // Don't chat too often
+    } else if (level.framenum - last_bot_chat_time < 5 * HZ) { // Check if the last chat was within the last so many frames
+		return;  // Slow down the spam!
 	}
 
     // Add the message to the queue if delayed
-	if (delayed)
+	if (delayed) {
     	AddMessageToChatQueue(bot, text, level.framenum);
-	else // instant message, such as a goodbye before leaving
+	} else { // instant message, such as a goodbye before leaving
 		BOTLIB_Say(bot, text, false);
+		last_bot_chat_time = level.framenum;
+	}
 
     // Sets the current level time as the last chat time so the bot doesn't spam chat
     bot->bot.lastChatTime = level.framenum;

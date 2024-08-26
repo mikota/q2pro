@@ -386,6 +386,7 @@ void     ACESP_RemoveBot(char *name);
 void	 safe_cprintf (edict_t *ent, int printlevel, const char *fmt, ...);
 void     safe_centerprintf (edict_t *ent, const char *fmt, ...);
 void     debug_printf (char *fmt, ...);
+int 	 ACEND_FindClosestReachableNode(edict_t *self, int range, int type);
 
 // bot_ai.c protos
 qboolean	BOTAI_NeedToBandage(edict_t *bot);
@@ -545,12 +546,12 @@ extern cvar_t* bot_randname;
 extern cvar_t* bot_chat;
 extern cvar_t* bot_personality;
 extern cvar_t* bot_ragequit;
-extern cvar_t* bot_teamplay;
+extern cvar_t* bot_countashuman;
 extern cvar_t* bot_debug;
+extern cvar_t* bot_count_min;
+extern cvar_t* bot_count_max;
+extern cvar_t* bot_rotate;
 //extern cvar_t* bot_randteamskin;
-
-
-
 
 #define MAX_BOT_NAMES 64
 typedef struct {

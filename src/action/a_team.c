@@ -331,6 +331,7 @@ edict_t *potential_spawns[MAX_SPAWNS];
 int num_potential_spawns;
 edict_t *teamplay_spawns[MAX_TEAMS];
 trace_t trace_t_temp;		// used by our trace replace macro in ax_team.h
+int teamplay_spawn_node[MAX_TEAMS];	// used to keep track of the closest BOTLIB node to the spawnpoint
 
 // <TNG:Freud New spawning variables>
 int NS_num_used_farteamplay_spawns[MAX_TEAMS];
@@ -2214,8 +2215,9 @@ static void SpawnPlayers(void)
 	int i;
 	edict_t *ent;
 
-	if (esp->value)
+	if (esp->value) {
 		NS_SetupTeamSpawnPoints ();
+	}
 
 	if (gameSettings & GS_ROUNDBASED)
 	{
@@ -2363,9 +2365,11 @@ static void StartLCA(void)
 	if ((gameSettings & (GS_WEAPONCHOOSE|GS_ROUNDBASED)))
 		CleanLevel();
 
-	if (esp->value)
+	if (esp->value) {
 		// Re-skin everyone to ensure only one leader skin
 		EspSkinCheck();
+		espsettings.esp_live_round = true;
+	}
 
 	if (use_tourney->value && !tourney_lca->value)
 	{
@@ -2381,6 +2385,12 @@ static void StartLCA(void)
 	SpawnPlayers();
 
 	if (esp->value) {
+		#ifndef NO_BOTS
+		int l;
+		for (l = 1; l < MAX_TEAMS; l++) {
+			teamplay_spawn_node[l] = ACEND_FindClosestReachableNode(chosenSpawnpoint[l], NODE_DENSITY, NODE_ALL);
+		}
+		#endif
 		esp_punishment_phase = false;
 		EspResetCapturePoint();
 		EspAnnounceDetails(false);
@@ -2858,6 +2868,9 @@ int CheckTeamRules (void)
 				gi.sound (&g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD,
 				gi.soundindex ("world/10_0.wav"), 1.0, ATTN_NONE, 0.0);
 
+				// Advertizing Discord and the forums
+				//PrintAdNotification(NULL);
+
 				#if USE_AQTION
 				// Cleanup and remove all bots, it's go time!
 				if (warmup_bots->value){
@@ -3053,6 +3066,7 @@ int CheckTeamRules (void)
 				if (EspCheckRules()){
 					EndDMLevel();
 					team_round_going = team_round_countdown = team_game_going = 0;
+					espsettings.esp_live_round = false;
 					return 1;
 				}
 				GenerateMedKit(false);
@@ -4227,4 +4241,73 @@ int OtherTeam(int teamNum)
 
 	// Returns zero if teamNum is not 1 or 2
 	return 0;
+}
+
+/*
+Return the total amount of players on a team
+*/
+
+int TotalPlayersOnTeam(int teamNum)
+{
+    int players[TEAM_TOP] = { 0 };
+    int i = 0;
+    edict_t *ent;
+
+    for (i = 0; i < game.maxclients; i++){
+        ent = &g_edicts[1 + i];
+        if (!ent->inuse || ent->solid == SOLID_NOT)
+            continue;
+
+        int currentTeam = game.clients[i].resp.team;
+        if (currentTeam == NOTEAM)
+            continue;
+
+        players[currentTeam]++;
+    }
+
+    return players[teamNum];
+}
+
+/* 
+Return the total players on a team that are alive
+*/
+
+int TotalPlayersAliveOnTeam(int teamNum)
+{
+    int count = 0;
+    edict_t *ent;
+
+    for (int i = 0; i < game.maxclients; i++)
+    {
+        ent = &g_edicts[i + 1];
+        if (!ent->inuse)
+            continue;
+        if (game.clients[i].resp.subteam)
+            continue;
+        if (game.clients[i].resp.team == teamNum && IS_ALIVE(ent))
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+void PrintAdNotification(edict_t* ent)
+{
+    // Don't spam this in matchmode
+    if (matchmode->value)
+        return;
+
+    // Do not send to bots
+    if (ent->is_bot)
+        return;
+
+    const char *msg = "Get in on the Action! Join us in Discord at\n https://discord.aq2world.com\nand the forums at\n https://www.aq2world.com\n";
+
+    // If ent is null, send to all clients, else send to client
+    if (ent == NULL)
+        gi.bprintf(PRINT_MEDIUM, "%s", msg);
+    else
+        gi.cprintf(ent, PRINT_MEDIUM, "%s", msg);
 }

@@ -260,6 +260,7 @@ void    Com_Error(error_type_t code, const char *fmt, ...);
 #define Com_EPrintf(...) Com_LPrintf(PRINT_ERROR, __VA_ARGS__)
 #define Com_NPrintf(...) Com_LPrintf(PRINT_NOTICE, __VA_ARGS__)
 
+// an assertion that's ALWAYS enabled. `expr' may have side effects.
 #define Q_assert(expr) \
     do { if (!(expr)) Com_Error(ERR_FATAL, "%s: assertion `%s' failed", __func__, #expr); } while (0)
 
@@ -310,17 +311,26 @@ typedef union {
 
 extern const vec3_t vec3_origin;
 
-typedef struct vrect_s {
-    int             x, y, width, height;
+typedef struct {
+    int x, y, width, height;
 } vrect_t;
 
-#define DEG2RAD(a)      ((a) * (M_PI / 180))
-#define RAD2DEG(a)      ((a) * (180 / M_PI))
+#ifndef M_PIf
+#define M_PIf       3.14159265358979323846f
+#define M_SQRT2f    1.41421356237309504880f
+#define M_SQRT1_2f  0.70710678118654752440f
+#endif
 
-#define ALIGN(x, a)     (((x) + (a) - 1) & ~((a) - 1))
+#define DEG2RAD(a)      ((a) * (M_PIf / 180))
+#define RAD2DEG(a)      ((a) * (180 / M_PIf))
+
+#define Q_ALIGN(x, a)   (((x) + (a) - 1) & ~((a) - 1))
 
 #define BIT(n)          (1U << (n))
 #define BIT_ULL(n)      (1ULL << (n))
+
+#define MASK(n)         (BIT(n) - 1U)
+#define MASK_ULL(n)     (BIT_ULL(n) - 1ULL)
 
 #define SWAP(type, a, b) \
     do { type SWAP_tmp = a; a = b; b = SWAP_tmp; } while (0)
@@ -465,7 +475,13 @@ static inline float anglemod(float a)
     return a;
 }
 
-static inline int Q_align(int value, int align)
+static inline int Q_align_down(int value, int align)
+{
+    int mod = value % align;
+    return value - mod;
+}
+
+static inline int Q_align_up(int value, int align)
 {
     int mod = value % align;
     return mod ? value + align - mod : value;
@@ -569,9 +585,9 @@ static inline uint16_t Q_clip_uint16(int a)
 
 #define Q_rint(x)   ((x) < 0 ? ((int)((x) - 0.5f)) : ((int)((x) + 0.5f)))
 
-#define Q_IsBitSet(data, bit)   (((data)[(bit) >> 3] & (1 << ((bit) & 7))) != 0)
-#define Q_SetBit(data, bit)     ((data)[(bit) >> 3] |= (1 << ((bit) & 7)))
-#define Q_ClearBit(data, bit)   ((data)[(bit) >> 3] &= ~(1 << ((bit) & 7)))
+#define Q_IsBitSet(data, bit)   ((((const byte *)(data))[(bit) >> 3] >> ((bit) & 7)) & 1)
+#define Q_SetBit(data, bit)     (((byte *)(data))[(bit) >> 3] |= (1 << ((bit) & 7)))
+#define Q_ClearBit(data, bit)   (((byte *)(data))[(bit) >> 3] &= ~(1 << ((bit) & 7)))
 
 //=============================================
 
@@ -699,6 +715,8 @@ size_t Q_strnlen(const char *s, size_t maxlen);
 #else
 int Q_atoi(const char *s);
 #endif
+
+#define Q_atof(s) strtof(s, NULL)
 
 char *COM_SkipPath(const char *pathname);
 size_t COM_StripExtension(char *out, const char *in, size_t size);
@@ -971,7 +989,7 @@ COLLISION DETECTION
 #define AREA_TRIGGERS   2
 
 // plane_t structure
-typedef struct cplane_s {
+typedef struct {
     vec3_t  normal;
     float   dist;
     byte    type;           // for fast side tests
@@ -985,7 +1003,7 @@ typedef struct cplane_s {
 #define PLANE_Z         2
 #define PLANE_NON_AXIAL 6
 
-typedef struct csurface_s {
+typedef struct {
     char        name[16];
     int         flags;
     int         value;
@@ -1068,7 +1086,7 @@ typedef struct {
 #define BUTTON_ANY      BIT(7)  // any key whatsoever
 
 // usercmd_t is sent to the server each client frame
-typedef struct usercmd_s {
+typedef struct {
     byte    msec;
     byte    buttons;
     short   angles[3];
@@ -1602,7 +1620,7 @@ typedef enum {
 // entity_state_t is the information conveyed from the server
 // in an update message about entities that the client will
 // need to render in some way
-typedef struct entity_state_s {
+typedef struct {
     int     number;         // edict index
 
     vec3_t  origin;
@@ -1644,7 +1662,7 @@ typedef struct {
     int         gunindex;
     int         gunframe;
 
-    float       blend[4];       // rgba full screen effect
+    vec4_t      blend;          // rgba full screen effect
 
     float       fov;            // horizontal field of view
 
@@ -1668,10 +1686,10 @@ typedef char cvarsyncvalue_t[CVARSYNC_MAXSIZE];
 #if USE_PROTOCOL_EXTENSIONS
 
 #define ENTITYNUM_BITS      13
-#define ENTITYNUM_MASK      (BIT(ENTITYNUM_BITS) - 1)
+#define ENTITYNUM_MASK      MASK(ENTITYNUM_BITS)
 
 #define GUNINDEX_BITS       13  // upper 3 bits are skinnum
-#define GUNINDEX_MASK       (BIT(GUNINDEX_BITS) - 1)
+#define GUNINDEX_MASK       MASK(GUNINDEX_BITS)
 
 typedef struct {
     int         morefx;

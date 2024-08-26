@@ -151,6 +151,15 @@ int BOTLIB_NearestFlag(edict_t* self);
 float BOTLIB_DistanceToFlag(edict_t* self, int flagType);
 void BOTLIB_CTF_Goals(edict_t* self);
 
+// ===========================================================================
+// botlib_esp.c
+// ===========================================================================
+int BOTLIB_ESPGetTargetNode(edict_t *ent, edict_t* leader);
+float BOTLIB_DistanceToLeader(edict_t* self, edict_t* leader);
+int BOTLIB_FindMyLeaderNode(edict_t* self);
+int BOTLIB_FindEnemyLeaderNode(edict_t* self, int teamNum);
+void BOTLIB_ESP_Goals(edict_t* self);
+
 typedef struct ctf_status_s
 {
 	edict_t* flag1; // Red flag
@@ -198,6 +207,7 @@ typedef enum
 	BOT_ESP_ATTACK_TARGET, // Attack the target (enemy leader or target area)
 	BOT_ESP_DEFEND_TARGET, // Defend the target (team leader or target area)
 	BOT_ESP_RETREAT, // Retreat from the target (enemy leader or target area)
+	BOT_ESP_WANDER, // Wander around, find enemies, equipment, etc
 } bot_esp_state_t;
 
 // Get flag, retrieve flag, intercept flag carrier, etc.
@@ -513,6 +523,11 @@ int BOTLIB_Need_Special(edict_t* self, int* primary_weapon, int* secondary_weapo
 int BOTLIB_LocateFloorItem(edict_t* self, int* items_to_get, int items_counter);
 int BOTLIB_GetEquipment(edict_t* self);
 //rekkie -- collecting weapons, items, ammo -- e
+
+// ===========================================================================
+// botlib_debug.c
+// ===========================================================================
+void BOTLIB_Debug(const char *debugmsg, ...);
 
 // ===========================================================================
 // botlib_personality.c

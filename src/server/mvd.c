@@ -270,10 +270,10 @@ static void dummy_exec_string(cmdbuf_t *buf, const char *line)
     dummy_command();
 }
 
-static void dummy_add_message(client_t *client, byte *data,
+static void dummy_add_message(client_t *client, const byte *data,
                               size_t length, bool reliable)
 {
-    char *text;
+    char text[MAX_STRING_CHARS];
 
     if (!length || !reliable || data[0] != svc_stufftext) {
         return; // not interesting
@@ -283,8 +283,11 @@ static void dummy_add_message(client_t *client, byte *data,
         return; // not allowed
     }
 
-    data[length] = 0;
-    text = (char *)(data + 1);
+    // truncate at MAX_STRING_CHARS
+    length = min(length, sizeof(text));
+    memcpy(text, data + 1, length - 1);
+    text[length - 1] = 0;
+
     Com_DPrintf("dummy stufftext: %s\n", Com_MakePrintable(text));
     Cbuf_AddText(&dummy_buffer, text);
 }
@@ -336,7 +339,7 @@ static client_t *dummy_find_slot(void)
 }
 
 #define MVD_USERINFO1 \
-    "\\name\\[MVDSPEC]\\skin\\male/grunt"
+    "\\name\\[MVDSPEC]\\skin\\male/grunt\\spectator\\1"
 
 #define MVD_USERINFO2 \
     "\\mvdspec\\" STRINGIFY(PROTOCOL_VERSION_MVD_CURRENT) "\\ip\\loopback"
@@ -346,7 +349,7 @@ static int dummy_create(void)
     client_t *newcl;
     char userinfo[MAX_INFO_STRING * 2];
     const char *s;
-    int allow;
+    qboolean allow;
     int number;
 
     // do nothing if already created
@@ -372,12 +375,11 @@ static int dummy_create(void)
 
     memset(newcl, 0, sizeof(*newcl));
     number = newcl - svs.client_pool;
-    newcl->number = newcl->slot = number;
+    newcl->number = newcl->infonum = number;
     newcl->protocol = -1;
     newcl->state = cs_connected;
     newcl->AddMessage = dummy_add_message;
     newcl->edict = EDICT_NUM(number + 1);
-    newcl->netchan.remote_address.type = NA_LOOPBACK;
 
     List_Init(&newcl->entry);
 
@@ -584,7 +586,7 @@ static void build_gamestate(void)
             continue;
         }
 
-        ent->s.number = i;
+        SV_CheckEntityNumber(ent, i);
         MSG_PackEntity(&mvd.entities[i], &ent->s, ENT_EXTENSION(&svs.csr, ent));
         if (svs.csr.extended)
             mvd.entities[i].solid = sv.entities[i].solid32;
@@ -787,11 +789,7 @@ static void emit_frame(void)
             continue;
         }
 
-        if (ent->s.number != i) {
-            Com_WPrintf("%s: fixing ent->s.number: %d to %d\n",
-                        __func__, ent->s.number, i);
-            ent->s.number = i;
-        }
+        SV_CheckEntityNumber(ent, i);
 
         // calculate flags
         flags = mvd.esFlags;
@@ -1118,10 +1116,13 @@ out-of-band data into the MVD stream.
 /*
 ==============
 SV_MvdMulticast
+
+`to' must be < MULTICAST_ALL_R.
 ==============
 */
-void SV_MvdMulticast(int leafnum, multicast_t to)
+void SV_MvdMulticast(const mleaf_t *leaf, multicast_t to, bool reliable)
 {
+    int         leafnum;
     mvd_ops_t   op;
     sizebuf_t   *buf;
 
@@ -1129,22 +1130,32 @@ void SV_MvdMulticast(int leafnum, multicast_t to)
     if (!mvd.active) {
         return;
     }
+
     if (msg_write.cursize >= 2048) {
         Com_WPrintf("%s: overflow\n", __func__);
         return;
     }
-    if (leafnum >= UINT16_MAX) {
-        Com_WPrintf("%s: leafnum out of range\n", __func__);
-        return;
+
+    if (to) {
+        leafnum = CM_NumLeaf(&sv.cm, leaf);
+        if (leafnum >= UINT16_MAX) {
+            Com_WPrintf("%s: leafnum out of range\n", __func__);
+            return;
+        }
     }
 
-    op = mvd_multicast_all + to;
-    buf = to < MULTICAST_ALL_R ? &mvd.datagram : &mvd.message;
+    if (reliable) {
+        op = mvd_multicast_all_r + to;
+        buf = &mvd.datagram;
+    } else {
+        op = mvd_multicast_all + to;
+        buf = &mvd.message;
+    }
 
     SZ_WriteByte(buf, op | (msg_write.cursize >> 8 << SVCMD_BITS));
     SZ_WriteByte(buf, msg_write.cursize & 255);
 
-    if (op != mvd_multicast_all && op != mvd_multicast_all_r) {
+    if (to) {
         SZ_WriteShort(buf, leafnum);
     }
 
@@ -1153,7 +1164,7 @@ void SV_MvdMulticast(int leafnum, multicast_t to)
 
 // Performs some basic filtering of the unicast data that would be
 // otherwise discarded by the MVD client.
-static bool filter_unicast_data(edict_t *ent)
+static bool filter_unicast_data(const edict_t *ent)
 {
     int cmd = msg_write.data[0];
 
@@ -1188,7 +1199,7 @@ static bool filter_unicast_data(edict_t *ent)
 SV_MvdUnicast
 ==============
 */
-void SV_MvdUnicast(edict_t *ent, int clientNum, bool reliable)
+void SV_MvdUnicast(const edict_t *ent, int clientNum, bool reliable)
 {
     mvd_ops_t   op;
     sizebuf_t   *buf;
@@ -1428,10 +1439,9 @@ static void write_stream(gtv_client_t *client, void *data, size_t len)
         } while (z->avail_in);
     } else
 #endif
-
-        if (FIFO_Write(fifo, data, len) != len) {
-            drop_client(client, "overflowed");
-        }
+    if (FIFO_Write(fifo, data, len) != len) {
+        drop_client(client, "overflowed");
+    }
 }
 
 static void write_message(gtv_client_t *client, gtv_serverop_t op)
@@ -1445,7 +1455,7 @@ static void write_message(gtv_client_t *client, gtv_serverop_t op)
     write_stream(client, msg_write.data, msg_write.cursize);
 }
 
-static bool auth_client(gtv_client_t *client, const char *password)
+static bool auth_client(const gtv_client_t *client, const char *password)
 {
     if (SV_MatchAddress(&gtv_white_list, &client->stream.address))
         return true; // ALLOW whitelisted hosts without password
@@ -2114,8 +2124,8 @@ void SV_MvdPostInit(void)
     }
 
     // allocate buffers
-    SZ_Init(&mvd.message, SV_Malloc(MAX_MSGLEN), MAX_MSGLEN);
-    SZ_Init(&mvd.datagram, SV_Malloc(MAX_MSGLEN), MAX_MSGLEN);
+    SZ_InitWrite(&mvd.message, SV_Malloc(MAX_MSGLEN), MAX_MSGLEN);
+    SZ_InitWrite(&mvd.datagram, SV_Malloc(MAX_MSGLEN), MAX_MSGLEN);
     mvd.players = SV_Malloc(sizeof(mvd.players[0]) * sv_maxclients->integer);
     mvd.entities = SV_Malloc(sizeof(mvd.entities[0]) * svs.csr.max_edicts);
 

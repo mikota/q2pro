@@ -233,7 +233,7 @@ LOAD(Brushes)
 {
     mbrush_t    *out;
     int         i;
-    uint32_t    firstside, numsides, lastside;
+    uint32_t    firstside, numsides;
 
     bsp->numbrushes = count;
     bsp->brushes = ALLOC(sizeof(*out) * count);
@@ -242,8 +242,7 @@ LOAD(Brushes)
     for (i = 0; i < count; i++, out++) {
         firstside = BSP_Long();
         numsides = BSP_Long();
-        lastside = firstside + numsides;
-        if (lastside < firstside || lastside > bsp->numbrushsides) {
+        if ((uint64_t)firstside + numsides > bsp->numbrushsides) {
             DEBUG("bad brushsides");
             return Q_ERR_INVALID_FORMAT;
         }
@@ -336,21 +335,19 @@ LOAD(Edges)
 LOAD(SurfEdges)
 {
     msurfedge_t *out;
-    int         i, vert;
-    int32_t     index;
+    int         i;
+    uint32_t    index, vert;
 
     bsp->numsurfedges = count;
     bsp->surfedges = ALLOC(sizeof(*out) * count);
 
     out = bsp->surfedges;
     for (i = 0; i < count; i++, out++) {
-        index = (int32_t)BSP_Long();
+        index = BSP_Long();
 
-        vert = 0;
-        if (index < 0) {
+        vert = index >> 31;
+        if (vert)
             index = -index;
-            vert = 1;
-        }
 
         if (index >= bsp->numedges) {
             DEBUG("bad edgenum");
@@ -368,7 +365,7 @@ LOAD(Faces)
 {
     mface_t     *out;
     int         i, j;
-    uint32_t    firstedge, numedges, lastedge;
+    uint32_t    firstedge, numedges;
     uint32_t    planenum, texinfo, side;
     uint32_t    lightofs;
 
@@ -389,7 +386,6 @@ LOAD(Faces)
 
         firstedge = BSP_Long();
         numedges = BSP_ExtLong();
-        lastedge = firstedge + numedges;
         if (numedges < 3) {
             DEBUG("too few surfedges");
             return Q_ERR_INVALID_FORMAT;
@@ -398,7 +394,7 @@ LOAD(Faces)
             DEBUG("too many surfedges");
             return Q_ERR_INVALID_FORMAT;
         }
-        if (lastedge < firstedge || lastedge > bsp->numsurfedges) {
+        if ((uint64_t)firstedge + numedges > bsp->numsurfedges) {
             DEBUG("bad surfedges");
             return Q_ERR_INVALID_FORMAT;
         }
@@ -463,10 +459,10 @@ LOAD(Leafs)
     mleaf_t     *out;
     int         i;
     uint32_t    cluster, area;
-    uint32_t    firstleafbrush, numleafbrushes, lastleafbrush;
+    uint32_t    firstleafbrush, numleafbrushes;
 #if USE_REF
     int         j;
-    uint32_t    firstleafface, numleaffaces, lastleafface;
+    uint32_t    firstleafface, numleaffaces;
 #endif
 
     if (!count) {
@@ -512,8 +508,7 @@ LOAD(Leafs)
 
         firstleafface = BSP_ExtLong();
         numleaffaces = BSP_ExtLong();
-        lastleafface = firstleafface + numleaffaces;
-        if (lastleafface < firstleafface || lastleafface > bsp->numleaffaces) {
+        if ((uint64_t)firstleafface + numleaffaces > bsp->numleaffaces) {
             DEBUG("bad leaffaces");
             return Q_ERR_INVALID_FORMAT;
         }
@@ -528,8 +523,7 @@ LOAD(Leafs)
 
         firstleafbrush = BSP_ExtLong();
         numleafbrushes = BSP_ExtLong();
-        lastleafbrush = firstleafbrush + numleafbrushes;
-        if (lastleafbrush < firstleafbrush || lastleafbrush > bsp->numleafbrushes) {
+        if ((uint64_t)firstleafbrush + numleafbrushes > bsp->numleafbrushes) {
             DEBUG("bad leafbrushes");
             return Q_ERR_INVALID_FORMAT;
         }
@@ -551,7 +545,7 @@ LOAD(Nodes)
     int         i, j;
     uint32_t    planenum, child;
 #if USE_REF
-    uint32_t    firstface, numfaces, lastface;
+    uint32_t    firstface, numfaces;
 #endif
 
     if (!count) {
@@ -597,8 +591,7 @@ LOAD(Nodes)
 
         firstface = BSP_ExtLong();
         numfaces = BSP_ExtLong();
-        lastface = firstface + numfaces;
-        if (lastface < firstface || lastface > bsp->numfaces) {
+        if ((uint64_t)firstface + numfaces > bsp->numfaces) {
             DEBUG("bad faces");
             return Q_ERR_INVALID_FORMAT;
         }
@@ -621,11 +614,15 @@ LOAD(SubModels)
     int         i, j;
     uint32_t    headnode;
 #if USE_REF
-    uint32_t    firstface, numfaces, lastface;
+    uint32_t    firstface, numfaces;
 #endif
 
     if (!count) {
         DEBUG("map with no models");
+        return Q_ERR_INVALID_FORMAT;
+    }
+    if (count > MAX_MODELS - 2) {
+        DEBUG("too many models");
         return Q_ERR_INVALID_FORMAT;
     }
 
@@ -665,8 +662,7 @@ LOAD(SubModels)
         }
         firstface = BSP_Long();
         numfaces = BSP_Long();
-        lastface = firstface + numfaces;
-        if (lastface < firstface || lastface > bsp->numfaces) {
+        if ((uint64_t)firstface + numfaces > bsp->numfaces) {
             DEBUG("bad faces");
             return Q_ERR_INVALID_FORMAT;
         }
@@ -704,7 +700,7 @@ LOAD(Areas)
 {
     marea_t     *out;
     int         i;
-    uint32_t    numareaportals, firstareaportal, lastareaportal;
+    uint32_t    numareaportals, firstareaportal;
 
     if (count > MAX_MAP_AREAS) {
         DEBUG("too many areas");
@@ -718,8 +714,7 @@ LOAD(Areas)
     for (i = 0; i < count; i++, out++) {
         numareaportals = BSP_Long();
         firstareaportal = BSP_Long();
-        lastareaportal = firstareaportal + numareaportals;
-        if (lastareaportal < firstareaportal || lastareaportal > bsp->numareaportals) {
+        if ((uint64_t)firstareaportal + numareaportals > bsp->numareaportals) {
             DEBUG("bad areaportals");
             return Q_ERR_INVALID_FORMAT;
         }
@@ -763,6 +758,11 @@ typedef struct {
     uint32_t memsize;
 } lump_info_t;
 
+typedef struct {
+    int ofs;
+    const char *name;
+} bsp_stat_t;
+
 #define L(name, lump, mem_t, disksize1, disksize2) \
     { BSP_Load##name, #name, lump, { disksize1, disksize2 }, sizeof(mem_t) }
 
@@ -791,12 +791,81 @@ static const lump_info_t bsp_lumps[] = {
 
 #undef L
 
+#define F(x) { q_offsetof(bsp_t, num##x), #x }
+
+static const bsp_stat_t bsp_stats[] = {
+    F(brushsides),
+    F(texinfo),
+    F(planes),
+    F(nodes),
+    F(leafs),
+    F(leafbrushes),
+    F(models),
+    F(brushes),
+    F(visibility),
+    F(entitychars),
+    F(areas),
+    F(areaportals),
+#if USE_REF
+    F(faces),
+    F(leaffaces),
+    F(lightmapbytes),
+    F(vertices),
+    F(edges),
+    F(surfedges),
+#endif
+};
+
+#undef F
+
 static list_t   bsp_cache;
+
+static void BSP_PrintStats(const bsp_t *bsp)
+{
+    bool extended = bsp->extended;
+
+    for (int i = 0; i < q_countof(bsp_stats); i++) {
+        const bsp_stat_t *s = &bsp_stats[i];
+        Com_Printf("%8d : %s\n", *(int *)((byte *)bsp + s->ofs), s->name);
+    }
+    if (bsp->vis)
+        Com_Printf("%8u : clusters\n", bsp->vis->numclusters);
+
+#if USE_REF
+    if (bsp->lightgrid.numleafs) {
+        const lightgrid_t *grid = &bsp->lightgrid;
+        Com_Printf(
+            "%8u : lightgrid styles\n"
+            "%8u : lightgrid nodes\n"
+            "%8u : lightgrid leafs\n"
+            "%8u : lightgrid samples\n",
+            grid->numstyles, grid->numnodes, grid->numleafs, grid->numsamples);
+        extended = true;
+    }
+    extended |= bsp->lm_decoupled;
+#endif
+
+    if (extended) {
+        Com_Printf("Features :");
+        if (bsp->extended)
+            Com_Printf(" QBSP");
+#if USE_REF
+        if (bsp->lm_decoupled)
+            Com_Printf(" DECOUPLED_LM");
+        if (bsp->lightgrid.numleafs)
+            Com_Printf(" LIGHTGRID_OCTREE");
+#endif
+        Com_Printf("\n");
+    }
+
+    Com_Printf("------------------\n");
+}
 
 static void BSP_List_f(void)
 {
     bsp_t *bsp;
     size_t bytes;
+    bool verbose = Cmd_Argc() > 1;
 
     if (LIST_EMPTY(&bsp_cache)) {
         Com_Printf("BSP cache is empty\n");
@@ -809,6 +878,8 @@ static void BSP_List_f(void)
     LIST_FOR_EACH(bsp_t, bsp, &bsp_cache, entry) {
         Com_Printf("%8zu : %s (%d refs)\n",
                    bsp->hunk.mapped, bsp->name, bsp->refcount);
+        if (verbose)
+            BSP_PrintStats(bsp);
         bytes += bsp->hunk.mapped;
     }
     Com_Printf("Total resident: %zu\n", bytes);
@@ -1045,7 +1116,7 @@ static void BSP_ParseDecoupledLM(bsp_t *bsp, const byte *in, size_t filelen)
 #define FLAG_OCCLUDED   BIT(30)
 #define FLAG_LEAF       BIT(31)
 
-lightgrid_sample_t *BSP_LookupLightgrid(lightgrid_t *grid, uint32_t point[3])
+const lightgrid_sample_t *BSP_LookupLightgrid(const lightgrid_t *grid, const uint32_t point[3])
 {
     uint32_t nodenum = grid->rootnode;
 
@@ -1054,7 +1125,7 @@ lightgrid_sample_t *BSP_LookupLightgrid(lightgrid_t *grid, uint32_t point[3])
             return NULL;
 
         if (nodenum & FLAG_LEAF) {
-            lightgrid_leaf_t *leaf = &grid->leafs[nodenum & ~FLAG_LEAF];
+            const lightgrid_leaf_t *leaf = &grid->leafs[nodenum & ~FLAG_LEAF];
 
             uint32_t pos[3];
             VectorSubtract(point, leaf->mins, pos);
@@ -1068,7 +1139,7 @@ lightgrid_sample_t *BSP_LookupLightgrid(lightgrid_t *grid, uint32_t point[3])
             return &grid->samples[leaf->firstsample + index * grid->numstyles];
         }
 
-        lightgrid_node_t *node = &grid->nodes[nodenum];
+        const lightgrid_node_t *node = &grid->nodes[nodenum];
         nodenum = node->children[
             (point[0] >= node->point[0]) << 2 |
             (point[1] >= node->point[1]) << 1 |
@@ -1133,8 +1204,7 @@ static size_t BSP_ParseLightgridHeader(bsp_t *bsp, const byte *in, size_t filele
     lightgrid_t *grid = &bsp->lightgrid;
     sizebuf_t s;
 
-    SZ_Init(&s, (void *)in, filelen);
-    s.cursize = filelen;
+    SZ_InitRead(&s, in, filelen);
 
     if (!BSP_ParseLightgridHeader_(grid, &s)) {
         Com_WPrintf("Bad LIGHTGRID_OCTREE header\n");
@@ -1143,12 +1213,12 @@ static size_t BSP_ParseLightgridHeader(bsp_t *bsp, const byte *in, size_t filele
     }
 
     return
-        ALIGN(sizeof(grid->nodes[0]) * grid->numnodes, 64) +
-        ALIGN(sizeof(grid->leafs[0]) * grid->numleafs, 64) +
-        ALIGN(sizeof(grid->samples[0]) * grid->numsamples * grid->numstyles, 64);
+        Q_ALIGN(sizeof(grid->nodes[0]) * grid->numnodes, 64) +
+        Q_ALIGN(sizeof(grid->leafs[0]) * grid->numleafs, 64) +
+        Q_ALIGN(sizeof(grid->samples[0]) * grid->numsamples * grid->numstyles, 64);
 }
 
-static bool BSP_ValidateLightgrid_r(lightgrid_t *grid, uint32_t nodenum)
+static bool BSP_ValidateLightgrid_r(const lightgrid_t *grid, uint32_t nodenum)
 {
     if (nodenum & FLAG_OCCLUDED)
         return true;
@@ -1195,8 +1265,7 @@ static void BSP_ParseLightgrid(bsp_t *bsp, const byte *in, size_t filelen)
         return;
     }
 
-    SZ_Init(&s, (void *)in, filelen);
-    s.cursize = filelen;
+    SZ_InitRead(&s, in, filelen);
 
     grid->nodes = ALLOC(sizeof(grid->nodes[0]) * grid->numnodes);
 
@@ -1264,7 +1333,7 @@ static const xlump_info_t bspx_lumps[] = {
 // returns amount of extra space to allocate
 static size_t BSP_ParseExtensionHeader(bsp_t *bsp, lump_t *out, const byte *buf, uint32_t pos, uint32_t filelen)
 {
-    pos = ALIGN(pos, 4);
+    pos = Q_ALIGN(pos, 4);
     if (pos > filelen - 8)
         return 0;
     if (RL32(buf + pos) != BSPXHEADER)
@@ -1282,7 +1351,7 @@ static size_t BSP_ParseExtensionHeader(bsp_t *bsp, lump_t *out, const byte *buf,
     for (int i = 0; i < numlumps; i++, l++) {
         for (int j = 0; j < q_countof(bspx_lumps); j++) {
             const xlump_info_t *e = &bspx_lumps[j];
-            uint32_t ofs, len, end;
+            uint32_t ofs, len;
 
             if (strcmp(l->name, e->name))
                 continue;
@@ -1294,8 +1363,7 @@ static size_t BSP_ParseExtensionHeader(bsp_t *bsp, lump_t *out, const byte *buf,
                 break;
             }
 
-            end = ofs + len;
-            if (end < ofs || end > filelen) {
+            if ((uint64_t)ofs + len > filelen) {
                 Com_WPrintf("Ignoring out of bounds %s lump\n", e->name);
                 break;
             }
@@ -1334,7 +1402,7 @@ int BSP_Load(const char *name, bsp_t **bsp_p)
     byte            *buf;
     dheader_t       *header;
     const lump_info_t *info;
-    uint32_t        filelen, ofs, len, end, count, maxpos;
+    uint32_t        filelen, ofs, len, count, maxpos;
     int             i, ret;
     uint32_t        lump_ofs[q_countof(bsp_lumps)];
     uint32_t        lump_count[q_countof(bsp_lumps)];
@@ -1392,8 +1460,7 @@ int BSP_Load(const char *name, bsp_t **bsp_p)
     for (i = 0, info = bsp_lumps; i < q_countof(bsp_lumps); i++, info++) {
         ofs = LittleLong(header->lumps[info->lump].fileofs);
         len = LittleLong(header->lumps[info->lump].filelen);
-        end = ofs + len;
-        if (end < ofs || end > filelen) {
+        if ((uint64_t)ofs + len > filelen) {
             Com_SetLastError(va("%s lump out of bounds", info->name));
             ret = Q_ERR_INVALID_FORMAT;
             goto fail2;
@@ -1414,8 +1481,8 @@ int BSP_Load(const char *name, bsp_t **bsp_p)
             count++;
 
         // round to cacheline
-        memsize += ALIGN(count * info->memsize, 64);
-        maxpos = max(maxpos, end);
+        memsize += Q_ALIGN(count * info->memsize, 64);
+        maxpos = max(maxpos, ofs + len);
     }
 
     // load into hunk
@@ -1503,7 +1570,7 @@ HELPER FUNCTIONS
 static lightpoint_t *light_point;
 static int          light_mask;
 
-static bool BSP_RecursiveLightPoint(mnode_t *node, float p1f, float p2f, const vec3_t p1, const vec3_t p2)
+static bool BSP_RecursiveLightPoint(const mnode_t *node, float p1f, float p2f, const vec3_t p1, const vec3_t p2)
 {
     vec_t d1, d2, frac, midf, s, t;
     vec3_t mid;
@@ -1559,7 +1626,7 @@ static bool BSP_RecursiveLightPoint(mnode_t *node, float p1f, float p2f, const v
     return false;
 }
 
-void BSP_LightPoint(lightpoint_t *point, const vec3_t start, const vec3_t end, mnode_t *headnode, int nolm_mask)
+void BSP_LightPoint(lightpoint_t *point, const vec3_t start, const vec3_t end, const mnode_t *headnode, int nolm_mask)
 {
     light_point = point;
     light_point->surf = NULL;
@@ -1570,7 +1637,7 @@ void BSP_LightPoint(lightpoint_t *point, const vec3_t start, const vec3_t end, m
 }
 
 void BSP_TransformedLightPoint(lightpoint_t *point, const vec3_t start, const vec3_t end,
-                               mnode_t *headnode, int nolm_mask, const vec3_t origin, const vec3_t angles)
+                               const mnode_t *headnode, int nolm_mask, const vec3_t origin, const vec3_t angles)
 {
     vec3_t start_l, end_l;
     vec3_t axis[3];
@@ -1607,10 +1674,12 @@ void BSP_TransformedLightPoint(lightpoint_t *point, const vec3_t start, const ve
 
 #endif
 
-byte *BSP_ClusterVis(bsp_t *bsp, byte *mask, int cluster, int vis)
+byte *BSP_ClusterVis(const bsp_t *bsp, byte *mask, int cluster, int vis)
 {
     byte    *in, *out, *in_end, *out_end;
     int     c;
+
+    Q_assert(vis == DVIS_PVS || vis == DVIS_PHS);
 
     if (!bsp || !bsp->vis) {
         return memset(mask, 0xff, VIS_MAX_BYTES);
@@ -1692,19 +1761,16 @@ overrun:
     return mask;
 }
 
-mleaf_t *BSP_PointLeaf(mnode_t *node, const vec3_t p)
+const mleaf_t *BSP_PointLeaf(const mnode_t *node, const vec3_t p)
 {
     float d;
 
     while (node->plane) {
         d = PlaneDiffFast(p, node->plane);
-        if (d < 0)
-            node = node->children[1];
-        else
-            node = node->children[0];
+        node = node->children[d < 0];
     }
 
-    return (mleaf_t *)node;
+    return (const mleaf_t *)node;
 }
 
 /*
@@ -1712,7 +1778,7 @@ mleaf_t *BSP_PointLeaf(mnode_t *node, const vec3_t p)
 BSP_InlineModel
 ==================
 */
-mmodel_t *BSP_InlineModel(bsp_t *bsp, const char *name)
+const mmodel_t *BSP_InlineModel(const bsp_t *bsp, const char *name)
 {
     int     num;
 

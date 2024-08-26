@@ -123,17 +123,6 @@ static cvar_t   *ch_y;
 
 vrect_t     scr_vrect;      // position of render window on screen
 
-static const char *const sb_nums[2][STAT_PICS] = {
-    {
-        "num_0", "num_1", "num_2", "num_3", "num_4", "num_5",
-        "num_6", "num_7", "num_8", "num_9", "num_minus"
-    },
-    {
-        "anum_0", "anum_1", "anum_2", "anum_3", "anum_4", "anum_5",
-        "anum_6", "anum_7", "anum_8", "anum_9", "anum_minus"
-    }
-};
-
 const uint32_t colorTable[8] = {
     U32_BLACK, U32_RED, U32_GREEN, U32_YELLOW,
     U32_BLUE, U32_CYAN, U32_MAGENTA, U32_WHITE
@@ -340,10 +329,10 @@ static void draw_progress_bar(float progress, bool paused, int framenum)
     R_DrawString(x, h, 0, MAX_STRING_CHARS, buffer, scr.font_pic);
 
     if (scr_demobar->integer > 1) {
-        int sec = framenum / 10;
+        int sec = framenum / BASE_FRAMERATE;
         int min = sec / 60; sec %= 60;
 
-        Q_scnprintf(buffer, sizeof(buffer), "%d:%02d.%d", min, sec, framenum % 10);
+        Q_scnprintf(buffer, sizeof(buffer), "%d:%02d.%d", min, sec, framenum % BASE_FRAMERATE);
         R_DrawString(0, h, 0, MAX_STRING_CHARS, buffer, scr.font_pic);
     }
 
@@ -1145,14 +1134,14 @@ static void SCR_Sky_f(void)
     }
 
     if (argc > 2)
-        rotate = atof(Cmd_Argv(2));
+        rotate = Q_atof(Cmd_Argv(2));
     else
         rotate = 0;
 
     if (argc == 6) {
-        axis[0] = atof(Cmd_Argv(3));
-        axis[1] = atof(Cmd_Argv(4));
-        axis[2] = atof(Cmd_Argv(5));
+        axis[0] = Q_atof(Cmd_Argv(3));
+        axis[1] = Q_atof(Cmd_Argv(4));
+        axis[2] = Q_atof(Cmd_Argv(5));
     } else
         VectorSet(axis, 0, 0, 1);
 
@@ -1302,11 +1291,15 @@ SCR_RegisterMedia
 */
 void SCR_RegisterMedia(void)
 {
-    int     i, j;
+    int     i;
 
-    for (i = 0; i < 2; i++)
-        for (j = 0; j < STAT_PICS; j++)
-            scr.sb_pics[i][j] = R_RegisterPic(sb_nums[i][j]);
+    for (i = 0; i < STAT_MINUS; i++)
+        scr.sb_pics[0][i] = R_RegisterPic(va("num_%d", i));
+    scr.sb_pics[0][i] = R_RegisterPic("num_minus");
+
+    for (i = 0; i < STAT_MINUS; i++)
+        scr.sb_pics[1][i] = R_RegisterPic(va("anum_%d", i));
+    scr.sb_pics[1][i] = R_RegisterPic("anum_minus");
 
     scr.inven_pic = R_RegisterPic("inventory");
     scr.field_pic = R_RegisterPic("field_3");

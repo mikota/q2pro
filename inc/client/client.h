@@ -36,6 +36,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #define SOUND_LOOPATTENUATE_MULT    0.0006f
 
+void CL_PreInit(void);
+
 #if USE_CLIENT
 
 #define MAX_LOCAL_SERVERS   16
@@ -67,7 +69,7 @@ typedef enum {
 
 bool CL_ProcessEvents(void);
 #if USE_ICMP
-void CL_ErrorEvent(netadr_t *from);
+void CL_ErrorEvent(const netadr_t *from);
 #endif
 void CL_Init(void);
 void CL_Disconnect(error_type_t type);
@@ -77,7 +79,7 @@ void CL_RestartFilesystem(bool total);
 void CL_Activate(active_t active);
 void CL_UpdateUserinfo(cvar_t *var, from_t from);
 void CL_SendStatusRequest(const netadr_t *address);
-demoInfo_t *CL_GetDemoInfo(const char *path, demoInfo_t *info);
+bool CL_GetDemoInfo(const char *path, demoInfo_t *info);
 bool CL_CheatsOK(void);
 void CL_SetSky(void);
 void CL_SendCvarSync(cvar_t *var);

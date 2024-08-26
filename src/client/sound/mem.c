@@ -50,7 +50,7 @@ static int FindChunk(sizebuf_t *sz, uint32_t search)
         if (chunk == search)
             return len;
 
-        sz->readcount += ALIGN(len, 2);
+        sz->readcount += Q_ALIGN(len, 2);
     }
 
     return 0;
@@ -151,7 +151,7 @@ static bool GetWavinfo(sizebuf_t *sz)
     }
 
 // save position after "cue " chunk
-    next_chunk = sz->readcount + ALIGN(chunk_len, 2);
+    next_chunk = sz->readcount + Q_ALIGN(chunk_len, 2);
 
     sz->readcount += 24;
     samples = SZ_ReadLong(sz);
@@ -245,8 +245,7 @@ sfxcache_t *S_LoadSound(sfx_t *s)
     memset(&s_info, 0, sizeof(s_info));
     s_info.name = name;
 
-    SZ_Init(&sz, data, len);
-    sz.cursize = len;
+    SZ_InitRead(&sz, data, len);
 
     if (!GetWavinfo(&sz)) {
         s->error = Q_ERR_INVALID_FORMAT;

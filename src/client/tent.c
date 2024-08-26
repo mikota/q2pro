@@ -111,7 +111,7 @@ static int CL_FindFootstepSurface(int entnum)
 
     // first, a trace done solely against MASK_SOLID
     trace_t tr;
-    CL_Trace(&tr, trace_start, trace_mins, trace_maxs, trace_end, MASK_SOLID);
+    CL_Trace(&tr, trace_start, trace_end, trace_mins, trace_maxs, MASK_SOLID);
 
     if (tr.fraction == 1.0f) {
         // if we didn't hit anything, use default step ID
@@ -127,7 +127,7 @@ static int CL_FindFootstepSurface(int entnum)
         VectorCopy(tr.endpos, new_end);
         new_end[2] += 1;
 
-        CL_Trace(&tr, trace_start, trace_mins, trace_maxs, new_end, MASK_SOLID | MASK_WATER);
+        CL_Trace(&tr, trace_start, new_end, trace_mins, trace_maxs, MASK_SOLID | MASK_WATER);
         // if we hit something else, use that new footstep id instead of the first traces' value
         if (tr.surface != &(nulltexinfo.c))
             footstep_id = ((mtexinfo_t *)tr.surface)->step_id;
@@ -548,7 +548,7 @@ static void CL_AddExplosions(void)
         }
 
         frac = (cl.time - ex->start) * BASE_1_FRAMETIME;
-        f = floor(frac);
+        f = floorf(frac);
 
         ent = &ex->ent;
 
@@ -1219,8 +1219,8 @@ static void CL_RailSpiral(void)
         VectorClear(p->accel);
 
         d = i * 0.1f;
-        c = cos(d);
-        s = sin(d);
+        c = cosf(d);
+        s = sinf(d);
 
         VectorScale(right, c, dir);
         VectorMA(dir, s, up, dir);
@@ -1254,9 +1254,9 @@ static void CL_RailTrail(void)
 
 static void dirtoangles(vec3_t angles)
 {
-    angles[0] = RAD2DEG(acos(te.dir[2]));
+    angles[0] = RAD2DEG(acosf(te.dir[2]));
     if (te.dir[0])
-        angles[1] = RAD2DEG(atan2(te.dir[1], te.dir[0]));
+        angles[1] = RAD2DEG(atan2f(te.dir[1], te.dir[0]));
     else if (te.dir[1] > 0)
         angles[1] = 90;
     else if (te.dir[1] < 0)

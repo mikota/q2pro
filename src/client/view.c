@@ -76,21 +76,18 @@ static void V_ClearScene(void)
     r_numparticles = 0;
 }
 
-
 /*
 =====================
 V_AddEntity
 
 =====================
 */
-void V_AddEntity(entity_t *ent)
+void V_AddEntity(const entity_t *ent)
 {
     if (r_numentities >= MAX_ENTITIES)
         return;
-
     r_entities[r_numentities++] = *ent;
 }
-
 
 /*
 =====================
@@ -98,7 +95,7 @@ V_AddParticle
 
 =====================
 */
-void V_AddParticle(particle_t *p)
+void V_AddParticle(const particle_t *p)
 {
     if (r_numparticles >= MAX_PARTICLES)
         return;
@@ -300,10 +297,19 @@ static int entitycmpfnc(const void *_a, const void *_b)
     const entity_t *b = (const entity_t *)_b;
 
     // all other models are sorted by model then skin
-    if (a->model == b->model)
-        return a->skin - b->skin;
-    else
-        return a->model - b->model;
+    if (a->model > b->model)
+        return 1;
+    if (a->model < b->model)
+        return -1;
+
+    if (a->skin > b->skin)
+        return 1;
+    if (a->skin < b->skin)
+        return -1;
+
+    bool a_shell = a->flags & RF_SHELL_MASK;
+    bool b_shell = b->flags & RF_SHELL_MASK;
+    return a_shell - b_shell;
 }
 
 static void V_SetLightLevel(void)
@@ -343,10 +349,10 @@ float V_CalcFov(float fov_x, float width, float height)
     if (fov_x < 0.75f || fov_x > 179)
         Com_Error(ERR_DROP, "%s: bad fov: %f", __func__, fov_x);
 
-    x = width / tan(fov_x * (M_PI / 360));
+    x = width / tanf(fov_x * (M_PIf / 360));
 
-    a = atan(height / x);
-    a = a * (360 / M_PI);
+    a = atanf(height / x);
+    a = a * (360 / M_PIf);
 
     return a;
 }

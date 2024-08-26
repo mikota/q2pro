@@ -48,6 +48,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // FIXME: rename these
 #define COM_HISTORYFILE_NAME    ".conhistory"
 #define COM_DEMOCACHE_NAME      ".democache"
+#define SYS_HISTORYFILE_NAME    ".syshistory"
 
 #if USE_AQTION
 #define DOWNLOADSERVER "http://gameassets.aqtiongame.com/"
@@ -56,14 +57,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define MAXPRINTMSG     4096
 #define MAXERRORMSG     1024
 
-#define CONST_STR_LEN(x) x, x ? sizeof(x) - 1 : 0
+#define CONST_STR_LEN(x) x, sizeof("" x) - 1
 
 #define STRINGIFY2(x)   #x
 #define STRINGIFY(x)    STRINGIFY2(x)
 
 typedef struct {
     const char *name;
-    void (* const func)(void);
+    void (*func)(void);
 } ucmd_t;
 
 static inline const ucmd_t *Com_Find(const ucmd_t *u, const char *c)
@@ -81,14 +82,17 @@ typedef struct string_entry_s {
     char string[1];
 } string_entry_t;
 
-typedef void (*rdflush_t)(int target, char *buffer, size_t len);
+typedef void (*rdflush_t)(int target, const char *buffer, size_t len);
 
 void        Com_BeginRedirect(int target, char *buffer, size_t buffersize, rdflush_t flush);
 void        Com_EndRedirect(void);
 
 void        Com_AbortFunc(void (*func)(void *), void *arg);
 
+q_cold
 void        Com_SetLastError(const char *msg);
+
+q_cold
 const char  *Com_GetLastError(void);
 
 q_noreturn
@@ -111,6 +115,12 @@ void        Com_FlushLogs(void);
 #endif
 
 void        Com_AddConfigFile(const char *name, unsigned flags);
+
+#if USE_SYSCON
+void        Sys_Printf(const char *fmt, ...) q_printf(1, 2);
+#else
+#define     Sys_Printf(...) (void)0
+#endif
 
 #if USE_CLIENT
 #define COM_DEDICATED   (dedicated->integer != 0)
@@ -179,6 +189,16 @@ extern cvar_t   *allow_download_pics;
 extern cvar_t   *allow_download_others;
 
 extern cvar_t   *rcon_password;
+
+extern cvar_t   *sys_forcegamelib;
+
+#if USE_SAVEGAMES
+extern cvar_t   *sys_allow_unsafe_savegames;
+#endif
+
+#if USE_SYSCON
+extern cvar_t   *sys_history;
+#endif
 
 #if USE_CLIENT
 // host_speeds times

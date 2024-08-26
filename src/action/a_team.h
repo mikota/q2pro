@@ -107,6 +107,11 @@ void OpenPMItemMenu (edict_t * ent);
 //Expose auto-join functionality
 void JoinTeamAutobalance (edict_t * ent);
 
+//Utility functions
+int TotalPlayersOnTeam(int teamNum);
+int TotalPlayersAliveOnTeam(int teamNum);
+void PrintAdNotification(edict_t* ent);
+
 typedef struct spawn_distances_s
 {
   float distance;
@@ -136,6 +141,7 @@ extern int day_cycle_at;
 extern int teamCount;
 extern int in_warmup;
 extern qboolean teams_changed;
+extern int teamplay_spawn_node[MAX_TEAMS];
 
 typedef struct menu_list_weapon
 {

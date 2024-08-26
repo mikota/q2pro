@@ -71,7 +71,7 @@ void GL_Flush2D(void)
     tess.flags = 0;
 }
 
-#define PARTICLE_SIZE   (1 + (float)M_SQRT1_2)
+#define PARTICLE_SIZE   (1 + M_SQRT1_2f)
 #define PARTICLE_SCALE  (1 / (2 * PARTICLE_SIZE))
 
 void GL_DrawParticles(void)
@@ -390,7 +390,7 @@ void GL_Flush3D(void)
     tess.flags = 0;
 }
 
-static int GL_CopyVerts(mface_t *surf)
+static int GL_CopyVerts(const mface_t *surf)
 {
     void *src, *dst;
     int firstvert;
@@ -408,7 +408,7 @@ static int GL_CopyVerts(mface_t *surf)
     return firstvert;
 }
 
-static image_t *GL_TextureAnimation(mtexinfo_t *tex)
+static const image_t *GL_TextureAnimation(const mtexinfo_t *tex)
 {
     if (q_unlikely(tex->next)) {
         unsigned c = (unsigned)glr.ent->frame % tex->numframes;
@@ -422,7 +422,7 @@ static image_t *GL_TextureAnimation(mtexinfo_t *tex)
     return tex->image;
 }
 
-static void GL_DrawFace(mface_t *surf)
+static void GL_DrawFace(const mface_t *surf)
 {
     int numtris = surf->numsurfedges - 2;
     int numindices = numtris * 3;
@@ -434,7 +434,7 @@ static void GL_DrawFace(mface_t *surf)
         texnum[0] = TEXNUM_WHITE;
         texnum[2] = 0;
     } else {
-        image_t *tex = GL_TextureAnimation(surf->texinfo);
+        const image_t *tex = GL_TextureAnimation(surf->texinfo);
         texnum[0] = tex->texnum;
         texnum[2] = surf->texnum[1] ? tex->glow_texnum : 0;
     }

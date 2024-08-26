@@ -34,6 +34,7 @@ void SV_ClientReset(client_t *client)
     client->frames_nodelta = 0;
     client->send_delta = 0;
     client->suppress_count = 0;
+    client->next_entity = 0;
     memset(&client->lastcmd, 0, sizeof(client->lastcmd));
 }
 
@@ -53,7 +54,7 @@ static void set_frame_time(void)
 
 static void resolve_masters(void)
 {
-#if !USE_CLIENT
+#if USE_SERVER
     time_t now = time(NULL);
 
     for (int i = 0; i < MAX_MASTERS; i++) {
@@ -125,15 +126,12 @@ void SV_SpawnServer(const mapcmd_t *cmd)
 
     // wipe the entire per-level structure
     memset(&sv, 0, sizeof(sv));
-    sv.spawncount = Q_rand() & 0x7fffffff;
+    sv.spawncount = Q_rand() & INT_MAX;
 
     // set legacy spawncounts
     FOR_EACH_CLIENT(client) {
         client->spawncount = sv.spawncount;
     }
-
-    // reset entity counter
-    svs.next_entity = 0;
 
     // set framerate parameters
     set_frame_time();
@@ -190,8 +188,8 @@ void SV_SpawnServer(const mapcmd_t *cmd)
     ge->SpawnEntities(sv.name, sv.cm.entitystring, cmd->spawnpoint);
 
     // run two frames to allow everything to settle
-    ge->RunFrame(); sv.framenum++;
-    ge->RunFrame(); sv.framenum++;
+    for (i = 0; i < 2; i++, sv.framenum++)
+        ge->RunFrame();
 
     // make sure maxclients string is correct
     sprintf(sv.configstrings[svs.csr.maxclients], "%d", sv_maxclients->integer);
@@ -345,7 +343,7 @@ If mvd_spawn is non-zero, load the built-in MVD game module.
 */
 void SV_InitGame(unsigned mvd_spawn)
 {
-    int     i, entnum, max_packet_entities;
+    int     i, entnum;
     edict_t *ent;
     client_t *client;
 
@@ -369,7 +367,7 @@ void SV_InitGame(unsigned mvd_spawn)
     // get any latched variable changes (maxclients, etc)
     Cvar_GetLatchedVars();
 
-#if !USE_CLIENT
+#if USE_SERVER
     Cvar_Reset(sv_recycle);
 #endif
 
@@ -443,11 +441,6 @@ void SV_InitGame(unsigned mvd_spawn)
         SV_CheckForEnhancedSavegames();
         SV_MvdPostInit();
     }
-
-    // allocate packet entities
-    max_packet_entities = svs.csr.extended ? MAX_PACKET_ENTITIES : MAX_PACKET_ENTITIES_OLD;
-    svs.num_entities = sv_maxclients->integer * max_packet_entities * UPDATE_BACKUP;
-    svs.entities = SV_Mallocz(sizeof(svs.entities[0]) * svs.num_entities);
 
     // send heartbeat very soon
     svs.last_heartbeat = -(HEARTBEAT_SECONDS - 5) * 1000;
