@@ -61,16 +61,13 @@ void GL_SampleLightPoint(vec3_t color)
         temp[2] = w1 * b1[2] + w2 * b2[2] + w3 * b3[2] + w4 * b4[2];
 
         style = LIGHT_STYLE(surf->styles[i]);
-
-        color[0] += temp[0] * style->white;
-        color[1] += temp[1] * style->white;
-        color[2] += temp[2] * style->white;
+        VectorMA(color, style->white, temp, color);
 
         lightmap += size;
     }
 }
 
-static bool GL_LightGridPoint(lightgrid_t *grid, const vec3_t start, vec3_t color)
+static bool GL_LightGridPoint(const lightgrid_t *grid, const vec3_t start, vec3_t color)
 {
     vec3_t point, avg;
     uint32_t point_i[3];
@@ -94,7 +91,7 @@ static bool GL_LightGridPoint(lightgrid_t *grid, const vec3_t start, vec3_t colo
         tmp[1] = point_i[1] + ((i >> 1) & 1);
         tmp[2] = point_i[2] + ((i >> 2) & 1);
 
-        lightgrid_sample_t *s = BSP_LookupLightgrid(grid, tmp);
+        const lightgrid_sample_t *s = BSP_LookupLightgrid(grid, tmp);
         if (!s)
             continue;
 
@@ -153,15 +150,15 @@ static bool GL_LightGridPoint(lightgrid_t *grid, const vec3_t start, vec3_t colo
     return true;
 }
 
-static bool _GL_LightPoint(const vec3_t start, vec3_t color)
+static bool GL_LightPoint_(const vec3_t start, vec3_t color)
 {
-    bsp_t           *bsp;
+    const bsp_t     *bsp;
     int             i, index;
     lightpoint_t    pt;
     vec3_t          end, mins, maxs;
-    entity_t        *ent;
-    mmodel_t        *model;
-    vec_t           *angles;
+    const entity_t  *ent;
+    const mmodel_t  *model;
+    const vec_t     *angles;
 
     bsp = gl_static.world.cache;
     if (!bsp || !bsp->lightmap)
@@ -226,7 +223,7 @@ static bool _GL_LightPoint(const vec3_t start, vec3_t color)
     return true;
 }
 
-static void GL_MarkLights_r(mnode_t *node, dlight_t *light, uint64_t lightbit)
+static void GL_MarkLights_r(const mnode_t *node, const dlight_t *light, uint64_t lightbit)
 {
     vec_t dot;
     int count;
@@ -276,7 +273,7 @@ static void GL_MarkLights(void)
     }
 }
 
-static void GL_TransformLights(mmodel_t *model)
+static void GL_TransformLights(const mmodel_t *model)
 {
     int i;
     dlight_t *light;
@@ -316,7 +313,7 @@ void GL_LightPoint(const vec3_t origin, vec3_t color)
     }
 
     // get lighting from world
-    if (!_GL_LightPoint(origin, color)) {
+    if (!GL_LightPoint_(origin, color)) {
         VectorSet(color, 1, 1, 1);
     }
 
@@ -343,13 +340,12 @@ static void GL_MarkLeaves(void)
     static int lastNodesVisible;
     byte vis1[VIS_MAX_BYTES];
     byte vis2[VIS_MAX_BYTES];
-    mleaf_t *leaf;
+    const mleaf_t *leaf;
     mnode_t *node;
     size_t *src1, *src2;
-    int cluster1, cluster2, longs;
+    int i, cluster1, cluster2, longs;
     vec3_t tmp;
-    int i;
-    bsp_t *bsp = gl_static.world.cache;
+    const bsp_t *bsp = gl_static.world.cache;
 
     leaf = BSP_PointLeaf(bsp->nodes, glr.fd.vieworg);
     cluster1 = cluster2 = leaf->cluster;
@@ -405,24 +401,18 @@ static void GL_MarkLeaves(void)
         if (cluster1 == -1) {
             continue;
         }
-        if (Q_IsBitSet(vis1, cluster1)) {
-            node = (mnode_t *)leaf;
-
-            // mark parent nodes visible
-            do {
-                if (node->visframe == glr.visframe) {
-                    break;
-                }
-                node->visframe = glr.visframe;
-                node = node->parent;
-                lastNodesVisible++;
-            } while (node);
+        if (!Q_IsBitSet(vis1, cluster1)) {
+            continue;
+        }
+        // mark parent nodes visible
+        for (node = (mnode_t *)leaf; node && node->visframe != glr.visframe; node = node->parent) {
+            node->visframe = glr.visframe;
+            lastNodesVisible++;
         }
     }
 
 finish:
     c.nodesVisible = lastNodesVisible;
-
 }
 
 #define BACKFACE_EPSILON    0.01f
@@ -522,9 +512,9 @@ void GL_DrawBspModel(mmodel_t *model)
 }
 
 #define NODE_CLIPPED    0
-#define NODE_UNCLIPPED  (BIT(4) - 1)
+#define NODE_UNCLIPPED  MASK(4)
 
-static inline bool GL_ClipNode(mnode_t *node, int *clipflags)
+static inline bool GL_ClipNode(const mnode_t *node, int *clipflags)
 {
     int flags = *clipflags;
     int i, bits, mask;
@@ -551,7 +541,7 @@ static inline bool GL_ClipNode(mnode_t *node, int *clipflags)
     return true;
 }
 
-static inline void GL_DrawLeaf(mleaf_t *leaf)
+static inline void GL_DrawLeaf(const mleaf_t *leaf)
 {
     mface_t **face, **last;
 
@@ -570,7 +560,7 @@ static inline void GL_DrawLeaf(mleaf_t *leaf)
     c.leavesDrawn++;
 }
 
-static inline void GL_DrawNode(mnode_t *node)
+static inline void GL_DrawNode(const mnode_t *node)
 {
     mface_t *face, *last = node->firstface + node->numfaces;
 
@@ -603,7 +593,7 @@ static inline void GL_DrawNode(mnode_t *node)
     c.nodesDrawn++;
 }
 
-static void GL_WorldNode_r(mnode_t *node, int clipflags)
+static void GL_WorldNode_r(const mnode_t *node, int clipflags)
 {
     int side;
     vec_t dot;
@@ -615,7 +605,7 @@ static void GL_WorldNode_r(mnode_t *node, int clipflags)
         }
 
         if (!node->plane) {
-            GL_DrawLeaf((mleaf_t *)node);
+            GL_DrawLeaf((const mleaf_t *)node);
             break;
         }
 

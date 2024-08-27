@@ -722,7 +722,8 @@ void G_RegisterScore(void)
         return;
     }
 
-	if (teamplay->value && game.roundNum > 0){
+	if (teamplay->value && game.roundNum == 0){
+		gi.dprintf("No rounds were played, so no highscore will be recorded\n");
 		return; // No rounds were played, so skip
 	}
 

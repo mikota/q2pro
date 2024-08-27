@@ -626,6 +626,8 @@ qboolean KillBox (edict_t * ent)
 		if (!tr.ent)
 			break;
 
+		if (tr.ent && tr.ent == ent) break; //rekkie -- prevent bots from killing themselves on first spawn
+
 		// nail it
 		T_Damage (tr.ent, ent, ent, vec3_origin, ent->s.origin, vec3_origin,
 			100000, 0, DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
@@ -733,7 +735,9 @@ void disablecvar(cvar_t *cvar, char *msg)
 		return;
 
 	if (msg)
-		gi.dprintf("%s: disabling %s\n", msg, cvar->name);
+		gi.dprintf("DISABLING %s: %s\n", cvar->name, msg);
+	else
+		gi.dprintf("DISABLING %s\n", cvar->name);
 
 	gi.cvar_forceset(cvar->name, "0");
 }
@@ -745,7 +749,9 @@ void enablecvar(cvar_t *cvar, char *msg)
 		return;
 
 	if (msg)
-		gi.dprintf("%s: enabling %s\n", msg, cvar->name);
+		gi.dprintf("ENABLING %s: %s\n", cvar->name, msg);
+	else
+		gi.dprintf("ENABLING %s\n", cvar->name);
 
 	gi.cvar_forceset(cvar->name, "1");
 }
@@ -756,4 +762,8 @@ based on variable FPS (HZ)
 */
 int eztimer(int seconds){
 	return (level.framenum + seconds * HZ);
+}
+
+float sigmoid(float x) {
+    return 1 / (1 + exp(-x));
 }

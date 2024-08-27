@@ -79,8 +79,6 @@ QUAKE FILESYSTEM
 #define FS_ERR_READ(fp) \
     (ferror(fp) ? Q_ERR_FAILURE : Q_ERR_UNEXPECTED_EOF)
 
-#define PATH_NOT_CHECKED    -1
-
 #define FOR_EACH_SYMLINK(link, list) \
     LIST_FOR_EACH(symlink_t, link, list, entry)
 
@@ -183,10 +181,10 @@ static int          fs_num_files;
 static bool         fs_non_uniq_open;
 
 #if USE_DEBUG
-static int          fs_count_read;
-static int          fs_count_open;
-static int          fs_count_strcmp;
-static int          fs_count_strlwr;
+static unsigned     fs_count_read;
+static unsigned     fs_count_open;
+static unsigned     fs_count_strcmp;
+static unsigned     fs_count_strlwr;
 #define FS_COUNT_READ       fs_count_read++
 #define FS_COUNT_OPEN       fs_count_open++
 #define FS_COUNT_STRCMP     fs_count_strcmp++
@@ -271,9 +269,9 @@ FS_ValidatePath
 Checks for bad (OS specific) and mixed case characters in path.
 ================
 */
-int FS_ValidatePath(const char *s)
+path_valid_t FS_ValidatePath(const char *s)
 {
-    int res = PATH_VALID;
+    path_valid_t res = PATH_VALID;
 
     if (!*s)
         return PATH_INVALID;
@@ -421,7 +419,7 @@ static file_t *file_for_handle(qhandle_t f)
 }
 
 // expects a buffer of at least MAX_OSPATH bytes!
-static symlink_t *expand_links(list_t *list, char *buffer, size_t *len_p)
+static symlink_t *expand_links(const list_t *list, char *buffer, size_t *len_p)
 {
     symlink_t   *link;
     size_t      namelen = *len_p;
@@ -503,7 +501,7 @@ int64_t FS_Tell(qhandle_t f)
     }
 }
 
-static int64_t get_seek_offset(file_t *file, int64_t offset, int whence)
+static int64_t get_seek_offset(const file_t *file, int64_t offset, int whence)
 {
     switch (whence) {
     case SEEK_SET:
@@ -1025,6 +1023,8 @@ static int read_zip_file(file_t *file, void *buf, size_t len)
     size_t block, result;
     int ret;
 
+    Q_assert(file->position <= file->length);
+
     len = min(len, file->length - file->position);
     if (!len) {
         return 0;
@@ -1315,7 +1315,7 @@ static int64_t open_file_read(file_t *file, const char *normalized, size_t namel
     unsigned        hash;
     packfile_t      *entry;
     int64_t         ret;
-    int             valid;
+    path_valid_t    valid;
 
     FS_COUNT_READ;
 
@@ -1436,6 +1436,8 @@ static int64_t expand_open_file_read(file_t *file, const char *name)
 static int read_pak_file(file_t *file, void *buf, size_t len)
 {
     size_t result;
+
+    Q_assert(file->position <= file->length);
 
     len = min(len, file->length - file->position);
     if (!len) {
@@ -2035,8 +2037,10 @@ static pack_t *pack_alloc(FILE *fp, filetype_t type, const char *name,
                           unsigned num_files, size_t names_len)
 {
     pack_t *pack;
+    size_t len;
 
-    pack = FS_Malloc(sizeof(*pack) + strlen(name));
+    len = strlen(name);
+    pack = FS_Malloc(sizeof(*pack) + len);
     pack->type = type;
     pack->refcount = 0;
     pack->fp = fp;
@@ -2045,7 +2049,7 @@ static pack_t *pack_alloc(FILE *fp, filetype_t type, const char *name,
     pack->hash_size = 0;
     pack->file_hash = NULL;
     pack->names = FS_Malloc(names_len);
-    strcpy(pack->filename, name);
+    memcpy(pack->filename, name, len + 1);
 
     return pack;
 }
@@ -2060,7 +2064,13 @@ static void pack_calc_hashes(pack_t *pack)
     pack->file_hash = FS_Mallocz(pack->hash_size * sizeof(pack->file_hash[0]));
 
     for (i = 0, file = pack->files; i < pack->num_files; i++, file++) {
-        unsigned hash = FS_HashPath(pack->names + file->nameofs, pack->hash_size);
+        char *name = pack->names + file->nameofs;
+        unsigned hash;
+
+        // force conversion to lower case. mixed case paths are annoying.
+        Q_strlwr(name);
+
+        hash = Com_HashString(name, pack->hash_size);
         file->hash_next = pack->file_hash[hash];
         pack->file_hash[hash] = file;
     }
@@ -2113,7 +2123,7 @@ static pack_t *load_pak_file(const char *packfile)
     }
 
     header.dirofs = LittleLong(header.dirofs);
-    if (header.dirofs > INT_MAX) {
+    if (header.dirofs > INT32_MAX) {
         Com_SetLastError("bad directory offset");
         goto fail1;
     }
@@ -2131,7 +2141,7 @@ static pack_t *load_pak_file(const char *packfile)
     for (i = 0, dfile = info; i < num_files; i++, dfile++) {
         dfile->filepos = LittleLong(dfile->filepos);
         dfile->filelen = LittleLong(dfile->filelen);
-        if (dfile->filelen > INT_MAX || dfile->filepos > INT_MAX - dfile->filelen) {
+        if (dfile->filelen > INT32_MAX || dfile->filepos > INT32_MAX - dfile->filelen) {
             Com_SetLastError("file length or position too big");
             goto fail2;
         }
@@ -2267,7 +2277,7 @@ static bool parse_zip64_extra_data(packfile_t *file, const byte *buf, int size)
     return true;
 }
 
-static bool parse_extra_data(pack_t *pack, packfile_t *file, int xtra_size)
+static bool parse_extra_data(const pack_t *pack, packfile_t *file, int xtra_size)
 {
     byte buf[0xffff];
     int pos = 0;
@@ -2288,7 +2298,7 @@ static bool parse_extra_data(pack_t *pack, packfile_t *file, int xtra_size)
     return false;
 }
 
-static bool get_file_info(pack_t *pack, packfile_t *file, char *name, size_t *len, bool zip64)
+static bool get_file_info(const pack_t *pack, packfile_t *file, char *name, size_t *len, bool zip64)
 {
     unsigned comp_mtd, comp_len, file_len, name_size, xtra_size, comm_size, file_pos;
     byte header[ZIP_SIZECENTRALDIRITEM]; // we can't use a struct here because of packing
@@ -2732,7 +2742,7 @@ void **FS_ListFiles(const char *path, const char *filter, unsigned flags, int *c
     listfiles_t     list;
     size_t          len, pathlen;
     char            *s, *p;
-    int             valid;
+    path_valid_t    valid;
 
     memset(&list, 0, sizeof(list));
     valid = PATH_NOT_CHECKED;
@@ -2967,7 +2977,7 @@ void FS_File_g(const char *path, const char *ext, unsigned flags, genctx_t *ctx)
     for (i = 0; i < numFiles; i++) {
         s = list[i];
         if (ctx->count < ctx->size && !strncmp(s, ctx->partial, ctx->length)) {
-            ctx->matches = Z_Realloc(ctx->matches, ALIGN(ctx->count + 1, MIN_MATCHES) * sizeof(char *));
+            ctx->matches = Z_Realloc(ctx->matches, Q_ALIGN(ctx->count + 1, MIN_MATCHES) * sizeof(char *));
             ctx->matches[ctx->count++] = s;
         } else {
             Z_Free(s);
@@ -3045,7 +3055,8 @@ static void FS_WhereIs_f(void)
     symlink_t       *link;
     unsigned        hash;
     file_info_t     info;
-    int             ret, total, valid;
+    int             ret, total;
+    path_valid_t    valid;
     size_t          len, namelen;
     bool            report_all;
 
@@ -3276,10 +3287,10 @@ static void FS_Stats_f(void)
     }
 
     Com_Printf("File slots allocated: %d\n", fs_num_files);
-    Com_Printf("Total calls to open_file_read: %d\n", fs_count_read);
-    Com_Printf("Total path comparsions: %d\n", fs_count_strcmp);
-    Com_Printf("Total calls to open_from_disk: %d\n", fs_count_open);
-    Com_Printf("Total mixed-case reopens: %d\n", fs_count_strlwr);
+    Com_Printf("Total calls to open_file_read: %u\n", fs_count_read);
+    Com_Printf("Total path comparsions: %u\n", fs_count_strcmp);
+    Com_Printf("Total calls to open_from_disk: %u\n", fs_count_open);
+    Com_Printf("Total mixed-case reopens: %u\n", fs_count_strlwr);
 
     if (!totalHashSize) {
         Com_Printf("No stats to display\n");

@@ -307,7 +307,8 @@ field_t fields[] = {
   {"maxyaw", STOFS (maxyaw), F_FLOAT, FFL_SPAWNTEMP},
   {"minpitch", STOFS (minpitch), F_FLOAT, FFL_SPAWNTEMP},
   {"maxpitch", STOFS (maxpitch), F_FLOAT, FFL_SPAWNTEMP},
-  {"nextmap", STOFS (nextmap), F_LSTRING, FFL_SPAWNTEMP}
+  {"nextmap", STOFS (nextmap), F_LSTRING, FFL_SPAWNTEMP},
+  {NULL}  // Added NULL terminator for safety -- darksaint
 };
 
 /*
@@ -327,6 +328,8 @@ void InitGame( void )
 
 	InitCommandList();
 
+	Q_srand(time(NULL));
+	
 	IRC_init();
 	gi.dprintf( "==== InitGame ====\n" );
 
@@ -452,6 +455,9 @@ void InitGame( void )
 	video_check_glclear = gi.cvar( "video_check_glclear", "0", 0 );
 	video_checktime = gi.cvar( "video_checktime", "15", 0 );
 	hc_single = gi.cvar( "hc_single", "1", CVAR_LATCH );	//default ON
+	hc_boost = gi.cvar("hc_boost", "1", CVAR_LATCH); //rekkie -- allow HC to 'boost' the player
+	hc_boost_percent = gi.cvar("hc_boost_percent", "100", 0); //rekkie -- allow HC to 'boost' the player
+	hc_silencer = gi.cvar("hc_silencer", "0", 0); //rekkie -- allow HC to 'boost' the player
 	wp_flags = gi.cvar( "wp_flags", WPF_DEFAULT_STR, 0 );
 	itm_flags = gi.cvar( "itm_flags", ITF_DEFAULT_STR, 0 );
 	matchmode = gi.cvar( "matchmode", "0", CVAR_SERVERINFO | CVAR_LATCH );
@@ -665,6 +671,8 @@ void InitGame( void )
 		gi.cvar_forceset("bholelimit", "30");
 	}
 	g_highscores_dir = gi.cvar("g_highscores_dir", "highscores", 0);
+	lca_grenade = gi.cvar("lca_grenade", "0", 0);
+
 
 	// new AQtion Extension cvars
 #if AQTION_EXTENSION
@@ -689,7 +697,27 @@ void InitGame( void )
 	ltk_routing = gi.cvar( "ltk_routing", "0", 0 );
 	ltk_botfile = gi.cvar( "ltk_botfile", "botdata", 0);
 	ltk_loadbots = gi.cvar( "ltk_loadbots", "1", 0);
-	ltk_classic = gi.cvar( "ltk_classic", "1", 0);
+	//rekkie -- DEV_1 -- s
+	bot_skill = gi.cvar("bot_skill", "7", 0); // Skill setting for bots, range 0-10. 0 = easy, 10 = aimbot!
+	bot_skill_threshold = gi.cvar("bot_skill_threshold", "0", 0); // Dynamic skill adjustment kicks in if a threshold has been hit
+	bot_remember = gi.cvar("bot_remember", "15", 0); // How long (in seconds) the bot remembers an enemy after visibility has been lost
+	bot_reaction = gi.cvar("bot_reaction", "0.5", 0); // How long (in seconds) until the bot reacts to an enemy in sight
+	bot_showpath = gi.cvar("bot_showpath", "0", 0);
+	bot_maxteam = gi.cvar("bot_maxteam", "0", 0);
+	bot_rush = gi.cvar("bot_rush", "0", 0);
+	bot_randvoice = gi.cvar("bot_randvoice", "5", 0);
+	bot_randskill = gi.cvar("bot_randskill", "10", 0);
+	bot_randname = gi.cvar("bot_randname", "1", 0);
+	bot_chat = gi.cvar("bot_chat", "0", 0);
+	bot_personality = gi.cvar("bot_personality", "0", CVAR_LATCH);
+	bot_ragequit = gi.cvar("bot_ragequit", "0", 0);
+	bot_countashuman = gi.cvar("bot_countashuman", "0", 0);
+	bot_debug = gi.cvar("bot_debug", "0", 0);
+	bot_count_min = gi.cvar("bot_count_min", "0", 0);
+	bot_count_max = gi.cvar("bot_count_max", "0", 0);
+	bot_rotate = gi.cvar("bot_rotate", "0", 0);
+	//bot_randteamskin = gi.cvar("bot_randteamskin", "0", 0);
+	//rekkie -- DEV_1 -- e
 #endif
 
 	// Initialize libcurl capabilities if enabled

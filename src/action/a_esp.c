@@ -14,6 +14,8 @@ espsettings_t espsettings;
 int esp_last_chosen_spawn = 0;
 int esp_spawnpoint_index[TEAM_TOP] = {-1};
 
+edict_t* chosenSpawnpoint[TEAM_TOP] = {NULL};
+edict_t* etvTarget = NULL;
 
 unsigned int esp_team_effect[] = {
 	EF_BLASTER | EF_ROTATE | EF_TELEPORTER,
@@ -99,7 +101,7 @@ void EspTimedMessageHandler(int teamNum, edict_t *ent, int seconds, int timedMsg
 	if (teamNum > teamCount || teamNum < 0)
 		return;
 	if (ent && !ent->client){
-		gi.dprintf("%s: Invalid entity passed\n", __FUNCTION__);
+		gi.dprintf("%s: Invalid entity passed\n", __func__);
 		return;
 	}
 	// Convert frames to seconds
@@ -353,9 +355,9 @@ void EspScoreBonuses(edict_t * targ, edict_t * attacker)
 
 	if (esp_debug->value){
 		int bonusEligible = (level.realFramenum - ESP_BONUS_COOLDOWN);
-		gi.dprintf("%s: lpc is %d, lpl is %d, lhl is %d\n", __FUNCTION__, lpc, lpl, lhl);
-		gi.dprintf("%s: attacker is %s, targ is %s\n", __FUNCTION__, attacker->client->pers.netname, targ->client->pers.netname);
-		gi.dprintf("%s: level.realFramenum is %i, subtracted ESP_BONUS_COOLDOWN is %i\n", __FUNCTION__, level.realFramenum, bonusEligible);
+		gi.dprintf("%s: lpc is %d, lpl is %d, lhl is %d\n", __func__, lpc, lpl, lhl);
+		gi.dprintf("%s: attacker is %s, targ is %s\n", __func__, attacker->client->pers.netname, targ->client->pers.netname);
+		gi.dprintf("%s: level.realFramenum is %i, subtracted ESP_BONUS_COOLDOWN is %i\n", __func__, level.realFramenum, bonusEligible);
 	}
 
 	// If the attacker has already received a bonus in the last ESP_BONUS_COOLDOWN frames
@@ -411,9 +413,10 @@ void EspCapturePointThink( edict_t *flag )
 			// Escort point captured, end round and start again
 			gi.sound( &g_edicts[0], CHAN_BODY | CHAN_NO_PHS_ADD, gi.soundindex("aqdt/aqg_bosswin.wav"), 1.0, ATTN_NONE, 0.0 );
 			espsettings.escortcap = flag->owner->client->resp.team;
-			if (esp_punish->value)
+			if (esp_punish->value) {
 				esp_punishment_phase = true;
 				EspPunishment(OtherTeam(flag->owner->client->resp.team));
+			}
 
 			if (use_rewards->value) {
 				if(teams[TEAM1].leader->client->resp.esp_capstreak == 5)
@@ -463,7 +466,7 @@ void EspMakeCapturePoint(edict_t *flag)
 	trace_t tr = {0};
 
 	if (esp_debug->value)
-		gi.dprintf("%s: Creating a new capturepoint\n", __FUNCTION__);
+		gi.dprintf("%s: Creating a new capturepoint\n", __func__);
 	VectorSet( flag->mins, -15, -15, -15 );
 	VectorSet( flag->maxs,  15,  15,  15 );
 
@@ -509,11 +512,14 @@ void EspMakeCapturePoint(edict_t *flag)
 		gi.linkentity(flag->obj_arrow);
 
 		if (esp_debug->value){
-			gi.dprintf("%s: ** Indicator arrow spawned at <%f %f %f>\n", __FUNCTION__, flag->obj_arrow->s.origin[0], flag->obj_arrow->s.origin[1], flag->obj_arrow->s.origin[2]);
-			gi.dprintf("%s: ** Flag coordinates are: <%f %f %f>\n", __FUNCTION__, flag->s.origin[0], flag->s.origin[1], flag->s.origin[2]);
+			gi.dprintf("%s: ** Indicator arrow spawned at <%f %f %f>\n", __func__, flag->obj_arrow->s.origin[0], flag->obj_arrow->s.origin[1], flag->obj_arrow->s.origin[2]);
+			gi.dprintf("%s: ** Flag coordinates are: <%f %f %f>\n", __func__, flag->s.origin[0], flag->s.origin[1], flag->s.origin[2]);
 		}
 	}
 	#endif
+
+	// Globally accessible capturepoint
+	etvTarget = flag;
 	
 	esp_flag_count ++;
 }
@@ -561,7 +567,7 @@ void EspSetTeamSpawns(int team, char *str)
 	do {
 		if (sscanf(next, "<%f %f %f %f>", &pos[0], &pos[1], &pos[2], &angle) != 4) {
 			if (esp_debug->value)
-				gi.dprintf("%s: invalid spawn point: %s, expected <x y z a>\n", __FUNCTION__, next);
+				gi.dprintf("%s: invalid spawn point: %s, expected <x y z a>\n", __func__, next);
 			continue;
 		}
 
@@ -571,13 +577,13 @@ void EspSetTeamSpawns(int team, char *str)
 		spawn->classname = ED_NewString (team_spawn_name);
 
 		if (esp_debug->value)
-			gi.dprintf("%s: Created spawnpoint for %s at <%f %f %f %f>\n", __FUNCTION__, team_spawn_name, pos[0], pos[1], pos[2], angle);
+			gi.dprintf("%s: Created spawnpoint for %s at <%f %f %f %f>\n", __func__, team_spawn_name, pos[0], pos[1], pos[2], angle);
 		es->custom_spawns[team][esp_potential_spawns] = spawn;
 		esp_potential_spawns++;
 		if (esp_potential_spawns >= MAX_SPAWNS)
 		{
 			if (esp_debug->value)
-				gi.dprintf("%s: Warning: MAX_SPAWNS exceeded\n", __FUNCTION__);
+				gi.dprintf("%s: Warning: MAX_SPAWNS exceeded\n", __func__);
 			break;
 		}
 
@@ -594,7 +600,7 @@ void EspEnforceDefaultSettings(char *defaulttype)
 	int i = 0;
 
 	if (esp_debug->value)
-		gi.dprintf("%s: defaulttype is %s\n", __FUNCTION__, defaulttype);
+		gi.dprintf("%s: defaulttype is %s\n", __func__, defaulttype);
 
 	if(default_author) {
 		EspForceEspionage(ESPMODE_ATL);
@@ -959,7 +965,7 @@ qboolean EspLoadConfig(const char *mapname)
 	// Load skin indexes
 	if (!no_file || !loaded_default_file) {
 		if (esp_debug->value)
-			gi.dprintf("%s: *** Loading skin indexes\n", __FUNCTION__);
+			gi.dprintf("%s: *** Loading skin indexes\n", __func__);
 		Q_snprintf(teams[TEAM1].skin_index, sizeof(teams[TEAM1].skin_index), "../players/%s_i", teams[TEAM1].skin);
 		Q_snprintf(teams[TEAM2].skin_index, sizeof(teams[TEAM2].skin_index), "../players/%s_i", teams[TEAM2].skin);
 		Q_snprintf(teams[TEAM3].skin_index, sizeof(teams[TEAM3].skin_index), "../players/%s_i", teams[TEAM3].skin);
@@ -1003,12 +1009,12 @@ void EspRespawnLCA(edict_t *ent)
 	// Print out all conditions below as debug prints
 	// This is massively noisy so I'm setting it so that esp_debug must be 2 to see it
 	// if (esp_debug->value == 2)
-	// 	gi.dprintf("%s: ent->inuse is %d\n", __FUNCTION__, ent->inuse);
-	// 	gi.dprintf("%s: ent->client->resp.team is %d\n", __FUNCTION__, ent->client->resp.team);
-	// 	gi.dprintf("%s: ent->client->respawn_framenum is %d\n", __FUNCTION__, ent->client->respawn_framenum);
-	// 	gi.dprintf("%s: IS_LEADER(ent) is %d\n", __FUNCTION__, IS_LEADER(ent));
-	// 	gi.dprintf("%s: ent->is_bot is %d\n", __FUNCTION__, ent->is_bot);
-	// 	gi.dprintf("%s: team_round_going is %d\n", __FUNCTION__, team_round_going);
+	// 	gi.dprintf("%s: ent->inuse is %d\n", __func__, ent->inuse);
+	// 	gi.dprintf("%s: ent->client->resp.team is %d\n", __func__, ent->client->resp.team);
+	// 	gi.dprintf("%s: ent->client->respawn_framenum is %d\n", __func__, ent->client->respawn_framenum);
+	// 	gi.dprintf("%s: IS_LEADER(ent) is %d\n", __func__, IS_LEADER(ent));
+	// 	gi.dprintf("%s: ent->is_bot is %d\n", __func__, ent->is_bot);
+	// 	gi.dprintf("%s: team_round_going is %d\n", __func__, team_round_going);
 
 	// Basically we just want real, dead players who are in the respawn waiting period
 	if (!ent->inuse ||
@@ -1024,7 +1030,7 @@ void EspRespawnLCA(edict_t *ent)
 
 		if (esp_debug->value)
 			gi.dprintf("%s: Level framenum is %d, respawn timer was %d for %s, timercalc is %i, esp_respawn_sounds was %i\n", 
-			__FUNCTION__, level.framenum, ent->client->respawn_framenum, ent->client->pers.netname, timercalc, ent->client->resp.esp_respawn_sounds);
+			__func__, level.framenum, ent->client->respawn_framenum, ent->client->pers.netname, timercalc, ent->client->resp.esp_respawn_sounds);
 
 		// Subtract current framenum from respawn_timer to get a countdown
 		if (timercalc <= 0){
@@ -1062,7 +1068,7 @@ void EspRespawnPlayer(edict_t *ent)
 	if (team_round_going) {
 		// Don't respawn until the current framenum is more than the respawn timer's framenum
 		if (esp_debug->value)
-			gi.dprintf("%s: Level framenum is %d, respawn timer was %d for %s\n", __FUNCTION__, level.framenum, ent->client->respawn_framenum, ent->client->pers.netname);
+			gi.dprintf("%s: Level framenum is %d, respawn timer was %d for %s\n", __func__, level.framenum, ent->client->respawn_framenum, ent->client->pers.netname);
 
 		if (level.framenum > ent->client->respawn_framenum) {
 			if (esp_debug->value) {
@@ -1135,7 +1141,7 @@ randomly choose a spawnpoint for each team, based on the es->custom_spawns[index
 
 This is reset back to default in EspEndOfRoundCleanup()
 */
-edict_t *SelectEspCustomSpawnPoint(edict_t * ent)
+edict_t *SelectEspCustomSpawnPoint(edict_t* ent)
 {
 	espsettings_t *es = &espsettings;
     int teamNum = ent->client->resp.team;
@@ -1156,14 +1162,14 @@ edict_t *SelectEspCustomSpawnPoint(edict_t * ent)
 			// If we count zero custom spawns, then we need to safely return a better function
 			// so we can spawn teams apart
 			if (esp_debug->value)
-				gi.dprintf("%s: With zero spawnpoints, I am calling SelectRandomDeathmatchSpawnPoint()\n", __FUNCTION__);
+				gi.dprintf("%s: With zero spawnpoints, I am calling SelectRandomDeathmatchSpawnPoint()\n", __func__);
 			return SelectRandomDeathmatchSpawnPoint();
 		}
 		// Keep track of which spawn was last chosen
 		esp_last_chosen_spawn = random_index;
 		esp_spawnpoint_index[teamNum] = esp_last_chosen_spawn;
 		if (esp_debug->value)
-			gi.dprintf("%s: For team %d, random index is %d\n", __FUNCTION__, teamNum, esp_spawnpoint_index[teamNum]);
+			gi.dprintf("%s: For team %d, random index is %d\n", __func__, teamNum, esp_spawnpoint_index[teamNum]);
 	}
 	// Everyone on each team spawns on the same spawnpoint index (spawn together)
 	edict_t *spawn_point = es->custom_spawns[teamNum][esp_spawnpoint_index[teamNum]];
@@ -1173,10 +1179,11 @@ edict_t *SelectEspCustomSpawnPoint(edict_t * ent)
 	// 	gi.dprintf("For team %d, random index is %d, but the spawn point is NULL\n", teamNum, esp_spawnpoint_index[teamNum]);
 	// }
 
-	if (spawn_point)
+	if (spawn_point) {
+		espsettings.round_spawnpoint[teamNum] = spawn_point;
 		return spawn_point;
-	else {
-		gi.dprintf("%s: No spawnpoint found, safely return NULL so we can try another one\n", __FUNCTION__);
+	} else {
+		gi.dprintf("%s: No spawnpoint found, safely return NULL so we can try another one\n", __func__);
 		return NULL;
 	}
 }
@@ -1212,6 +1219,7 @@ edict_t *SelectEspSpawnPoint(edict_t *ent)
 
 	char 		*cname;
 	int			teamNum = ent->client->resp.team;
+	edict_t* 	chosen_spawn_point = NULL;
 
 	ent->client->resp.esp_state = ESP_STATE_PLAYING;
 
@@ -1250,8 +1258,8 @@ edict_t *SelectEspSpawnPoint(edict_t *ent)
 		return SelectDeathmatchSpawnPoint();
 
 	if (esp_debug->value){
-		gi.dprintf("%s: Is team round going? %d\n", __FUNCTION__, team_round_going);
-		gi.dprintf("%s: Is the team leader alive? %d\n", __FUNCTION__, _EspLeaderAliveCheck(ent, teams[ent->client->resp.team].leader, EspModeCheck()));
+		gi.dprintf("%s: Is team round going? %d\n", __func__, team_round_going);
+		gi.dprintf("%s: Is the team leader alive? %d\n", __func__, _EspLeaderAliveCheck(ent, teams[ent->client->resp.team].leader, EspModeCheck()));
 	}
 
 	// Time to respawn on the leader!
@@ -1260,23 +1268,33 @@ edict_t *SelectEspSpawnPoint(edict_t *ent)
 	} else {
 		// Custom spawns take precedence over standard spawns
 		if ((EspSpawnpointCount(teamNum) > 0)) {
-			return SelectEspCustomSpawnPoint(ent);
+			chosen_spawn_point = SelectEspCustomSpawnPoint(ent);
+			// Keeping track of the chosen spawnpoint
+			chosenSpawnpoint[teamNum] = chosen_spawn_point;
+			return chosen_spawn_point;
 
 		// but if there are none, then we go back to old faithful
 		} else {
 			if (esp_debug->value)
-				gi.dprintf("%s: No custom spawns, defaulting to teamplay spawn\n", __FUNCTION__);
+				gi.dprintf("%s: No custom spawns, defaulting to teamplay spawn\n", __func__);
 
 			// NULL check, if there are no teamplay (info_player_team...) spawns, then default to deathmatch spawns
-			if (SelectTeamplaySpawnPoint(ent))
-				return SelectTeamplaySpawnPoint(ent);
-			else
-				return SelectDeathmatchSpawnPoint();
+			if (SelectTeamplaySpawnPoint(ent)) {
+				chosen_spawn_point = SelectTeamplaySpawnPoint(ent);
+				// Keeping track of the chosen spawnpoint
+				chosenSpawnpoint[teamNum] = chosen_spawn_point;
+				return chosen_spawn_point;
+			} else {
+				chosen_spawn_point = SelectDeathmatchSpawnPoint();
+				// Keeping track of the chosen spawnpoint
+				chosenSpawnpoint[teamNum] = chosen_spawn_point;
+				return chosen_spawn_point;
+			}
 		}
 	}
 	// All else fails, use deathmatch spawn points
 	if (esp_debug->value)
-		gi.dprintf("%s: Defaulted all the way down here\n", __FUNCTION__);
+		gi.dprintf("%s: Defaulted all the way down here\n", __func__);
 	return SelectFarthestDeathmatchSpawnPoint();
 }
 
@@ -1431,7 +1449,7 @@ qboolean EspCheckETVRules(void)
 
 	// Print all condition states
 	if (esp_debug->value) {
-		gi.dprintf("-- Debug start %s --\n", __FUNCTION__);
+		gi.dprintf("-- Debug start %s --\n", __func__);
 		gi.dprintf("Roundlimit is %f\n", roundlimit->value);
 		gi.dprintf("Team 1 score is %d\n", teams[TEAM1].score);
 		gi.dprintf("Team 2 score is %d\n", teams[TEAM2].score);
@@ -1441,7 +1459,7 @@ qboolean EspCheckETVRules(void)
 		gi.dprintf("ETV is %f\n", etv->value);
 		gi.dprintf("Use warnings is %f\n", use_warnings->value);
 		gi.dprintf("ETV halftime is %f\n", esp_etv_halftime->value);
-		gi.dprintf("-- Debug end %s --\n", __FUNCTION__);
+		gi.dprintf("-- Debug end %s --\n", __func__);
 	}
 
 	if (!roundlimit->value && esp_etv_halftime->value){
@@ -1557,11 +1575,25 @@ qboolean AllTeamsHaveLeaders(void)
 		return false;
 	}
 	if (esp_debug->value)
-		gi.dprintf("%s: Leadercount: %d\n", __FUNCTION__, teamsWithLeaders);
+		gi.dprintf("%s: Leadercount: %d\n", __func__, teamsWithLeaders);
 	return false;
 }
 
-qboolean EspSetLeader( int teamNum, edict_t *ent )
+edict_t* EspGetLeader(int teamNum)
+{
+	if (teamNum == NOTEAM)
+		return NULL;
+
+	if (teams[teamNum].leader == NULL){
+		if (esp_debug->value)
+			gi.dprintf("%s: No leader found for team %d\n", __func__, teamNum);
+		return NULL;
+	}
+
+	return teams[teamNum].leader;
+}
+
+qboolean EspSetLeader(int teamNum, edict_t *ent)
 {
 	edict_t *oldLeader = teams[teamNum].leader;
 	char temp[128];
@@ -1632,7 +1664,7 @@ qboolean EspChooseRandomLeader(int teamNum)
 
 	if (team_round_going) {
 		if (esp_debug->value)
-			gi.dprintf("%s: I was called because someone disconnected\n", __FUNCTION__);
+			gi.dprintf("%s: I was called because someone disconnected\n", __func__);
 
 		if (matchmode->value && !TeamsReady())
 			return false;
@@ -1654,13 +1686,13 @@ qboolean EspChooseRandomLeader(int teamNum)
 			return false;
 
 		if (esp_debug->value)
-			gi.dprintf("%s: players on team %d: %d\n", __FUNCTION__, teamNum, players[teamNum]);
+			gi.dprintf("%s: players on team %d: %d\n", __func__, teamNum, players[teamNum]);
 
 		// Choose a random player from the playerList
 		ent = playerList[rand() % numPlayers];
 
 		if (esp_debug->value)
-			gi.dprintf("%s: Randomly selected player on team %d: %s\n", __FUNCTION__, teamNum, ent->client->pers.netname);
+			gi.dprintf("%s: Randomly selected player on team %d: %s\n", __func__, teamNum, ent->client->pers.netname);
 
 		// Set the selected player as the leader
 		EspSetLeader(teamNum, ent);
@@ -1702,7 +1734,7 @@ qboolean EspLeaderCheck(void)
 	for (i = TEAM1; i <= teamCount; i++) {
 		if (teams[i].leader && !IS_ALIVE(teams[i].leader) && team_round_going && !holding_on_tie_check) {
 			if (esp_debug->value)
-				gi.dprintf("%s: Team %i leader is dead, but the round is still going...?\n", __FUNCTION__, teams[i].leader->client->resp.team);
+				gi.dprintf("%s: Team %i leader is dead, but the round is still going...?\n", __func__, teams[i].leader->client->resp.team);
 			athl = false;
 		}
 	}
@@ -1717,11 +1749,11 @@ qboolean EspLeaderCheck(void)
 	// If we all have leaders, then we're good
 	if (athl) {
 		if (esp_debug->value)
-			gi.dprintf("%s: I don't need a leader!\n", __FUNCTION__);
+			gi.dprintf("%s: I don't need a leader!\n", __func__);
 		return true;
 	} else {
 		if (esp_debug->value)
-			gi.dprintf("%s: I need a leader!\n", __FUNCTION__);
+			gi.dprintf("%s: I need a leader!\n", __func__);
 		// We do not all have leaders, so we must cycle through each team
 		for (i = TEAM1; i <= teamCount; i++) {
 			if (!HAVE_LEADER(i)) { // If this team does not have a leader, get one
@@ -1729,13 +1761,13 @@ qboolean EspLeaderCheck(void)
 				if (newLeader) {
 					if (EspSetLeader(i, newLeader)) {
 						if (esp_debug->value)
-							gi.dprintf("%s: I found a leader!\n", __FUNCTION__);
+							gi.dprintf("%s: I found a leader!\n", __func__);
 						return true;
 					}
 				} else {  // Oops, no volunteers, then we force someone to be a leader
 					if (EspChooseRandomLeader(i)) {
 						if (esp_debug->value)
-							gi.dprintf("%s: I need a random leader!\n", __FUNCTION__);
+							gi.dprintf("%s: I need a random leader!\n", __func__);
 						return true;
 					}
 				}
@@ -1775,6 +1807,37 @@ void EspLeaderLeftTeam( edict_t *ent )
 }
 
 /*
+Called from EspReportLeaderDeath in ATL mode
+*/
+static int EspReportATLWinner(int dead_leader_team)
+{
+	int winner = 0;
+
+	switch (dead_leader_team) {
+		case TEAM1:
+			if (IS_ALIVE(teams[TEAM2].leader) && !IS_ALIVE(teams[TEAM3].leader))
+				winner = TEAM2;
+			else if (!IS_ALIVE(teams[TEAM2].leader) && IS_ALIVE(teams[TEAM3].leader))
+				winner = TEAM3;
+			break;
+		case TEAM2:
+			if (IS_ALIVE(teams[TEAM1].leader) && !IS_ALIVE(teams[TEAM3].leader))
+				winner = TEAM1;
+			else if (!IS_ALIVE(teams[TEAM1].leader) && IS_ALIVE(teams[TEAM3].leader))
+				winner = TEAM3;
+			break;
+		case TEAM3:
+			if (IS_ALIVE(teams[TEAM1].leader) && !IS_ALIVE(teams[TEAM2].leader))
+				winner = TEAM1;
+			else if (!IS_ALIVE(teams[TEAM1].leader) && IS_ALIVE(teams[TEAM2].leader))
+				winner = TEAM2;
+			break;
+	}
+
+	return winner;
+}
+
+/*
 This is called from player_die, and only called
 if the player was a leader
 */
@@ -1803,32 +1866,16 @@ int EspReportLeaderDeath(edict_t *ent)
 				winner = TEAM1;
 		// 3 team winner checks
 		} else {
-			if (dead_leader_team == TEAM1) {
-				if (IS_ALIVE(teams[TEAM2].leader) && !IS_ALIVE(teams[TEAM3].leader))
-					winner = TEAM2;
-				else if (!IS_ALIVE(teams[TEAM2].leader) && IS_ALIVE(teams[TEAM3].leader))
-					winner = TEAM3;
-			}
-			else if (dead_leader_team == TEAM2) {
-				if (IS_ALIVE(teams[TEAM1].leader) && !IS_ALIVE(teams[TEAM3].leader))
-					winner = TEAM1;
-				else if (!IS_ALIVE(teams[TEAM1].leader) && IS_ALIVE(teams[TEAM3].leader))
-					winner = TEAM3;
-			}
-			else if (dead_leader_team == TEAM3) {
-				if (IS_ALIVE(teams[TEAM1].leader) && !IS_ALIVE(teams[TEAM2].leader))
-					winner = TEAM1;
-				else if (!IS_ALIVE(teams[TEAM1].leader) && IS_ALIVE(teams[TEAM2].leader))
-					winner = TEAM2;
-			}
+			winner = EspReportATLWinner(dead_leader_team);
 		}
 	}
 
 	// Find all players in the game and play this sound
 	gi.sound(&g_edicts[0], CHAN_BODY | CHAN_NO_PHS_ADD, gi.soundindex("tng/leader_death.wav"), 1.0, ATTN_NONE, 0.0);
-	if (esp_punish->value)
+	if (esp_punish->value) {
 		esp_punishment_phase = true;
 		EspPunishment(dead_leader_team);
+	}
 
 	// Stats Reset
 	if (ent->client->resp.esp_capstreak > ent->client->resp.esp_capstreakbest)
@@ -1894,8 +1941,8 @@ void GenerateMedKit(qboolean instant)
 				ent->client->medkit++;
 
 				if (esp_debug->value){
-					gi.dprintf("%s: I generated a medkit for %s, %d seconds since the round started, %d frames in\n", __FUNCTION__, ent->client->pers.netname, roundseconds, roundseconds);
-					gi.dprintf("%s: %s has %d medkits now\n", __FUNCTION__, ent->client->pers.netname, ent->client->medkit);
+					gi.dprintf("%s: I generated a medkit for %s, %d seconds since the round started, %d frames in\n", __func__, ent->client->pers.netname, roundseconds, roundseconds);
+					gi.dprintf("%s: %s has %d medkits now\n", __func__, ent->client->pers.netname, ent->client->medkit);
 				}
 			}
 		}
@@ -1981,13 +2028,13 @@ void EspCleanUp(void)
 	int intervalAdd = 20;
 
 	if (esp_debug->value)
-		gi.dprintf("%s: Cleanupinterval is %d, the time is now %d\n", __FUNCTION__, cleanupInterval, roundseconds);
+		gi.dprintf("%s: Cleanupinterval is %d, the time is now %d\n", __func__, cleanupInterval, roundseconds);
 	if (roundseconds >= cleanupInterval) {
 		CleanBodies();
 		cleanupInterval = cleanupInterval + intervalAdd;
 
 		if (esp_debug->value)
-			gi.dprintf("%s: Bodies cleaned, cleanupinterval is now %d\n", __FUNCTION__, cleanupInterval);
+			gi.dprintf("%s: Bodies cleaned, cleanupinterval is now %d\n", __func__, cleanupInterval);
 	}
 	//gi.dprintf("the time is now %d\n", roundseconds);
 	
@@ -2015,8 +2062,10 @@ void EspEndOfRoundCleanup(void)
 
 	// Reset the last spawnpoint index, this is reset to 
 	// -1 because 0 is a valid index
+	// Also reset last round's spawnpoint edict
 	for (i = TEAM1; i <= teamCount; i++) {
 		esp_spawnpoint_index[i] = -1;
+		espsettings.round_spawnpoint[i] = NULL;
 	}
 
 	// Reset these three timed stats for the next round for each player
@@ -2054,13 +2103,13 @@ int EspSpawnpointCount(int teamNum)
             if (es->custom_spawns[teamNum][i] == NULL)
                 break;
 			if (esp_debug->value)
-				gi.dprintf("%s: Team %d spawncount %d coordinates are: %f, %f, %f\n", __FUNCTION__, teamNum, i, es->custom_spawns[teamNum][i]->s.origin[0], es->custom_spawns[teamNum][i]->s.origin[1], es->custom_spawns[teamNum][i]->s.origin[2]);
+				gi.dprintf("%s: Team %d spawncount %d coordinates are: %f, %f, %f\n", __func__, teamNum, i, es->custom_spawns[teamNum][i]->s.origin[0], es->custom_spawns[teamNum][i]->s.origin[1], es->custom_spawns[teamNum][i]->s.origin[2]);
             spawn_count++;
         }
     }
 
 	if (esp_debug->value)
-    	gi.dprintf("%s: Team %d has %d custom spawnpoints\n", __FUNCTION__, teamNum, spawn_count);
+    	gi.dprintf("%s: Team %d has %d custom spawnpoints\n", __func__, teamNum, spawn_count);
     return spawn_count;
 }
 
@@ -2071,9 +2120,9 @@ void EspDebug(void)
 	for (i = TEAM1; i <= teamCount; i++) {
 
 		if (HAVE_LEADER(i)) {
-			gi.dprintf("%s: Team %i leader: %s\n", __FUNCTION__, i, teams[i].leader->client->pers.netname);
+			gi.dprintf("%s: Team %i leader: %s\n", __func__, i, teams[i].leader->client->pers.netname);
 		} else {
-			gi.dprintf("%s: Team %d does not have a leader\n", __FUNCTION__, i);
+			gi.dprintf("%s: Team %d does not have a leader\n", __func__, i);
 		}
 	}
 	edict_t *ent;

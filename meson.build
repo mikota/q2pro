@@ -4,7 +4,7 @@ project('q2pro', 'c',
   meson_version: '>= 0.59.0',
   default_options: [
     'c_std=c11',
-    'buildtype=debugoptimized',
+    'buildtype=release',
   ],
 )
 
@@ -232,6 +232,24 @@ ltk_src = [
   'src/action/acesrc/botscan.c'
 ]
 
+botlib_src = [
+  'src/action/botlib/botlib_ai.c',
+  'src/action/botlib/botlib_cmd.c',
+  'src/action/botlib/botlib_communication.c',
+  'src/action/botlib/botlib_ctf.c',
+  'src/action/botlib/botlib_esp.c',
+  'src/action/botlib/botlib_items.c',
+  'src/action/botlib/botlib_math.c',
+  'src/action/botlib/botlib_movement.c',
+  'src/action/botlib/botlib_nav.c',
+  'src/action/botlib/botlib_nodes.c',
+  'src/action/botlib/botlib_spawn.c',
+  'src/action/botlib/botlib_spawnpoints.c',
+  'src/action/botlib/botlib_weapons.c',
+  'src/action/botlib/botlib_personality.c',
+  'src/action/botlib/botlib_utils.c',
+]
+
 cc = meson.get_compiler('c')
 
 win32 = host_machine.system() == 'windows'
@@ -270,7 +288,7 @@ if system_wide
   homedir = get_option('homedir')
 endif
 
-common_args = ['-DHAVE_CONFIG_H', '-DUSE_PROTOCOL_EXTENSIONS=1']
+common_args = ['-DHAVE_CONFIG_H']
 if win32
   common_args += '-D_USE_MATH_DEFINES'
 else
@@ -295,6 +313,7 @@ if cc.get_argument_syntax() == 'gcc'
     '-fsigned-char',
     '-fms-extensions',
     '-fno-math-errno',
+    '-fno-trapping-math',
     '-Wpointer-arith',
     '-Wformat-security',
     '-Werror=vla',
@@ -321,12 +340,18 @@ if cc.get_argument_syntax() == 'gcc'
   endif
 elif cc.get_id() == 'msvc'
   common_args += ['/wd4146', '/wd4244', '/wd4305']
+else
+  dll_link_args += '--no-relax'
 endif
 
 add_project_arguments(common_args, language: 'c')
 add_project_link_arguments(common_link_args, language: 'c')
+# add_project_arguments('-fsanitize=address', language: 'c')
+# add_project_link_arguments('-fsanitize=address', language: 'c')
 
 config = configuration_data()
+
+texture_formats = []
 
 fallback_opt = ['default_library=static']
 
@@ -344,6 +369,9 @@ png = dependency('libpng',
   required:        get_option('libpng'),
   default_options: fallback_opt,
 )
+if png.found()
+  texture_formats += 'png'
+endif
 
 config.set10('USE_ZLIB', zlib.found())
 config.set10('USE_PNG', png.found())
@@ -386,11 +414,17 @@ if jpeg.found()
   endif
   if has_rgba
     client_deps += jpeg
+    texture_formats += 'jpg'
     config.set10('USE_JPG', true)
   endif
 endif
 
+if get_option('tga')
+  texture_formats += 'tga'
+endif
+
 openal = dependency('openal',
+  version:         '>= 1.18.0',
   required:        get_option('openal'),
   default_options: fallback_opt,
 )
@@ -400,29 +434,28 @@ if openal.found()
   config.set10('USE_OPENAL', true)
 endif
 
+# libjansson required for botlib
+jansson_dep = dependency('jansson',
+  version:         '>= 2.8',
+  fallback:        ['jansson', 'jansson_dep'],
+  required:        true  # Or set to true/false as needed
+)
+if jansson_dep.found()
+  game_deps += jansson_dep
+  #dll_link_args += '-ljansson'
+endif
+
 if not win32
   uuid = dependency('uuid',
     required:        get_option('uuid'),
     allow_fallback:  win32,
     default_options: fallback_opt,
   )
+  
   if uuid.found()
     client_deps += uuid
     config.set10('USE_UUID', true)
     dll_link_args += '-luuid'
-  endif
-
-  jansson = dependency('jansson',
-    required:        get_option('jansson'),
-    allow_fallback:  win32,
-    default_options: fallback_opt,
-  )
-
-  if jansson.found()
-    client_deps += jansson
-    config.set10('USE_JANSSON', true)
-    dll_link_args += '-L/opt/homebrew/lib'
-    dll_link_args += '-ljansson'
   endif
 endif
 
@@ -434,8 +467,13 @@ if host_machine.system() == 'darwin'
     default_options: fallback_opt,
   )
   client_deps += opengl
-
-  inc_dirs += '/opt/homebrew/include'
+  if host_machine.cpu_family() == 'x86_64' # Intel
+    inc_dirs += '/usr/local/include'
+    dll_link_args += '-L/usr/local/lib'
+  else                                     # Apple Silicon
+    inc_dirs += '/opt/homebrew/include'
+    dll_link_args += '-L/opt/homebrew/lib'
+  endif
 endif
 
 # require FFmpeg >= 5.1.3
@@ -511,6 +549,7 @@ if get_option('aqtion-build')
   config.set10('AQTION_EXTENSION', true)
   config.set10('AQTION_HUD', true)
   action_src += ltk_src
+  action_src += botlib_src
 
   # Win32 winsock compat
   if win32
@@ -599,6 +638,7 @@ if not win32
   config.set_quoted('LIBDIR',     libdir)
   config.set_quoted('HOMEDIR',    homedir)
 endif
+config.set_quoted('R_TEXTURE_FORMATS', ' '.join(texture_formats))
 config.set_quoted('VID_GEOMETRY', get_option('vid-geometry'))
 config.set_quoted('VID_MODELIST', get_option('vid-modelist'))
 
@@ -611,6 +651,7 @@ config.set10('USE_MD5',           get_option('md5'))
 config.set10('USE_PACKETDUP',     get_option('packetdup-hack'))
 config.set10('USE_TGA',           get_option('tga'))
 config.set10('USE_' + host_machine.endian().to_upper() + '_ENDIAN', true)
+config.set10('USE_PROTOCOL_EXTENSIONS', true)
 
 configure_file(output: 'config.h', configuration: config)
 

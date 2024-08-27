@@ -202,10 +202,10 @@ static void PF_dprintf(const char *fmt, ...)
 
 #if USE_SAVEGAMES
     // detect YQ2 game lib by unique first two messages
-    if (!sv.gamedetecthack)
-        sv.gamedetecthack = 1 + !strcmp(fmt, "Game is starting up.\n");
-    else if (sv.gamedetecthack == 2)
-        sv.gamedetecthack = 3 + !strcmp(fmt, "Game is %s built on %s.\n");
+    if (!svs.gamedetecthack)
+        svs.gamedetecthack = 1 + !strcmp(fmt, "Game is starting up.\n");
+    else if (svs.gamedetecthack == 2)
+        svs.gamedetecthack = 3 + !strcmp(fmt, "Game is %s built on %s.\n");
 #endif
 
     va_start(argptr, fmt);
@@ -339,8 +339,6 @@ Also sets mins and maxs for inline bmodels
 */
 static void PF_setmodel(edict_t *ent, const char *name)
 {
-    mmodel_t    *mod;
-
     if (!ent || !name)
         Com_Error(ERR_DROP, "PF_setmodel: NULL");
 
@@ -348,7 +346,7 @@ static void PF_setmodel(edict_t *ent, const char *name)
 
 // if it is an inline model, get the size information for it
     if (name[0] == '*') {
-        mod = CM_InlineModel(&sv.cm, name);
+        const mmodel_t *mod = CM_InlineModel(&sv.cm, name);
         VectorCopy(mod->mins, ent->mins);
         VectorCopy(mod->maxs, ent->maxs);
         PF_LinkEdict(ent);
@@ -390,7 +388,7 @@ static void PF_configstring(int index, const char *val)
     }
 
     // print a warning and truncate everything else
-    maxlen = CS_SIZE(&svs.csr, index);
+    maxlen = Com_ConfigstringSize(&svs.csr, index);
     if (len >= maxlen) {
         Com_WPrintf(
             "%s: index %d overflowed: %zu > %zu\n",
@@ -444,7 +442,7 @@ static void PF_WriteFloat(float f)
 
 static qboolean PF_inVIS(const vec3_t p1, const vec3_t p2, vis_t vis)
 {
-    mleaf_t *leaf1, *leaf2;
+    const mleaf_t *leaf1, *leaf2;
     byte mask[VIS_MAX_BYTES];
 
     leaf1 = CM_PointLeaf(&sv.cm, p1);
@@ -455,7 +453,9 @@ static qboolean PF_inVIS(const vec3_t p1, const vec3_t p2, vis_t vis)
         return false;
     if (!Q_IsBitSet(mask, leaf2->cluster))
         return false;
-    if (!(vis & VIS_NOAREAS) && !CM_AreasConnected(&sv.cm, leaf1->area, leaf2->area))
+    if (vis & VIS_NOAREAS)
+        return true;
+    if (!CM_AreasConnected(&sv.cm, leaf1->area, leaf2->area))
         return false;       // a door blocks it
     return true;
 }
@@ -518,7 +518,7 @@ static void SV_StartSound(const vec3_t origin, edict_t *edict,
     vec3_t      origin_v;
     client_t    *client;
     byte        mask[VIS_MAX_BYTES];
-    mleaf_t     *leaf1, *leaf2;
+    const mleaf_t       *leaf1, *leaf2;
     message_packet_t    *msg;
     bool        force_pos;
 
@@ -534,8 +534,11 @@ static void SV_StartSound(const vec3_t origin, edict_t *edict,
         Com_Error(ERR_DROP, "%s: soundindex = %d", __func__, soundindex);
 
     vol = volume * 255;
-    att = min(attenuation * 64, 255);   // need to clip due to check above
+    att = attenuation * 64;
     ofs = timeofs * 1000;
+
+    // need to clip due to faulty range check above
+    att = min(att, 255);
 
     ent = NUM_FOR_EDICT(edict);
 
@@ -592,19 +595,12 @@ static void SV_StartSound(const vec3_t origin, edict_t *edict,
 
     // multicast if force sending origin
     if (force_pos) {
-        if (channel & CHAN_NO_PHS_ADD) {
-            if (channel & CHAN_RELIABLE) {
-                SV_Multicast(NULL, MULTICAST_ALL_R);
-            } else {
-                SV_Multicast(NULL, MULTICAST_ALL);
-            }
-        } else {
-            if (channel & CHAN_RELIABLE) {
-                SV_Multicast(origin, MULTICAST_PHS_R);
-            } else {
-                SV_Multicast(origin, MULTICAST_PHS);
-            }
-        }
+        multicast_t to = MULTICAST_PHS;
+        if (channel & CHAN_NO_PHS_ADD)
+            to = MULTICAST_ALL;
+        if (channel & CHAN_RELIABLE)
+            to += MULTICAST_ALL_R;
+        SV_Multicast(origin, to);
         return;
     }
 
@@ -653,7 +649,7 @@ static void SV_StartSound(const vec3_t origin, edict_t *edict,
 
         msg = LIST_FIRST(message_packet_t, &client->msg_free_list, entry);
 
-        msg->cursize = 0;
+        msg->cursize = SOUND_PACKET;
         msg->flags = flags;
         msg->index = soundindex;
         msg->volume = vol;
@@ -666,7 +662,7 @@ static void SV_StartSound(const vec3_t origin, edict_t *edict,
 
         List_Remove(&msg->entry);
         List_Append(&client->msg_unreliable_list, &msg->entry);
-        client->msg_unreliable_bytes += MAX_SOUND_PACKET;
+        client->msg_unreliable_bytes += msg_write.cursize;
     }
 
     // clear multicast buffer
@@ -1116,6 +1112,30 @@ void SV_InitGameProgs(void)
 	import.CheckForExtension = G_CheckForExtension;
 #endif
 
+//rekkie -- BSP -- s
+    //#ifdef ACTION_DLL
+    import.Bsp = SV_BSP;
+    //#endif
+    //rekkie -- BSP -- e
+    //rekkie -- surface data -- s
+    import.Nav = CS_NAV;
+    //rekkie -- debug drawing -- s
+#if DEBUG_DRAWING
+//#if USE_REF
+    import.Draw = CS_DebugDraw;
+//#endif
+#endif
+//rekkie -- debug drawing -- e
+    //import.SurfaceData = SV_SURFACE_DATA;
+    //rekkie -- surface data -- e
+
+    //rekkie -- Fake Bot Client -- s
+    import.SV_BotUpdateInfo = SV_BotUpdateInfo;
+    import.SV_BotConnect = SV_BotConnect;
+    import.SV_BotDisconnect = SV_BotDisconnect;
+    import.SV_BotClearClients = SV_BotClearClients;
+    //rekkie -- Fake Bot Client -- e
+
     ge = entry(&import);
     if (!ge) {
         Com_Error(ERR_DROP, "Game library returned NULL exports");
@@ -1128,8 +1148,13 @@ void SV_InitGameProgs(void)
 
     // get extended api if present
     game_entry_ex_t entry_ex = Sys_GetProcAddress(game_library, "GetGameAPIEx");
-    if (entry_ex)
+    if (entry_ex) {
         gex = entry_ex(&game_import_ex);
+        if (gex->apiversion < GAME_API_VERSION_EX_MINIMUM)
+            gex = NULL;
+        else
+            Com_DPrintf("Game supports Q2PRO extended API version %d.\n", gex->apiversion);
+    }
 
     // initialize
     ge->Init();
@@ -1145,12 +1170,12 @@ void SV_InitGameProgs(void)
     unsigned max_size = INT_MAX / svs.csr.max_edicts;
 
     if (ge->edict_size < min_size || ge->edict_size > max_size || ge->edict_size % q_alignof(edict_t)) {
-        Com_Error(ERR_DROP, "Game library returned bad size of edict_t");
+        Com_Error(ERR_DROP, "Game library returned bad size of edict_t: %i", ge->edict_size);
     }
 
     // sanitize max_edicts
     if (ge->max_edicts <= sv_maxclients->integer || ge->max_edicts > svs.csr.max_edicts) {
-        Com_Error(ERR_DROP, "Game library returned bad number of max_edicts");
+        Com_Error(ERR_DROP, "Game library returned bad number of max_edicts: %i", ge->max_edicts);
     }
 
 #if AQTION_EXTENSION

@@ -308,6 +308,7 @@
 
 qboolean team_game_going = false;	// is a team game going right now?
 qboolean team_round_going = false;	// is an actual round of a team game going right now?
+qboolean during_countdown = false;		// This is set to 1 when the 10..9..8.. countdown is going on
 
 int team_round_countdown = 0;	// countdown variable for start of a round
 int rulecheckfrequency = 0;	// accumulator variable for checking rules every 1.5 secs
@@ -330,6 +331,7 @@ edict_t *potential_spawns[MAX_SPAWNS];
 int num_potential_spawns;
 edict_t *teamplay_spawns[MAX_TEAMS];
 trace_t trace_t_temp;		// used by our trace replace macro in ax_team.h
+int teamplay_spawn_node[MAX_TEAMS];	// used to keep track of the closest BOTLIB node to the spawnpoint
 
 // <TNG:Freud New spawning variables>
 int NS_num_used_farteamplay_spawns[MAX_TEAMS];
@@ -749,7 +751,7 @@ void SelectKit3(edict_t *ent, pmenu_t *p)
 // newrand returns n, where 0 >= n < top
 int newrand (int top)
 {
-	return (int) (random () * top);
+	return rand() % top;
 }
 
 void SelectRandomWeapon(edict_t *ent, pmenu_t *p)
@@ -1111,8 +1113,8 @@ pmenu_t pmitemmenu[] = {
   { "Laser Sight                (jmod laser)",			PMENU_ALIGN_LEFT,	NULL, ToggleLaser			},
   { "Slippers                   (jmod slippers)",		PMENU_ALIGN_LEFT,	NULL, ToggleSlippers		},
   { NULL,												PMENU_ALIGN_LEFT,	NULL, NULL					},
-  { "Respawn to Closest Spawn   (jmod spawnc)",			PMENU_ALIGN_LEFT,	NULL, Cmd_GotoPC_f   		},
-  { "Respawn to Random Spawn    (jmod spawnp)",			PMENU_ALIGN_LEFT,	NULL, Cmd_GotoP_f   		},
+  { "Respawn to Closest Spawn   (jmod spawnc)",			PMENU_ALIGN_LEFT,	NULL, Cmd_GotoPC_f_compat  	},
+  { "Respawn to Random Spawn    (jmod spawnp)",			PMENU_ALIGN_LEFT,	NULL, Cmd_GotoP_f_compat   	},
 
 };
 
@@ -2213,8 +2215,9 @@ static void SpawnPlayers(void)
 	int i;
 	edict_t *ent;
 
-	if (esp->value)
+	if (esp->value) {
 		NS_SetupTeamSpawnPoints ();
+	}
 
 	if (gameSettings & GS_ROUNDBASED)
 	{
@@ -2257,13 +2260,31 @@ static void SpawnPlayers(void)
 			SelectRandomWeaponAndItem(ent, weapmenu);
 		}
 
+		//rekkie -- s
 #ifndef NO_BOTS
-		if( !Q_stricmp( ent->classname, "bot" ) )
-			ACESP_PutClientInServer( ent, true, ent->client->resp.team );
-		else
+		if (ent->bot.bot_type == BOT_TYPE_BOTLIB)
+		{
+			BOTLIB_PutClientInServer(ent, true, ent->client->resp.team);
+		}
 #endif
-		PutClientInServer(ent);
+		else
+		//rekkie -- e
+		{
+			PutClientInServer(ent);
+		}
 		AddToTransparentList(ent);
+
+		//rekkie -- DEV_1 -- s
+#ifndef NO_BOTS
+		if (ent->is_bot)
+		{
+			ent->just_spawned = true; // Flag that we've just spawned
+			ent->just_spawned_go = false; // Flag that the bot shouldn't move until ready
+			BOTLIB_PickLongRangeGoal(ent); // Lets pick a long range goal
+			//ACEAI_PickLongRangeGoal(ent); // Lets pick a long range goal
+		}
+#endif
+		//rekkie -- DEV_1 -- e
 	}
 
 	if(matchmode->value	&& limchasecam->value)
@@ -2327,7 +2348,7 @@ void RunWarmup (void)
 	if (warmup_bots->value){
 		gi.cvar_forceset("am", "1");
 		gi.cvar_forceset("am_botcount", warmup_bots->string);
-		attract_mode_bot_check();
+		//attract_mode_bot_check();
 	}
 	#endif
 }
@@ -2340,12 +2361,15 @@ void StartRound (void)
 
 static void StartLCA(void)
 {
+	during_countdown = false;
 	if ((gameSettings & (GS_WEAPONCHOOSE|GS_ROUNDBASED)))
 		CleanLevel();
 
-	if (esp->value)
+	if (esp->value) {
 		// Re-skin everyone to ensure only one leader skin
 		EspSkinCheck();
+		espsettings.esp_live_round = true;
+	}
 
 	if (use_tourney->value && !tourney_lca->value)
 	{
@@ -2361,6 +2385,12 @@ static void StartLCA(void)
 	SpawnPlayers();
 
 	if (esp->value) {
+		#ifndef NO_BOTS
+		int l;
+		for (l = 1; l < MAX_TEAMS; l++) {
+			teamplay_spawn_node[l] = ACEND_FindClosestReachableNode(chosenSpawnpoint[l], NODE_DENSITY, NODE_ALL);
+		}
+		#endif
 		esp_punishment_phase = false;
 		EspResetCapturePoint();
 		EspAnnounceDetails(false);
@@ -2497,14 +2527,17 @@ qboolean CheckTimelimit( void )
 		
 		// CTF or Espionage with use_warnings should have the same warnings when the map is ending as it does for halftime (see CTFCheckRules).
 		// Otherwise, use_warnings should warn about 3 minutes and 1 minute left, but only if there aren't round ending warnings.
-		if( use_warnings->value && (ctf->value || ! roundtimelimit->value) )
+
+		// CTF and Espionage warnings
+		if( use_warnings->value && (ctf->value || esp->value || ! roundtimelimit->value) && !(gameSettings & GS_DEATHMATCH) )
 		{
-			if( timewarning < 3 && (ctf->value && level.matchTime >= timelimit->value * 60 - 10 ))
+			// CTF countdown when the match is ending.  Espionage is round-based so there's no countdown.
+			if( timewarning < 3 && ((ctf->value) && level.matchTime >= timelimit->value * 60 - 10 ))
 			{
 				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("world/10_0.wav"), 1.0, ATTN_NONE, 0.0 );
 				timewarning = 3;
 			}
-			else if( timewarning < 2 && level.matchTime >= (timelimit->value - 1) * 60 )
+			else if( timewarning < 2 && level.matchTime >= ((timelimit->value - 1) * 60) && !during_countdown)
 			{
 				CenterPrintAll( "1 MINUTE LEFT..." );
 				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("tng/1_minute.wav"), 1.0, ATTN_NONE, 0.0 );
@@ -2512,10 +2545,32 @@ qboolean CheckTimelimit( void )
 				if (esp->value){
 					if (esp_debug->value)
 						gi.dprintf("%s: level.matchTime = %f\n", __FUNCTION__, level.matchTime);
+					// Warns the players that the round is ending in 1 minute
 					EspAnnounceDetails(true);
 				}
 			}
-			else if( timewarning < 1 && (! ctf->value) && timelimit->value > 3 && level.matchTime >= (timelimit->value - 3) * 60 )
+			else if( timewarning < 1 && (!ctf->value) && timelimit->value > 3 && level.matchTime >= ((timelimit->value - 3) * 60) && !during_countdown )
+			{
+				CenterPrintAll( "3 MINUTES LEFT..." );
+				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("tng/3_minutes.wav"), 1.0, ATTN_NONE, 0.0 );
+				timewarning = 1;
+			}
+		}
+		// Deathmatch and Team Deathmatch warnings
+		else if( use_warnings->value && deathmatch->value && (gameSettings & GS_DEATHMATCH))
+		{
+			if( timewarning < 3 && (level.matchTime >= timelimit->value * 60 - 10 ))
+			{
+				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("world/10_0.wav"), 1.0, ATTN_NONE, 0.0 );
+				timewarning = 3;
+			}
+			else if( timewarning < 2 && level.matchTime >= ((timelimit->value - 1) * 60) && !during_countdown )
+			{
+				CenterPrintAll( "1 MINUTE LEFT..." );
+				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("tng/1_minute.wav"), 1.0, ATTN_NONE, 0.0 );
+				timewarning = 2;
+			}
+			else if( timewarning < 1 && timelimit->value > 3 && level.matchTime >= ((timelimit->value - 3) * 60) && !during_countdown)
 			{
 				CenterPrintAll( "3 MINUTES LEFT..." );
 				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("tng/3_minutes.wav"), 1.0, ATTN_NONE, 0.0 );
@@ -2809,15 +2864,19 @@ int CheckTeamRules (void)
 		{
 			if (team_round_countdown == 101)
 			{
+				during_countdown = true;
 				gi.sound (&g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD,
 				gi.soundindex ("world/10_0.wav"), 1.0, ATTN_NONE, 0.0);
+
+				// Advertizing Discord and the forums
+				//PrintAdNotification(NULL);
 
 				#if USE_AQTION
 				// Cleanup and remove all bots, it's go time!
 				if (warmup_bots->value){
 					gi.cvar_forceset("am", "0");
 					gi.cvar_forceset("am_botcount", "0");
-					attract_mode_bot_check();
+					//attract_mode_bot_check();
 					ACESP_RemoveBot("all");
 					CenterPrintAll("All bots removed, good luck and have fun!");
 
@@ -2832,11 +2891,13 @@ int CheckTeamRules (void)
 					edict_t *capturepoint;
 					edict_t *ent;
 					capturepoint = G_Find(NULL, FOFS(classname), "item_flag");
-					if (!capturepoint) // Somehow we're in ETV with no capture point?	
-						gi.dprintf("ERROR: No capture point (item_flag) found for ETV!?\n");
+					if (!capturepoint) // Somehow we're in ETV with no capture point?
+						if (esp_debug->value)
+							gi.dprintf("ERROR: No capture point (item_flag) found for ETV!?\n");
 
 					if (capturepoint) {
-						gi.dprintf("INFO: capture point (item_flag) found\n");
+						if (esp_debug->value)
+							gi.dprintf("INFO: capture point (item_flag) found\n");
 						VectorCopy( capturepoint->s.origin, level.poi_origin );
 						VectorCopy( capturepoint->s.angles, level.poi_angle );
 					}
@@ -2850,7 +2911,8 @@ int CheckTeamRules (void)
 							continue;
 						// if (!ent->client->pers.spectator)
 						// 	continue;
-						gi.dprintf("INFO: moving spectators\n");
+						if (esp_debug->value)
+							gi.dprintf("INFO: moving spectators\n");
 
 						MoveClientToPOI(ent, capturepoint);
 					}
@@ -3004,6 +3066,7 @@ int CheckTeamRules (void)
 				if (EspCheckRules()){
 					EndDMLevel();
 					team_round_going = team_round_countdown = team_game_going = 0;
+					espsettings.esp_live_round = false;
 					return 1;
 				}
 				GenerateMedKit(false);
@@ -3767,8 +3830,13 @@ void A_ScoreboardMessage (edict_t * ent, edict_t * killer)
 				else if( field == 'P' )
 				{
 #ifndef NO_BOTS
-					if( cl_ent->is_bot )
-						strcpy( buf, " BOT" );
+					//rekkie -- Fake Bot Client -- s
+					if (cl_ent->is_bot)
+						Q_snprintf(buf, sizeof(buf), "%4i", min(9999, cl_ent->bot.bot_ping));
+					//if (0)
+					//rekkie -- Fake Bot Client -- e
+					//if( cl_ent->is_bot )
+					//	strcpy( buf, " BOT" );
 					else
 #endif
 						Q_snprintf( buf, sizeof(buf), "%4i", min( 9999, cl->ping ) );
@@ -4173,4 +4241,73 @@ int OtherTeam(int teamNum)
 
 	// Returns zero if teamNum is not 1 or 2
 	return 0;
+}
+
+/*
+Return the total amount of players on a team
+*/
+
+int TotalPlayersOnTeam(int teamNum)
+{
+    int players[TEAM_TOP] = { 0 };
+    int i = 0;
+    edict_t *ent;
+
+    for (i = 0; i < game.maxclients; i++){
+        ent = &g_edicts[1 + i];
+        if (!ent->inuse || ent->solid == SOLID_NOT)
+            continue;
+
+        int currentTeam = game.clients[i].resp.team;
+        if (currentTeam == NOTEAM)
+            continue;
+
+        players[currentTeam]++;
+    }
+
+    return players[teamNum];
+}
+
+/* 
+Return the total players on a team that are alive
+*/
+
+int TotalPlayersAliveOnTeam(int teamNum)
+{
+    int count = 0;
+    edict_t *ent;
+
+    for (int i = 0; i < game.maxclients; i++)
+    {
+        ent = &g_edicts[i + 1];
+        if (!ent->inuse)
+            continue;
+        if (game.clients[i].resp.subteam)
+            continue;
+        if (game.clients[i].resp.team == teamNum && IS_ALIVE(ent))
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+void PrintAdNotification(edict_t* ent)
+{
+    // Don't spam this in matchmode
+    if (matchmode->value)
+        return;
+
+    // Do not send to bots
+    if (ent->is_bot)
+        return;
+
+    const char *msg = "Get in on the Action! Join us in Discord at\n https://discord.aq2world.com\nand the forums at\n https://www.aq2world.com\n";
+
+    // If ent is null, send to all clients, else send to client
+    if (ent == NULL)
+        gi.bprintf(PRINT_MEDIUM, "%s", msg);
+    else
+        gi.cprintf(ent, PRINT_MEDIUM, "%s", msg);
 }

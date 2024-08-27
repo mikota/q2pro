@@ -331,7 +331,7 @@ static void SV_GameMap_f(void)
         return;
     }
 
-#if !USE_CLIENT
+#if USE_SERVER
     // admin option to reload the game DLL or entire server
     if (sv_recycle->integer > 0) {
         if (sv_recycle->integer > 1) {
@@ -352,7 +352,7 @@ static int should_really_restart(void)
     if (sv.state < ss_game || sv.state == ss_broadcast)
         return 1;   // the game is just starting
 
-#if !USE_CLIENT
+#if USE_SERVER
     if (sv_recycle->integer)
         return 1;   // there is recycle pending
 #endif
@@ -503,41 +503,63 @@ static void dump_clients(void)
     Com_Printf(
         "num score ping name            lastmsg address                rate pr fps\n"
         "--- ----- ---- --------------- ------- --------------------- ----- -- ---\n");
+
     FOR_EACH_CLIENT(client) {
-        Com_Printf("%3i %5i ", client->number,
-                   client->edict->client->ps.stats[STAT_FRAGS]);
+        const char *ping;
 
         switch (client->state) {
         case cs_zombie:
-            Com_Printf("ZMBI ");
+            ping = "ZMBI";
             break;
         case cs_assigned:
-            Com_Printf("ASGN ");
+            ping = "ASGN";
             break;
         case cs_connected:
         case cs_primed:
             if (client->download) {
-                Com_Printf("DNLD ");
+                ping = "DNLD";
             } else if (client->http_download) {
-                Com_Printf("HTTP ");
+                ping = "HTTP";
             } else if (client->state == cs_connected) {
-                Com_Printf("CNCT ");
+                ping = "CNCT";
             } else {
-                Com_Printf("PRIM ");
+                ping = "PRIM";
             }
             break;
         default:
-            Com_Printf("%4i ", client->ping < 9999 ? client->ping : 9999);
+            ping = va("%4i", min(client->ping, 9999));
             break;
         }
 
-        Com_Printf("%-15.15s ", client->name);
-        Com_Printf("%7u ", svs.realtime - client->lastmessage);
-        Com_Printf("%-21s ", NET_AdrToString(&client->netchan.remote_address));
-        Com_Printf("%5i ", client->rate);
-        Com_Printf("%2i ", client->protocol);
-        Com_Printf("%3i ", client->moves_per_sec);
-        Com_Printf("\n");
+        Com_Printf("%3i %5i %s %-15.15s %7u %-21s %5i %2i %3i\n", client->number,
+                   client->edict->client->ps.stats[STAT_FRAGS],
+                   ping, client->name, svs.realtime - client->lastmessage,
+                   NET_AdrToString(&client->netchan.remote_address),
+                   client->rate, client->protocol, client->moves_per_sec);
+    }
+}
+
+
+static void dump_bot_clients(void)
+{
+    // Display nothing if no bots
+    if (!bot_clients[0].in_use) {
+        return;
+    }
+
+    Com_Printf(
+        "\n"
+        "Bot Clients.\n"
+        "num score ping name\n"
+        "--- ----- ---- ---------------\n");
+
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if(bot_clients[i].in_use) {
+            Com_Printf("%3i %5i ", bot_clients[i].number, bot_clients[i].score);
+            Com_Printf("%4i ", bot_clients[i].ping);
+            Com_Printf("%-15.15s ", bot_clients[i].name);
+            Com_Printf("\n");
+        }
     }
 }
 
@@ -648,7 +670,6 @@ static void dump_settings(void)
         "num name            proto options upd fps\n"
         "--- --------------- ----- ------- --- ---\n");
 
-    opt[6] = ' ';
     opt[7] = 0;
     FOR_EACH_CLIENT(cl) {
         opt[0] = cl->settings[CLS_NOGUN]          ? 'G' : ' ';
@@ -657,6 +678,7 @@ static void dump_settings(void)
         opt[3] = cl->settings[CLS_NOGIBS]         ? 'I' : ' ';
         opt[4] = cl->settings[CLS_NOFOOTSTEPS]    ? 'F' : ' ';
         opt[5] = cl->settings[CLS_NOPREDICT]      ? 'P' : ' ';
+        opt[6] = cl->settings[CLS_NOFLARES]       ? 'L' : ' ';
         Com_Printf("%3i %-15.15s %5d %s %3d %3d\n",
                    cl->number, cl->name, cl->protocol, opt,
                    cl->settings[CLS_PLAYERUPDATES], cl->settings[CLS_FPS]);
@@ -701,6 +723,11 @@ static void SV_Status_f(void)
         }
     }
     Com_Printf("\n");
+
+    #ifndef NO_BOTS
+    dump_bot_clients();
+    Com_Printf("\n");
+    #endif
 
     SV_MvdStatus_f();
 }

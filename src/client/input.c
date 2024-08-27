@@ -45,6 +45,7 @@ static cvar_t    *freelook;
 static cvar_t    *lookspring;
 static cvar_t    *lookstrafe;
 static cvar_t    *sensitivity;
+static cvar_t    *oldsens;
 
 static cvar_t    *m_pitch;
 static cvar_t    *m_yaw;
@@ -228,7 +229,7 @@ Key_Event (int key, bool down, unsigned time);
 ===============================================================================
 */
 
-typedef struct kbutton_s {
+typedef struct {
     int         down[2];        // key nums holding it down
     unsigned    downtime;        // msec timestamp
     unsigned    msec;            // msec down this frame
@@ -414,7 +415,7 @@ CL_KeyState
 Returns the fraction of the frame that the key was down
 ===============
 */
-static float CL_KeyState(kbutton_t *key)
+static float CL_KeyState(const kbutton_t *key)
 {
     unsigned msec = key->msec;
 
@@ -712,6 +713,7 @@ void CL_RegisterInput(void)
     lookspring = Cvar_Get("lookspring", "0", CVAR_ARCHIVE);
     lookstrafe = Cvar_Get("lookstrafe", "0", CVAR_ARCHIVE);
     sensitivity = Cvar_Get("sensitivity", "3", CVAR_ARCHIVE);
+    oldsens = Cvar_Get("oldsens", sensitivity->string, CVAR_NOARCHIVE);
 
     m_pitch = Cvar_Get("m_pitch", "0.022", CVAR_ARCHIVE);
     m_yaw = Cvar_Get("m_yaw", "0.022", 0);
@@ -1111,6 +1113,10 @@ static void CL_SendUserinfo(void)
 
 static void CL_SendReliable(void)
 {
+    if (Netchan_SeqTooBig(&cls.netchan)) {
+        Com_Error(ERR_DROP, "Outgoing sequence too big");
+    }
+
     if (cls.userinfo_modified) {
         CL_SendUserinfo();
         cls.userinfo_modified = 0;

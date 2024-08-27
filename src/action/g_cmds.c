@@ -215,7 +215,7 @@
 #include "m_player.h"
 
 #ifndef NO_BOTS
-void Cmd_Placenode_f( edict_t *ent );
+//void Cmd_Placenode_f( edict_t *ent );
 
 static void Cmd_PlaceTrigger_f( edict_t *ent )
 {
@@ -1975,7 +1975,7 @@ static cmdList_t commandList[] =
 	{ "gamesettings", Cmd_PrintSettings_f, 0 },
 	{ "follow", Cmd_Follow_f, 0 },
 #ifndef NO_BOTS
-	{ "placenode", Cmd_Placenode_f, 0 },
+	// { "placenode", Cmd_Placenode_f, 0 },
 	{ "placetrigger", Cmd_PlaceTrigger_f, 0 },
 #endif
 	//vote stuff
@@ -2051,8 +2051,8 @@ void ClientCommand (edict_t * ent)
 		return;			// not fully in game yet
 
 #ifndef NO_BOTS
-	if( ACECM_Commands(ent) )
-		return;
+        if (ACECM_Commands(ent)) return; // LTK commands
+        if (BOTLIB_Commands(ent)) return; // Botlib commands
 #endif
 
 	// if (level.intermission_framenum)

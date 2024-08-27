@@ -666,10 +666,12 @@ static void init_clipboard(void);
 
 static void shutdown(void)
 {
-    struct output *output, *next;
-    wl_list_for_each_safe(output, next, &wl.outputs, link) {
-        wl_output_destroy(output->wl_output);
-        Z_Free(output);
+    if (wl.outputs.next) {
+        struct output *output, *next;
+        wl_list_for_each_safe(output, next, &wl.outputs, link) {
+            wl_output_destroy(output->wl_output);
+            Z_Free(output);
+        }
     }
 
     if (wl.egl_display)
@@ -717,7 +719,7 @@ static void egl_error(const char *what)
     Com_EPrintf("%s failed with error %#x\n", what, eglGetError());
 }
 
-static bool choose_config(r_opengl_config_t *cfg, EGLConfig *config)
+static bool choose_config(const r_opengl_config_t *cfg, EGLConfig *config)
 {
     EGLint cfg_attr[] = {
         EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
@@ -779,10 +781,11 @@ static bool init(void)
 
     CHECK_EGL(eglBindAPI(EGL_OPENGL_API), "eglBindAPI");
 
-    r_opengl_config_t *cfg = R_GetGLConfig();
+    r_opengl_config_t cfg;
+    R_GetGLConfig(&cfg);
 
     EGLConfig config;
-    if (!choose_config(cfg, &config)) {
+    if (!choose_config(&cfg, &config)) {
         Com_Printf("Falling back to failsafe config\n");
         r_opengl_config_t failsafe = { .depthbits = 24 };
         if (!choose_config(&failsafe, &config))
@@ -807,7 +810,7 @@ static bool init(void)
     reload_cursor();
 
     EGLint ctx_attr[] = {
-        EGL_CONTEXT_OPENGL_DEBUG, cfg->debug,
+        EGL_CONTEXT_OPENGL_DEBUG, cfg.debug,
         EGL_NONE
     };
     if (egl_major == 1 && egl_minor < 5)

@@ -97,9 +97,11 @@ DYNAMIC BLOCKLIGHTS
 #define MAX_LIGHTMAP_EXTENTS    513
 #define MAX_BLOCKLIGHTS         (MAX_LIGHTMAP_EXTENTS * MAX_LIGHTMAP_EXTENTS)
 
+#define LM_PIXELS(map, s, t)    ((map)->buffer + ((t) << lm.block_shift) + ((s) << 2))
+
 static float blocklights[MAX_BLOCKLIGHTS * 3];
 
-static void put_blocklights(mface_t *surf)
+static void put_blocklights(const mface_t *surf)
 {
     float *bl, add, modulate, scale = lm.scale;
     int i, j, smax, tmax, stride = 1 << lm.block_shift;
@@ -116,7 +118,7 @@ static void put_blocklights(mface_t *surf)
     smax = surf->lm_width;
     tmax = surf->lm_height;
 
-    out = surf->light_m->buffer + (surf->light_t << lm.block_shift) + surf->light_s * 4;
+    out = LM_PIXELS(surf->light_m, surf->light_s, surf->light_t);
 
     for (i = 0, bl = blocklights; i < tmax; i++, out += stride) {
         byte *dst;
@@ -131,7 +133,7 @@ static void put_blocklights(mface_t *surf)
     }
 }
 
-static void add_dynamic_lights(mface_t *surf)
+static void add_dynamic_lights(const mface_t *surf)
 {
     dlight_t    *light;
     vec3_t      point;
@@ -180,9 +182,7 @@ static void add_dynamic_lights(mface_t *surf)
                     dist = td + sd * 0.5f;
                 if (dist < minlight) {
                     frac = rad - dist * scale;
-                    bl[0] += light->color[0] * frac;
-                    bl[1] += light->color[1] * frac;
-                    bl[2] += light->color[2] * frac;
+                    VectorMA(bl, frac, light->color, bl);
                 }
                 bl += 3;
             }
@@ -209,17 +209,11 @@ static void add_light_styles(mface_t *surf)
     src = surf->lightmap;
     bl = blocklights;
     if (style->white == 1) {
-        for (j = 0; j < size; j++, bl += 3, src += 3) {
-            bl[0] = src[0];
-            bl[1] = src[1];
-            bl[2] = src[2];
-        }
+        for (j = 0; j < size; j++, bl += 3, src += 3)
+            VectorCopy(src, bl);
     } else {
-        for (j = 0; j < size; j++, bl += 3, src += 3) {
-            bl[0] = src[0] * style->white;
-            bl[1] = src[1] * style->white;
-            bl[2] = src[2] * style->white;
-        }
+        for (j = 0; j < size; j++, bl += 3, src += 3)
+            VectorScale(src, style->white, bl);
     }
 
     surf->stylecache[0] = style->white;
@@ -229,11 +223,8 @@ static void add_light_styles(mface_t *surf)
         style = LIGHT_STYLE(surf->styles[i]);
 
         bl = blocklights;
-        for (j = 0; j < size; j++, bl += 3, src += 3) {
-            bl[0] += src[0] * style->white;
-            bl[1] += src[1] * style->white;
-            bl[2] += src[2] * style->white;
-        }
+        for (j = 0; j < size; j++, bl += 3, src += 3)
+            VectorMA(bl, style->white, src, bl);
 
         surf->stylecache[i] = style->white;
     }
@@ -332,8 +323,7 @@ void GL_UploadLightmaps(void)
         // upload lightmap subimage
         GL_ForceTexture(1, lm.texnums[i]);
         qglTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h,
-                         GL_RGBA, GL_UNSIGNED_BYTE,
-                         m->buffer + (y << lm.block_shift) + x * 4);
+                         GL_RGBA, GL_UNSIGNED_BYTE, LM_PIXELS(m, x, y));
         clear_dirty_region(m);
         c.texUploads++;
         c.lightTexels += w * h;
@@ -468,7 +458,7 @@ static void build_primary_lightmap(mface_t *surf)
     put_blocklights(surf);
 }
 
-static void LM_BuildSurface(mface_t *surf, vec_t *vbo)
+static void LM_BuildSurface(mface_t *surf)
 {
     int smax, tmax, s, t;
 
@@ -548,7 +538,7 @@ POLYGONS BUILDING
      (double)(x)[1]*(y)[1]+\
      (double)(x)[2]*(y)[2])
 
-static uint32_t color_for_surface(mface_t *surf)
+static uint32_t color_for_surface(const mface_t *surf)
 {
     if (surf->drawflags & SURF_TRANS33)
         return gl_static.inverse_intensity_33;
@@ -769,11 +759,11 @@ static void build_surface_light(mface_t *surf, vec_t *vbo)
     if (gl_vertexlight->integer)
         sample_surface_verts(surf, vbo);
     else
-        LM_BuildSurface(surf, vbo);
+        LM_BuildSurface(surf);
 }
 
 // normalizes and stores lightmap texture coordinates in vertices
-static void normalize_surface_lmtc(mface_t *surf, vec_t *vbo)
+static void normalize_surface_lmtc(const mface_t *surf, vec_t *vbo)
 {
     float s, t;
     int i;
@@ -793,7 +783,7 @@ static void normalize_surface_lmtc(mface_t *surf, vec_t *vbo)
 
 // duplicates normalized texture0 coordinates for non-lit surfaces in texture1
 // to make them render properly when gl_lightmap hack is used
-static void duplicate_surface_lmtc(mface_t *surf, vec_t *vbo)
+static void duplicate_surface_lmtc(const mface_t *surf, vec_t *vbo)
 {
     int i;
 
@@ -1008,7 +998,7 @@ void GL_LoadWorld(const char *name)
     // check if the required world model was already loaded
     if (gl_static.world.cache == bsp) {
         for (i = 0; i < bsp->numtexinfo; i++) {
-            bsp->texinfo[i].image->registration_sequence = registration_sequence;
+            bsp->texinfo[i].image->registration_sequence = r_registration_sequence;
         }
         for (i = 0; i < bsp->numnodes; i++) {
             bsp->nodes[i].visframe = 0;

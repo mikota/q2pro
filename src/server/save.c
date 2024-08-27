@@ -39,6 +39,8 @@ typedef enum {
 
 static cvar_t   *sv_noreload;
 
+static bool have_enhanced_savegames(void);
+
 static int write_server_file(savetype_t autosave)
 {
     char        name[MAX_OSPATH];
@@ -249,8 +251,7 @@ static int read_binary_file(const char *name)
     if (FS_Read(msg_read_buffer, len, f) != len)
         goto fail;
 
-    SZ_Init(&msg_read, msg_read_buffer, sizeof(msg_read_buffer));
-    msg_read.cursize = len;
+    SZ_InitRead(&msg_read, msg_read_buffer, len);
 
     FS_CloseFile(f);
     return 0;
@@ -378,7 +379,7 @@ static int read_server_file(void)
     SV_InitGame(MVD_SPAWN_DISABLED);
 
     // error out immediately if game doesn't support safe savegames
-    if (!(g_features->integer & GMF_ENHANCED_SAVEGAMES))
+    if (!have_enhanced_savegames())
         Com_Error(ERR_DROP, "Game does not support enhanced savegames");
 
     // read game state
@@ -409,8 +410,7 @@ static int read_level_file(void)
     if (!data)
         return -1;
 
-    SZ_Init(&msg_read, data, len);
-    msg_read.cursize = len;
+    SZ_InitRead(&msg_read, data, len);
 
     if (MSG_ReadLong() != SAVE_MAGIC2) {
         FS_FreeFile(data);
@@ -437,7 +437,7 @@ static int read_level_file(void)
         if (index < 0 || index >= svs.csr.end)
             Com_Error(ERR_DROP, "Bad savegame configstring index");
 
-        maxlen = CS_SIZE(&svs.csr, index);
+        maxlen = Com_ConfigstringSize(&svs.csr, index);
         if (MSG_ReadString(sv.configstrings[index], maxlen) >= maxlen)
             Com_Error(ERR_DROP, "Savegame configstring too long");
     }
@@ -460,7 +460,7 @@ static int read_level_file(void)
 
 static bool no_save_games(void)
 {
-    if (!(g_features->integer & GMF_ENHANCED_SAVEGAMES))
+    if (!have_enhanced_savegames())
         return true;
 
     if (Cvar_VariableInteger("deathmatch"))
@@ -540,6 +540,8 @@ void SV_AutoSaveEnd(void)
 
 void SV_CheckForSavegame(const mapcmd_t *cmd)
 {
+    int frames;
+
     if (no_save_games())
         return;
     if (sv_noreload->integer)
@@ -555,16 +557,21 @@ void SV_CheckForSavegame(const mapcmd_t *cmd)
 
     if (cmd->loadgame == LOAD_NORMAL) {
         // called from SV_Loadgame_f
-        ge->RunFrame();
-        ge->RunFrame();
+        frames = 2;
     } else {
-        int i;
-
         // coming back to a level after being in a different
         // level, so run it for ten seconds
-        for (i = 0; i < 100; i++)
-            ge->RunFrame();
+        frames = 10 * SV_FRAMERATE;
     }
+
+    for (int i = 0; i < frames; i++, sv.framenum++)
+        ge->RunFrame();
+}
+
+static bool have_enhanced_savegames(void)
+{
+    return (g_features->integer & GMF_ENHANCED_SAVEGAMES)
+        || (svs.gamedetecthack == 4) || sys_allow_unsafe_savegames->integer;
 }
 
 void SV_CheckForEnhancedSavegames(void)
@@ -572,18 +579,14 @@ void SV_CheckForEnhancedSavegames(void)
     if (Cvar_VariableInteger("deathmatch"))
         return;
 
-    if (g_features->integer & GMF_ENHANCED_SAVEGAMES) {
+    if (g_features->integer & GMF_ENHANCED_SAVEGAMES)
         Com_Printf("Game supports Q2PRO enhanced savegames.\n");
-        return;
-    }
-
-    if (sv.gamedetecthack == 4) {
+    else if (svs.gamedetecthack == 4)
         Com_Printf("Game supports YQ2 enhanced savegames.\n");
-        Cvar_SetInteger(g_features, g_features->integer | GMF_ENHANCED_SAVEGAMES, FROM_CODE);
-        return;
-    }
-
-    Com_WPrintf("Game does not support enhanced savegames. Savegames will not work.\n");
+    else if (sys_allow_unsafe_savegames->integer)
+        Com_WPrintf("Use of unsafe savegames forced from command line.\n");
+    else
+        Com_WPrintf("Game does not support enhanced savegames. Savegames will not work.\n");
 }
 
 static void SV_Savegame_c(genctx_t *ctx, int argnum)
@@ -645,7 +648,7 @@ static void SV_Savegame_f(void)
     }
 
     // don't bother saving if we can't read them back!
-    if (!(g_features->integer & GMF_ENHANCED_SAVEGAMES)) {
+    if (!have_enhanced_savegames()) {
         Com_Printf("Game does not support enhanced savegames.\n");
         return;
     }

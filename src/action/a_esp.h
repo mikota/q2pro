@@ -59,6 +59,8 @@ typedef struct espsettings_s
 	char target_name[MAX_ESP_STRLEN];
 	edict_t *capturepoint;
 	edict_t *lastkilledleader;
+	qboolean esp_live_round;
+	edict_t *round_spawnpoint[TEAM_TOP];
 } espsettings_t;
 
 extern espsettings_t espsettings;
@@ -93,6 +95,8 @@ typedef enum {
 #define ESP_ATTACKER_HARASS_RADIUS			400	// the radius around an object being defended where an attacker will get extra frags when assaulting the leader
 #define ESP_BONUS_COOLDOWN					500	// the number of frames after a bonus is awarded before another bonus can be awarded	
 
+int EspModeCheck(void);
+edict_t* EspGetLeader(int teamNum);
 void EspForceEspionage(int espmode);
 void EspSetTeamSpawns(int, char *);
 int EspGetRespawnTime(edict_t *ent);
@@ -128,3 +132,6 @@ void EspRespawnLCA(edict_t *ent);
 void EspCleanUp(void);
 void EspDebug(void);
 extern qboolean esp_punishment_phase;
+extern int esp_spawnpoint_index[TEAM_TOP];
+extern edict_t* chosenSpawnpoint[TEAM_TOP];
+extern edict_t* etvTarget;

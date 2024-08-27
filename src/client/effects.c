@@ -1082,15 +1082,15 @@ void CL_BigTeleportParticles(const vec3_t org)
 
         p->color = colortable[Q_rand() & 3];
 
-        angle = (Q_rand() & 1023) * (M_PI * 2 / 1023);
+        angle = (Q_rand() & 1023) * (M_PIf * 2 / 1023);
         dist = Q_rand() & 31;
-        p->org[0] = org[0] + cos(angle) * dist;
-        p->vel[0] = cos(angle) * (70 + (Q_rand() & 63));
-        p->accel[0] = -cos(angle) * 100;
+        p->org[0] = org[0] + cosf(angle) * dist;
+        p->vel[0] = cosf(angle) * (70 + (Q_rand() & 63));
+        p->accel[0] = -cosf(angle) * 100;
 
-        p->org[1] = org[1] + sin(angle) * dist;
-        p->vel[1] = sin(angle) * (70 + (Q_rand() & 63));
-        p->accel[1] = -sin(angle) * 100;
+        p->org[1] = org[1] + sinf(angle) * dist;
+        p->vel[1] = sinf(angle) * (70 + (Q_rand() & 63));
+        p->accel[1] = -sinf(angle) * 100;
 
         p->org[2] = org[2] + 8 + (Q_rand() % 90);
         p->vel[2] = -100 + (int)(Q_rand() & 31);
@@ -1400,8 +1400,8 @@ void CL_OldRailTrail(void)
         VectorClear(p->accel);
 
         d = i * 0.1f;
-        c = cos(d);
-        s = sin(d);
+        c = cosf(d);
+        s = sinf(d);
 
         VectorScale(right, c, dir);
         VectorMA(dir, s, up, dir);
@@ -1514,11 +1514,11 @@ static void CL_FlyParticles(const vec3_t origin, int count)
     ltime = cl.time * 0.001f;
     for (i = 0; i < count; i += 2) {
         angle = ltime * avelocities[i][0];
-        sy = sin(angle);
-        cy = cos(angle);
+        sy = sinf(angle);
+        cy = cosf(angle);
         angle = ltime * avelocities[i][1];
-        sp = sin(angle);
-        cp = cos(angle);
+        sp = sinf(angle);
+        cp = cosf(angle);
 
         forward[0] = cp * cy;
         forward[1] = cp * sy;
@@ -1530,7 +1530,7 @@ static void CL_FlyParticles(const vec3_t origin, int count)
 
         p->time = cl.time;
 
-        dist = sin(ltime + i) * 64;
+        dist = sinf(ltime + i) * 64;
         p->org[0] = origin[0] + bytedirs[i][0] * dist + forward[0] * BEAMLENGTH;
         p->org[1] = origin[1] + bytedirs[i][1] * dist + forward[1] * BEAMLENGTH;
         p->org[2] = origin[2] + bytedirs[i][2] * dist + forward[2] * BEAMLENGTH;
@@ -1578,7 +1578,7 @@ void CL_FlyEffect(centity_t *ent, const vec3_t origin)
 CL_BfgParticles
 ===============
 */
-void CL_BfgParticles(entity_t *ent)
+void CL_BfgParticles(const entity_t *ent)
 {
     int         i;
     cparticle_t *p;
@@ -1591,11 +1591,11 @@ void CL_BfgParticles(entity_t *ent)
     ltime = cl.time * 0.001f;
     for (i = 0; i < NUMVERTEXNORMALS; i++) {
         angle = ltime * avelocities[i][0];
-        sy = sin(angle);
-        cy = cos(angle);
+        sy = sinf(angle);
+        cy = cosf(angle);
         angle = ltime * avelocities[i][1];
-        sp = sin(angle);
-        cp = cos(angle);
+        sp = sinf(angle);
+        cp = cosf(angle);
 
         forward[0] = cp * cy;
         forward[1] = cp * sy;
@@ -1607,7 +1607,7 @@ void CL_BfgParticles(entity_t *ent)
 
         p->time = cl.time;
 
-        dist = sin(ltime + i) * 64;
+        dist = sinf(ltime + i) * 64;
         p->org[0] = ent->origin[0] + bytedirs[i][0] * dist + forward[0] * BEAMLENGTH;
         p->org[1] = ent->origin[1] + bytedirs[i][1] * dist + forward[1] * BEAMLENGTH;
         p->org[2] = ent->origin[2] + bytedirs[i][2] * dist + forward[2] * BEAMLENGTH;
@@ -1616,7 +1616,7 @@ void CL_BfgParticles(entity_t *ent)
         VectorClear(p->accel);
 
         dist = Distance(p->org, ent->origin) / 90.0f;
-        p->color = floor(0xd0 + dist * 7);
+        p->color = floorf(0xd0 + dist * 7);
 
         p->alpha = 1.0f - dist;
         p->alphavel = INSTANT_PARTICLE;

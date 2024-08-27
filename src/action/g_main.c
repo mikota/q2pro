@@ -397,6 +397,9 @@ cvar_t *video_force_restart;
 cvar_t *video_check_lockpvs;
 cvar_t *video_check_glclear;
 cvar_t *hc_single;
+cvar_t *hc_boost; //rekkie -- allow HC to 'boost' the player
+cvar_t *hc_boost_percent; //rekkie -- allow HC to 'boost' the player
+cvar_t *hc_silencer;
 cvar_t *wp_flags;		// Weapon Banning
 cvar_t *itm_flags;		// Item Banning
 cvar_t *matchmode;
@@ -479,7 +482,27 @@ cvar_t *ltk_chat;
 cvar_t *ltk_routing;
 cvar_t *ltk_botfile;
 cvar_t *ltk_loadbots;
-cvar_t *ltk_classic;
+//rekkie -- DEV_1 -- s
+cvar_t* bot_showpath;
+cvar_t* bot_skill;		// Skill setting for bots, range 0-10. 0 = easy, 10 = aimbot!
+cvar_t* bot_skill_threshold; // Dynamic skill adjustment kicks in if a threshold has been hit
+cvar_t* bot_remember;	// How long (in seconds) the bot remembers an enemy after visibility has been lost
+cvar_t* bot_reaction;	// How long (in seconds) until the bot reacts to an enemy in sight
+cvar_t* bot_maxteam;	// Max bots allowed in autoteam
+cvar_t* bot_rush;		// Bots rush players by going directly for them
+cvar_t* bot_randvoice;	// Bots use random user voice wavs - percentage [min: 0 max: 100]
+cvar_t* bot_randskill;	// When random bot join a game, they pick a random skill [min: 1, max: 10]. Using 0 will turn this off.
+cvar_t* bot_randname;	// Allow bots to pick a random name
+cvar_t* bot_chat; 		// Enable generic bot chat
+cvar_t* bot_personality;   // Enable bot personality functionality [0 disable, 1 enable, 2 mixed with random bots]
+cvar_t* bot_ragequit;	// Enable bot rage quitting (requires bot_personality to be enabled as well)
+cvar_t* bot_countashuman;	// Allows bots to play teamplay games without humans (see a_vote.c _numclients() ) also enforces timelimit on DM games
+cvar_t* bot_debug;		// Enable bot debug mode
+cvar_t* bot_count_min;	// Minimum number of bots to keep on the server (will range between this and bot_count_max)
+cvar_t* bot_count_max;	// Maximum number of bots to keep on the server (will range between this and bot_count_min)
+cvar_t* bot_rotate;		// Disable/enable rotating bots on the server
+//cvar_t* bot_randteamskin; // Bots can randomize team skins each map
+//rekkie -- DEV_1 -- e
 #endif
 
 cvar_t *jump;			// jumping mod
@@ -546,6 +569,7 @@ cvar_t *sv_last_announce_time;
 cvar_t *server_announce_url;
 cvar_t *training_mode; // Sets training mode vars
 cvar_t *g_highscores_dir; // Sets the highscores directory
+cvar_t *lca_grenade; // Allows grenade pin pulling during LCA
 
 #if AQTION_EXTENSION
 cvar_t *use_newirvision;
@@ -595,6 +619,10 @@ void ShutdownGame (void)
 	IRC_exit ();
 #ifndef NO_BOTS
 	ACECM_Store();
+	BOTLIB_FreeNodes(); //rekkie -- DEV_1 -- Hard map change. Free any existing node memory used
+	BOTLIB_FreeAreaNodes(); //rekkie -- DEV_1 -- Soft map change. Free all area node memory used
+	DC_Free_Spawnpoints();  //rekkie -- DEV_1 -- Hard map change. Free any existing spawnpoint memory used
+	BOTLIB_SaveBotsFromPreviousMap(); //rekkie -- Hard map change.
 #endif
 	//PG BUND
 	vExitGame ();
@@ -815,6 +843,9 @@ void ClientEndServerFrames (void)
 
 	if (timedmsgs->value)
 		FireTimedMessages();
+
+	// Botlib chat
+	UpdateBotChat();
 }
 
 /*
@@ -1021,6 +1052,31 @@ void CheckDMRules (void)
 	if (level.intermission_framenum)
 		return;
 
+//rekkie -- DEV_1 -- s
+#ifndef NO_BOTS
+	if (FRAMESYNC)
+	{
+		BOTLIB_CheckBotRules();
+
+		// Reduce noise timers
+		for (int i = 0; i < MAX_CLIENTS; i++)
+		{
+			if (botlib_noises.self_time[i] > 0)
+				botlib_noises.self_time[i]--;
+
+			if (botlib_noises.weapon_time[i] > 0)
+			{
+				botlib_noises.weapon_time[i]--;
+				//Com_Printf("%s %s counting PNOISE_WEAPON %d\n", __func__, botlib_noises.owner[i]->client->pers.netname, botlib_noises.weapon_time[i]);
+			}
+
+			if (botlib_noises.impact_time[i] > 0)
+				botlib_noises.impact_time[i]--;
+		}
+	}
+#endif
+	//rekkie -- DEV_1 -- e
+
 	//FIREBLADE
 	if (teamplay->value)
 	{
@@ -1103,6 +1159,8 @@ void ExitLevel (void)
 	int i;
 	edict_t *ent;
 	char command[256];
+
+	BOTLIB_SaveBotsFromPreviousMap(); //rekkie -- Soft map change (timelimit, fraglimit)
 
 	if(softquit) {
 		gi.bprintf(PRINT_HIGH, "Soft quit was requested by admin. The server will now exit.\n");
@@ -1193,6 +1251,7 @@ void G_RunFrame (void)
 
 	// If the server is empty, don't wait at intermission.
 	empty = ! _numclients();
+
 	if( level.intermission_framenum && empty )
 		level.intermission_exit = 1;
 

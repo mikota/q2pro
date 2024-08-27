@@ -4,6 +4,7 @@
 
 #include "../g_local.h"
 #include "../m_player.h"
+#include "acebot.h"
 
 /*
  * $Log: /LTK2/src/acesrc/bot_ai.c $
@@ -370,7 +371,7 @@ void BOTAI_Think(edict_t *bot)
     memset (&cmd, 0, sizeof(usercmd_t));
 
 	// Stop trying to think if the bot can't respawn.
-	if( (!esp->value) || (! IS_ALIVE(bot) && ((gameSettings & GS_ROUNDBASED) || (bot->client->respawn_framenum > level.framenum))) )
+	if( ! IS_ALIVE(bot) && ((gameSettings & GS_ROUNDBASED) || (bot->client->respawn_framenum > level.framenum)) )
 		goto LeaveThink;
 
     bs = bot->botState;

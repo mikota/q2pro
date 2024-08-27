@@ -167,7 +167,7 @@ extern glRefdef_t glr;
 
 extern entity_t gl_world;
 
-extern int registration_sequence;
+extern unsigned r_registration_sequence;
 
 typedef struct {
     int nodesVisible;
@@ -308,8 +308,6 @@ typedef struct {
 #define MD5_MAX_WEIGHTS     4096
 #define MD5_MAX_FRAMES      1024
 
-typedef char md5_jointname_t[MD5_MAX_JOINTNAME];
-
 /* Joint */
 typedef struct {
     int parent;
@@ -357,7 +355,6 @@ typedef struct {
     md5_mesh_t *meshes;
     md5_joint_t *base_skeleton;
     md5_joint_t *skeleton_frames; // [num_joints][num_frames]
-    md5_jointname_t *jointnames;
     image_t **skins;
 } md5_model_t;
 
@@ -372,7 +369,7 @@ typedef struct {
     } type;
 
     char name[MAX_QPATH];
-    int registration_sequence;
+    unsigned registration_sequence;
     memhunk_t hunk;
 
     int nummeshes;
@@ -693,7 +690,7 @@ void GL_LightPoint(const vec3_t origin, vec3_t color);
  * gl_sky.c
  *
  */
-void R_AddSkySurface(mface_t *surf);
+void R_AddSkySurface(const mface_t *surf);
 void R_ClearSkyBox(void);
 void R_DrawSkyBox(void);
 void R_SetSky(const char *name, float rotate, bool autorotate, const vec3_t axis);

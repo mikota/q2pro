@@ -461,6 +461,8 @@ void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const ve
 	vec_t dist;
 	float targ_maxs2;		//FB 6/1/99
 
+	if ((targ->flags & FL_GODMODE) || targ->solid == SOLID_NOT) return; //rekkie -- specators don't take damage
+
 	// do this before teamplay check
 	if (!targ->takedamage)
 		return;
@@ -925,8 +927,12 @@ void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const ve
 				if (mod > 0 && mod < MAX_GUNSTAT) {
 					attacker->client->resp.gunstats[mod].damage += damage;
 				}
-				// Grenade splash, kicks and punch damage
-				if (mod > 0 && ((mod == MOD_HG_SPLASH) || (mod == MOD_KICK) || (mod == MOD_PUNCH))) {
+				// Grenade splash, grenade impact, kicks and punch damage
+				if (mod > 0 &&
+				((mod == MOD_HG_SPLASH) ||
+				(mod == MOD_KICK) ||
+				(mod == MOD_PUNCH) ||
+				(mod == MOD_GRENADE_IMPACT))) {
 					attacker->client->resp.gunstats[mod].damage += damage;
 				}
 			}
@@ -946,8 +952,7 @@ void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const ve
   T_RadiusDamage
   ============
 */
-void
-T_RadiusDamage (edict_t * inflictor, edict_t * attacker, float damage,
+void T_RadiusDamage (edict_t * inflictor, edict_t * attacker, float damage,
 		edict_t * ignore, float radius, int mod)
 {
 	float points;

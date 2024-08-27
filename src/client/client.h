@@ -70,7 +70,7 @@ typedef union {
     };
 } centity_state_t;
 
-typedef struct centity_s {
+typedef struct {
     centity_state_t     current;
     centity_state_t     prev;           // will always be valid, but might just be a copy of current
 
@@ -98,7 +98,7 @@ extern centity_t    cl_entities[MAX_EDICTS];
 
 #define MAX_CLIENTWEAPONMODELS        256       // PGM -- upped from 16 to fit the chainfist vwep
 
-typedef struct clientinfo_s {
+typedef struct {
     char name[MAX_QPATH];
     qhandle_t skin;
     qhandle_t icon;
@@ -127,7 +127,7 @@ typedef struct {
     int             clientNum;
 
     int             numEntities;
-    int             firstEntity;
+    unsigned        firstEntity;
 } server_frame_t;
 
 // locally calculated frame flags for debug display
@@ -160,7 +160,7 @@ typedef struct {
 // the client_state_t structure is wiped completely at every
 // server map change
 //
-typedef struct client_state_s {
+typedef struct {
     int         timeoutcount;
 
     unsigned    lastTransmitTime;
@@ -173,7 +173,7 @@ typedef struct client_state_s {
     unsigned     cmdNumber;
     short        predicted_origins[CMD_BACKUP][3];    // for debug comparing against server
     client_history_t    history[CMD_BACKUP];
-    int         initialSeq;
+    unsigned    initialSeq;
 
     float       predicted_step;                // for stair up smoothing
     unsigned    predicted_step_time;
@@ -193,7 +193,7 @@ typedef struct client_state_s {
     centity_state_t baselines[MAX_EDICTS];
 
     centity_state_t entityStates[MAX_PARSE_ENTITIES];
-    int             numEntityStates;
+    unsigned        numEntityStates;
 
     msgEsFlags_t    esFlags;
     msgPsFlags_t    psFlags;
@@ -212,7 +212,7 @@ typedef struct client_state_s {
     int             keyservertime;
 #endif
 
-    byte            dcs[CS_BITMAP_BYTES];
+    size_t          dcs[BC_COUNT(MAX_CONFIGSTRINGS)];
 
     // the client maintains its own idea of view angles, which are
     // sent to the server each frame.  It is cleared to 0 upon entering each level.
@@ -298,7 +298,7 @@ typedef struct client_state_s {
     bsp_t        *bsp;
 
     qhandle_t model_draw[MAX_MODELS];
-    mmodel_t *model_clip[MAX_MODELS];
+    const mmodel_t *model_clip[MAX_MODELS];
 
     qhandle_t sound_precache[MAX_SOUNDS];
     qhandle_t image_precache[MAX_IMAGES];
@@ -321,6 +321,7 @@ typedef struct client_state_s {
             vec3_t      offset;
         } muzzle;
     } weapon;
+
 } client_state_t;
 
 extern client_state_t   cl;
@@ -390,7 +391,7 @@ typedef struct {
     byte        data[1];
 } demosnap_t;
 
-typedef struct client_static_s {
+typedef struct {
     connstate_t state;
     keydest_t   key_dest;
 
@@ -404,7 +405,6 @@ typedef struct client_static_s {
 // this is set each time a CVAR_USERINFO variable is changed
 // so that the client knows to send it to the server
 
-    int         framecount;
     unsigned    realtime;           // always increasing, no clamping, etc
     float       frametime;          // seconds since last frame
 
@@ -451,7 +451,7 @@ typedef struct client_static_s {
 #define RECENT_MASK (RECENT_ADDR - 1)
 
     netadr_t    recent_addr[RECENT_ADDR];
-    int         recent_head;
+    unsigned    recent_head;
 
     string_entry_t  *stufftextwhitelist;
 
@@ -688,7 +688,7 @@ bool CL_IgnoreDownload(const char *path);
 void CL_FinishDownload(dlqueue_t *q);
 void CL_CleanupDownloads(void);
 void CL_LoadDownloadIgnores(void);
-void CL_HandleDownload(byte *data, int size, int percent, int decompressed_size);
+void CL_HandleDownload(const byte *data, int size, int percent, int decompressed_size);
 bool CL_CheckDownloadExtension(const char *ext);
 void CL_StartNextDownload(void);
 void CL_RequestNextDownload(void);
@@ -728,6 +728,10 @@ typedef struct {
     int entity1;
     int entity2;
     int time;
+    //rekkie -- surface data -- s
+    unsigned int acolor; // arrow color
+    byte width; // line width
+    //rekkie -- surface data -- e
 } tent_params_t;
 
 typedef struct {
@@ -786,8 +790,8 @@ extern qhandle_t    gun_model;
 void V_Init(void);
 void V_Shutdown(void);
 void V_RenderView(void);
-void V_AddEntity(entity_t *ent);
-void V_AddParticle(particle_t *p);
+void V_AddEntity(const entity_t *ent);
+void V_AddParticle(const particle_t *p);
 void V_AddLight(const vec3_t org, float intensity, float r, float g, float b);
 void V_AddLightStyle(int style, float value);
 void CL_UpdateBlendSetting(void);
@@ -848,7 +852,7 @@ void CL_InitTEnts(void);
 void CL_PredictAngles(void);
 void CL_PredictMovement(void);
 void CL_CheckPredictionError(void);
-void CL_Trace(trace_t *tr, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int contentmask);
+void CL_Trace(trace_t *tr, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, int contentmask);
 
 
 //
@@ -872,7 +876,7 @@ typedef struct cparticle_s {
     color_t rgba;
 } cparticle_t;
 
-typedef struct cdlight_s {
+typedef struct {
     int     key;        // so entities can reuse same entry
     vec3_t  color;
     vec3_t  origin;
@@ -884,7 +888,7 @@ void CL_BigTeleportParticles(const vec3_t org);
 void CL_RocketTrail(const vec3_t start, const vec3_t end, centity_t *old);
 void CL_DiminishingTrail(const vec3_t start, const vec3_t end, centity_t *old, int flags);
 void CL_FlyEffect(centity_t *ent, const vec3_t origin);
-void CL_BfgParticles(entity_t *ent);
+void CL_BfgParticles(const entity_t *ent);
 void CL_ItemRespawnParticles(const vec3_t org);
 void CL_InitEffects(void);
 void CL_ClearEffects(void);
@@ -954,7 +958,7 @@ void CL_EmitDemoSnapshot(void);
 void CL_FreeDemoSnapshots(void);
 void CL_FirstDemoFrame(void);
 void CL_Stop_f(void);
-demoInfo_t *CL_GetDemoInfo(const char *path, demoInfo_t *info);
+bool CL_GetDemoInfo(const char *path, demoInfo_t *info);
 
 
 //
@@ -963,7 +967,6 @@ demoInfo_t *CL_GetDemoInfo(const char *path, demoInfo_t *info);
 void LOC_Init(void);
 void LOC_LoadLocations(void);
 void LOC_FreeLocations(void);
-void LOC_UpdateCvars(void);
 void LOC_AddLocationsToScene(void);
 
 
@@ -1081,7 +1084,7 @@ void HTTP_CleanupDownloads(void);
 
 #if USE_CLIENT_GTV
 void CL_GTV_EmitFrame(void);
-void CL_GTV_WriteMessage(byte *data, size_t len);
+void CL_GTV_WriteMessage(const byte *data, size_t len);
 void CL_GTV_Resume(void);
 void CL_GTV_Suspend(void);
 void CL_GTV_Transmit(void);
@@ -1102,7 +1105,7 @@ void CL_GTV_Shutdown(void);
 //
 // crc.c
 //
-byte COM_BlockSequenceCRCByte(byte *base, size_t length, int sequence);
+byte COM_BlockSequenceCRCByte(const byte *base, size_t length, int sequence);
 
 #if USE_DISCORD && USE_CURL && USE_AQTION
 #include <curl/curl.h>

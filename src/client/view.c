@@ -44,6 +44,13 @@ static cvar_t   *cl_stats;
 
 cvar_t   *cl_adjustfov;
 
+#if USE_AQTION
+static cvar_t    *cl_zoom_autosens;
+static cvar_t    *cl_zoom_2x;
+static cvar_t    *cl_zoom_4x;
+static cvar_t    *cl_zoom_6x;
+#endif
+
 int         r_numdlights;
 dlight_t    r_dlights[MAX_DLIGHTS];
 
@@ -69,21 +76,18 @@ static void V_ClearScene(void)
     r_numparticles = 0;
 }
 
-
 /*
 =====================
 V_AddEntity
 
 =====================
 */
-void V_AddEntity(entity_t *ent)
+void V_AddEntity(const entity_t *ent)
 {
     if (r_numentities >= MAX_ENTITIES)
         return;
-
     r_entities[r_numentities++] = *ent;
 }
-
 
 /*
 =====================
@@ -91,7 +95,7 @@ V_AddParticle
 
 =====================
 */
-void V_AddParticle(particle_t *p)
+void V_AddParticle(const particle_t *p)
 {
     if (r_numparticles >= MAX_PARTICLES)
         return;
@@ -293,10 +297,19 @@ static int entitycmpfnc(const void *_a, const void *_b)
     const entity_t *b = (const entity_t *)_b;
 
     // all other models are sorted by model then skin
-    if (a->model == b->model)
-        return a->skin - b->skin;
-    else
-        return a->model - b->model;
+    if (a->model > b->model)
+        return 1;
+    if (a->model < b->model)
+        return -1;
+
+    if (a->skin > b->skin)
+        return 1;
+    if (a->skin < b->skin)
+        return -1;
+
+    bool a_shell = a->flags & RF_SHELL_MASK;
+    bool b_shell = b->flags & RF_SHELL_MASK;
+    return a_shell - b_shell;
 }
 
 static void V_SetLightLevel(void)
@@ -336,14 +349,37 @@ float V_CalcFov(float fov_x, float width, float height)
     if (fov_x < 0.75f || fov_x > 179)
         Com_Error(ERR_DROP, "%s: bad fov: %f", __func__, fov_x);
 
-    x = width / tan(fov_x * (M_PI / 360));
+    x = width / tanf(fov_x * (M_PIf / 360));
 
-    a = atan(height / x);
-    a = a * (360 / M_PI);
+    a = atanf(height / x);
+    a = a * (360 / M_PIf);
 
     return a;
 }
 
+#if USE_AQTION
+static void cl_zoom_autosens_changed(float fov)
+{
+    cvar_t    *sensitivity = Cvar_Get("sensitivity", "0", CVAR_ARCHIVE);
+    cvar_t    *oldsens = Cvar_Get("oldsens", "0", CVAR_NOARCHIVE);
+
+    // Anchor value so we return to it after zooming
+    oldsens->value = atof(sensitivity->string);
+
+    // Adjust sensitivity based on zoom level
+    if (cl.fov_x >= 90.0f) {  // No zoom
+        Cvar_Set("sensitivity", oldsens->string);
+    } else if (cl.fov_x == 45.0f && cl_zoom_2x->value) { // 2x scope
+        Cvar_Set("sensitivity", cl_zoom_2x->string);
+    } else if (cl.fov_x == 20.0f && cl_zoom_4x->value) { // 4x scope
+        Cvar_Set("sensitivity", cl_zoom_4x->string);
+    } else if (cl.fov_x == 10.0f && cl_zoom_6x->value) { // 6x scope
+        Cvar_Set("sensitivity", cl_zoom_6x->string);
+    } else { // Safe default back to 1x
+        Cvar_Set("sensitivity", oldsens->string);
+    }
+}
+#endif
 
 /*
 ==================
@@ -398,6 +434,11 @@ void V_RenderView(void)
             cl.refdef.fov_x = cl.fov_x;
             cl.refdef.fov_y = V_CalcFov(cl.refdef.fov_x, cl.refdef.width, cl.refdef.height);
         }
+
+        #if USE_AQTION
+        if (cl_zoom_autosens->value)
+            cl_zoom_autosens_changed(cl.fov_x);
+        #endif
 
         cl.refdef.time = cl.time * 0.001f;
 
@@ -487,6 +528,13 @@ void V_Init(void)
     cl_add_blend->changed = cl_add_blend_changed;
 
     cl_adjustfov = Cvar_Get("cl_adjustfov", "1", 0);
+
+    #if USE_AQTION
+    cl_zoom_autosens = Cvar_Get("cl_zoom_autosens", "0", CVAR_ARCHIVE);
+    cl_zoom_2x = Cvar_Get("cl_zoom_2x", "0", CVAR_ARCHIVE);
+    cl_zoom_4x = Cvar_Get("cl_zoom_4x", "0", CVAR_ARCHIVE);
+    cl_zoom_6x = Cvar_Get("cl_zoom_6x", "0", CVAR_ARCHIVE);
+    #endif
 }
 
 void V_Shutdown(void)
