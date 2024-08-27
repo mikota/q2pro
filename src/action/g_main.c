@@ -561,7 +561,7 @@ cvar_t *sv_discord_announce_enable;		// Enable Discord announcements
 cvar_t *sv_curl_stat_enable;			// Enable cURL stat logging
 cvar_t *sv_aws_access_key;				// AWS Access Key (stat logs)
 cvar_t *sv_aws_secret_key;				// AWS Secret Key (stat logs)
-cvar_t *sv_curl_discord_chat_url;		// Discord chat webhook URL (for game chat)
+cvar_t *sv_curl_discord_chat_url;		// Discord message URL (sending messages to Discord via webhook)
 cvar_t *sv_curl_discord_server_url;		// Discord server URL
 cvar_t *server_ip;						// Server IP
 cvar_t *server_port;					// Server port
