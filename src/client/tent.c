@@ -179,8 +179,6 @@ void CL_PlayFootstepSfx(int step_id, int entnum, float volume, float attenuation
             footstep_sfx = sfx->sfx[(sfx_num + 1) % sfx->num_sfx];
     }
 
-    Com_Printf("Playing footstep sound %i\n", footstep_sfx);
-
     S_StartSound(NULL, entnum, CHAN_BODY, footstep_sfx, volume, attenuation, 0);
     cl_last_footstep = footstep_sfx;
 }

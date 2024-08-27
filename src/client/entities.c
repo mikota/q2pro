@@ -235,7 +235,7 @@ static void parse_entity_event(int number)
             CL_PlayFootstepSfx(FOOTSTEP_ID_LADDER, number, 0.5f, ATTN_IDLE);
         break;
     case EV_FALLSHORT:
-        if (cl_enhanced_footsteps->value) {
+        if (!cl_enhanced_footsteps->value) {
             S_StartSound(NULL, number, CHAN_AUTO, cl_sfx_landing[0], 1, ATTN_NORM, 0);
         } else {
             S_StartSound(NULL, number, CHAN_BODY, cl_sfx_landing[Q_rand() % 8], 1, ATTN_NORM, 0);
