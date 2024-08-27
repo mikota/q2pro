@@ -354,6 +354,8 @@ void InitGame( void )
 	actionversion = gi.cvar( "actionversion", "TNG " VERSION, CVAR_SERVERINFO | CVAR_NOSET );
 	gi.cvar_set( "actionversion", "TNG " VERSION );
 
+	net_port = gi.cvar( "net_port", "27910", CVAR_NOSET );
+
 	maxclients = gi.cvar( "maxclients", "8", CVAR_SERVERINFO | CVAR_LATCH );
 	maxentities = gi.cvar( "maxentities", "1024", CVAR_LATCH );
 
@@ -663,6 +665,9 @@ void InitGame( void )
 	sv_last_announce_time = gi.cvar("sv_last_announce_time", "0", 0);
 	sv_last_announce_interval = gi.cvar("sv_last_announce_interval", "1800", 0);
 	server_announce_url = gi.cvar("server_announce_url", "disabled", 0);
+	msgflags = gi.cvar("msgflags", "0", 0);
+
+
 	training_mode = gi.cvar("training_mode", "0", CVAR_LATCH);
 	if (training_mode->value){
 		gi.cvar_forceset("item_respawnmode", "1");

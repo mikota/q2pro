@@ -427,9 +427,12 @@ ammo_t;
 
 //tng_net.c
 typedef enum {
-    NOTIFY_NONE,
-    SERVER_WARMING_UP,
-    NOTIFY_MAX
+	NOTIFY_NONE = BIT(0),
+	SERVER_WARMING_UP = BIT(1),
+	DEATH_MSG = BIT(2),
+	CHAT_MSG = BIT(3),
+	SERVER_MSG = BIT(4),
+	NOTIFY_MAX = BIT(5)
 } Discord_Notifications;
 
 //deadflag
@@ -1090,6 +1093,7 @@ extern edict_t *g_edicts;
 #define crandom()       (2.0 * (random() - 0.5))
 
 #define DMFLAGS(x)     (((int)dmflags->value & x) != 0)
+#define MSGFLAGS(x)	   (((int)msgflags->value & x) != 0)
 
 #ifndef NO_BOTS
 #define AQ2WTEAMSIZE	46
@@ -1121,6 +1125,7 @@ extern cvar_t *hud_noscore;
 extern cvar_t *use_newscore;
 extern cvar_t *scoreboard;
 extern cvar_t *actionversion;
+extern cvar_t *net_port;
 #ifndef NO_BOTS
 extern cvar_t *ltk_jumpy;
 #endif
@@ -1334,6 +1339,9 @@ extern cvar_t *server_ip;
 extern cvar_t *server_port;
 extern cvar_t *sv_last_announce_interval;
 extern cvar_t *sv_last_announce_time;
+extern cvar_t *msgflags;
+//end cUrl integration
+
 extern cvar_t *training_mode; // Sets training mode vars
 extern cvar_t *g_highscores_dir; // Sets the highscores directory
 extern cvar_t *lca_grenade; // Allows grenade pin pulling during LCA

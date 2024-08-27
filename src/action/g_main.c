@@ -305,6 +305,7 @@ cvar_t *hud_noscore;
 cvar_t *use_newscore;
 cvar_t *scoreboard;
 cvar_t *actionversion;
+cvar_t *net_port;
 cvar_t *needpass;
 cvar_t *use_voice;
 cvar_t *ppl_idletime;
@@ -555,18 +556,21 @@ cvar_t *sv_killgib; // Gibs on 'kill' command
 // 2024
 cvar_t *warmup_unready; // Toggles warmup if captains unready
 // cURL integration / tng_net.c
-cvar_t *sv_curl_enable;
-cvar_t *sv_discord_announce_enable;
-cvar_t *sv_curl_stat_enable;
-cvar_t *sv_aws_access_key;
-cvar_t *sv_aws_secret_key;
-cvar_t *sv_curl_discord_chat_url;
-cvar_t *sv_curl_discord_server_url;
-cvar_t *server_ip;
-cvar_t *server_port;
-cvar_t *sv_last_announce_interval;
-cvar_t *sv_last_announce_time;
-cvar_t *server_announce_url;
+cvar_t *sv_curl_enable;					// Enable cURL integration
+cvar_t *sv_discord_announce_enable;		// Enable Discord announcements
+cvar_t *sv_curl_stat_enable;			// Enable cURL stat logging
+cvar_t *sv_aws_access_key;				// AWS Access Key (stat logs)
+cvar_t *sv_aws_secret_key;				// AWS Secret Key (stat logs)
+cvar_t *sv_curl_discord_chat_url;		// Discord chat webhook URL (for game chat)
+cvar_t *sv_curl_discord_server_url;		// Discord server URL
+cvar_t *server_ip;						// Server IP
+cvar_t *server_port;					// Server port
+cvar_t *sv_last_announce_interval;		// Interval between announcements
+cvar_t *sv_last_announce_time;			// Last announcement time
+cvar_t *server_announce_url;			// Server announce URL
+cvar_t *msgflags;						// Message flags (like dmflags)
+// end cURL integration cvars
+
 cvar_t *training_mode; // Sets training mode vars
 cvar_t *g_highscores_dir; // Sets the highscores directory
 cvar_t *lca_grenade; // Allows grenade pin pulling during LCA

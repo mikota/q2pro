@@ -155,10 +155,16 @@ void announce_server_populating(void)
 Call this with a string containing the message you want to send to the webhook.
 Limited to 1024 chars.
 */
-void lc_discord_webhook(char* message)
+void lc_discord_webhook(char* message, Discord_Notifications msgtype)
 {
     request_t *request;
     char json_payload[1024];
+
+    // Check if the msgtype is within the allowed message flags
+    // Look at the Discord_Notifications enum in g_local.h for the flags
+    if (!(msgtype & (int)msgflags->value)) {
+        return;
+    }
 
     // Don't run this if curl is disabled or the webhook URL is set to "disabled"
     if (!sv_curl_enable->value || strcmp(sv_curl_discord_chat_url->string, "disabled") == 0)

@@ -1174,6 +1174,8 @@ void ClientObituary(edict_t * self, edict_t * inflictor, edict_t * attacker)
 			sprintf(death_msg, "%s %s %s\n",
 				self->client->pers.netname, special_message, self->client->attacker->client->pers.netname);
 			PrintDeathMessage(death_msg, self);
+			//Using discord webhook for death messaging
+			lc_discord_webhook(death_msg);
 			IRC_printf(IRC_T_KILL, death_msg);
 			AddKilledPlayer(self->client->attacker, self);
 
@@ -1205,6 +1207,8 @@ void ClientObituary(edict_t * self, edict_t * inflictor, edict_t * attacker)
 		else
 		{
 			sprintf( death_msg, "%s %s\n", self->client->pers.netname, message );
+			//Using discord webhook for death messaging
+			lc_discord_webhook(death_msg);
 			PrintDeathMessage(death_msg, self );
 			IRC_printf( IRC_T_DEATH, death_msg );
 
@@ -1557,6 +1561,8 @@ void ClientObituary(edict_t * self, edict_t * inflictor, edict_t * attacker)
 			sprintf(death_msg, "%s%s %s%s\n", self->client->pers.netname,
 			message, attacker->client->pers.netname, message2);
 			PrintDeathMessage(death_msg, self);
+			//Using discord webhook for death messaging
+			lc_discord_webhook(death_msg);
 			IRC_printf(IRC_T_KILL, death_msg);
 			AddKilledPlayer(attacker, self);
 
@@ -1601,6 +1607,8 @@ void ClientObituary(edict_t * self, edict_t * inflictor, edict_t * attacker)
 
 	sprintf(death_msg, "%s died\n", self->client->pers.netname);
 	PrintDeathMessage(death_msg, self);
+	//Using discord webhook for death messaging
+	lc_discord_webhook(death_msg);
 	IRC_printf(IRC_T_DEATH, death_msg);
 
 	#if USE_AQTION
