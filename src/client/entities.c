@@ -223,9 +223,8 @@ static void parse_entity_event(int number)
         CL_TeleportParticles(cent->current.origin);
         break;
     case EV_FOOTSTEP:
-        if (cl_footsteps->integer) {
+        if (cl_footsteps->integer)
             CL_PlayFootstepSfx(-1, number, 1.0f, ATTN_NORM);
-        }
         break;
     case EV_OTHER_FOOTSTEP:
         if (cl.csr.extended && cl_footsteps->integer)
@@ -236,7 +235,7 @@ static void parse_entity_event(int number)
             CL_PlayFootstepSfx(FOOTSTEP_ID_LADDER, number, 0.5f, ATTN_IDLE);
         break;
     case EV_FALLSHORT:
-        if (strcmp(cl_enhanced_footsteps->string, "0") == 0) {
+        if (cl_enhanced_footsteps->value) {
             S_StartSound(NULL, number, CHAN_AUTO, cl_sfx_landing[0], 1, ATTN_NORM, 0);
         } else {
             S_StartSound(NULL, number, CHAN_BODY, cl_sfx_landing[Q_rand() % 8], 1, ATTN_NORM, 0);
