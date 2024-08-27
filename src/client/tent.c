@@ -162,8 +162,8 @@ void CL_PlayFootstepSfx(int step_id, int entnum, float volume, float attenuation
         return; // no footsteps, not even fallbacks
 
     // bAron's additional footsteps
-    // check if cl_enhanced_footsteps->string is "0" and sfx->num_sfx has more than four items
-    if (!cl_enhanced_footsteps->value && sfx->num_sfx > 4) {
+    // check if cl_footsteps is >= 2 and sfx->num_sfx has more than four items
+    if (cl_footsteps->integer >= 2 && sfx->num_sfx > 4) {
         // pick a random footstep sound from the first four items, important for compatibility with players using the old four stepsounds
         sfx_num = Q_rand_uniform(4);
     } else {
