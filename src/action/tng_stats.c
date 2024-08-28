@@ -672,18 +672,18 @@ static void G_SaveScores(void)
     fclose(fp);
 }
 
-static int G_PlayerCmp(const void *p1, const void *p2)
-{
-    gclient_t *a = *(gclient_t * const *)p1;
-    gclient_t *b = *(gclient_t * const *)p2;
+// static int G_PlayerCmp(const void *p1, const void *p2)
+// {
+//     gclient_t *a = *(gclient_t * const *)p1;
+//     gclient_t *b = *(gclient_t * const *)p2;
 
-    int r = b->resp.score - a->resp.score;
-    if (!r)
-        r = a->resp.deaths - b->resp.deaths;
-    if (!r)
-        r = (byte *)a - (byte *)b;
-    return r;
-}
+//     int r = b->resp.score - a->resp.score;
+//     if (!r)
+//         r = a->resp.deaths - b->resp.deaths;
+//     if (!r)
+//         r = (byte *)a - (byte *)b;
+//     return r;
+// }
 
 int G_CalcRanks(gclient_t **ranks)
 {

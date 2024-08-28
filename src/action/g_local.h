@@ -427,13 +427,18 @@ ammo_t;
 
 //tng_net.c
 typedef enum {
-	NOTIFY_NONE = BIT(0),
-	SERVER_WARMING_UP = BIT(1),
-	DEATH_MSG = BIT(2),
-	CHAT_MSG = BIT(3),
-	SERVER_MSG = BIT(4),
-	NOTIFY_MAX = BIT(5)
+    NOTIFY_NONE = BIT(0),         // 1
+    SERVER_WARMING_UP = BIT(1),   // 2
+    DEATH_MSG = BIT(2),           // 4
+    CHAT_MSG = BIT(3),            // 8
+    SERVER_MSG = BIT(4),          // 16
+	MATCH_END_MSG = BIT(5),       // 32
+    NOTIFY_MAX = BIT(6)           // 64
 } Discord_Notifications;
+
+// Default messages
+#define MM_MATCH_END_MSG "Match Results"
+
 
 //deadflag
 #define DEAD_NO                         0
@@ -2920,5 +2925,5 @@ void FireTimedMessages(void);
 void lc_shutdown_function(void);
 qboolean lc_init_function(void);
 void lc_once_per_gameframe(void);
-void lc_discord_webhook(char* message);
+void lc_discord_webhook(char* message, Discord_Notifications msgtype);
 void lc_start_request_function(request_t* request);

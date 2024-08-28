@@ -151,6 +151,182 @@ void announce_server_populating(void)
     gi.cvar_forceset("sv_last_announce_time", va("%d", (int)time(NULL)));
 }
 
+static char* DMConstructPlayerScoreString(void) {
+    gclient_t **ranks = (gclient_t **)malloc(game.maxclients * sizeof(gclient_t *));
+    int total = G_CalcRanks(ranks);
+
+    // Calculate the required buffer size
+    int buffer_size = 0;
+    for (int i = 0; i < total; i++) {
+        buffer_size += snprintf(NULL, 0, "%s: %d\n", ranks[i]->pers.netname, ranks[i]->resp.score);
+    }
+
+    // Allocate the buffer
+    char *result = (char *)malloc(buffer_size + 1);
+    if (!result) {
+        return NULL; // Handle memory allocation failure
+    }
+
+    // Construct the string
+    char *ptr = result;
+    for (int i = 0; i < total; i++) {
+        ptr += sprintf(ptr, "%s: %d\n", ranks[i]->pers.netname, ranks[i]->resp.score);
+    }
+
+    return result;
+}
+
+int FilterPlayersByTeam(gclient_t **filtered, int team) {
+    int total = 0;
+    for (int i = 0; i < game.maxclients; i++) {
+        if (game.clients[i].pers.connected == 1 && game.clients[i].resp.team == team) {
+            filtered[total] = &game.clients[i];
+            total++;
+        }
+    }
+    return total;
+}
+
+char* TeamConstructPlayerScoreString(int team) {
+    gclient_t **filtered = (gclient_t **)malloc(game.maxclients * sizeof(gclient_t *));
+    if (!filtered) {
+        return NULL; // Handle memory allocation failure
+    }
+
+    int total = FilterPlayersByTeam(filtered, team);
+
+    // Sort the filtered players
+    qsort(filtered, total, sizeof(gclient_t *), G_PlayerCmp);
+
+    // Calculate the required buffer size
+    int buffer_size = 0;
+    for (int i = 0; i < total; i++) {
+        buffer_size += snprintf(NULL, 0, "%s: %d\n", filtered[i]->pers.netname, filtered[i]->resp.score);
+    }
+
+    // Allocate the buffer
+    char *result = (char *)malloc(buffer_size + 1);
+    if (!result) {
+        free(filtered);
+        return NULL; // Handle memory allocation failure
+    }
+
+    // Construct the string
+    char *ptr = result;
+    for (int i = 0; i < total; i++) {
+        ptr += sprintf(ptr, "%s: %d\n", filtered[i]->pers.netname, filtered[i]->resp.score);
+    }
+
+    free(filtered);
+    return result;
+}
+
+static char *discord_MatchEndMsg(void)
+{
+    // Create the root object
+    json_t *root = json_object();
+
+    json_object_set_new(root, "content", json_string(""));
+
+    // Create the "embeds" array
+    json_t *embeds = json_array();
+    json_object_set_new(root, "embeds", embeds);
+
+    // Create the embed object
+    json_t *embed = json_object();
+    json_array_append_new(embeds, embed);
+
+    // Add fields to the embed object
+    json_object_set_new(embed, "description", json_string("Match results"));
+    json_object_set_new(embed, "title", json_string(level.mapname));
+    json_object_set_new(embed, "color", json_integer(16711680));
+
+    // Create the "thumbnail" object
+    json_t *thumbnail = json_object();
+    json_object_set_new(embed, "thumbnail", thumbnail);
+
+    char mapimgurl[512];
+    snprintf(mapimgurl, sizeof(mapimgurl), "https://raw.githubusercontent.com/vrolse/AQ2-pickup-bot/main/thumbnails/%s.jpg", level.mapname);
+    json_object_set_new(thumbnail, "url", json_string(mapimgurl));
+
+    // Create the "fields" array
+    json_t *fields = json_array();
+    json_object_set_new(embed, "fields", fields);
+
+    // Create field objects and add them to the "fields" array
+    if (teamplay->value) {
+        char *t1name = TeamName(TEAM1);
+        char *t2name = TeamName(TEAM2);
+        int t1score = teams[TEAM1].score;
+        int t2score = teams[TEAM2].score;
+        char field1content[64];
+        snprintf(field1content, sizeof(field1content), "%s: %d", t1name, t1score);
+        char field2content[64];
+        snprintf(field2content, sizeof(field2content), "%s: %d", t2name, t2score);
+        char *t1_player_scores = TeamConstructPlayerScoreString(TEAM1);
+        char *t2_player_scores = TeamConstructPlayerScoreString(TEAM2);
+
+        // Add triple backticks for Discord formatting
+        char formatted_t1_player_scores[256];
+        snprintf(formatted_t1_player_scores, sizeof(formatted_t1_player_scores), "```%s```", t1_player_scores);
+        char formatted_t2_player_scores[256];
+        snprintf(formatted_t2_player_scores, sizeof(formatted_t2_player_scores), "```%s```", t2_player_scores);
+
+        
+        if(teamCount == 2) {
+            json_t *field1 = json_object();
+            json_object_set_new(field1, "name", json_string(field1content));
+            json_object_set_new(field1, "value", json_string(formatted_t1_player_scores));
+            json_object_set_new(field1, "inline", json_true());
+            json_array_append_new(fields, field1);
+
+            json_t *field2 = json_object();
+            json_object_set_new(field2, "name", json_string(field2content));
+            json_object_set_new(field2, "value", json_string(formatted_t2_player_scores));
+            json_object_set_new(field2, "inline", json_true());
+            json_array_append_new(fields, field2);
+        } else {
+            char *t3name = TeamName(TEAM3);
+            int t3score = teams[TEAM3].score;
+            char field3content[64];
+            snprintf(field3content, sizeof(field3content), "%s: %d", t3name, t3score);
+            char *t3_player_scores = TeamConstructPlayerScoreString(TEAM3);
+            // Add triple backticks for Discord formatting
+            char formatted_t3_player_scores[256];
+            snprintf(formatted_t3_player_scores, sizeof(formatted_t3_player_scores), "```%s```", t3_player_scores);
+
+            json_t *field1 = json_object();
+            json_object_set_new(field1, "name", json_string(field1content));
+            json_object_set_new(field1, "value", json_string(formatted_t1_player_scores));
+            json_object_set_new(field1, "inline", json_true());
+            json_array_append_new(fields, field1);
+
+            json_t *field2 = json_object();
+            json_object_set_new(field2, "name", json_string(field2content));
+            json_object_set_new(field2, "value", json_string(formatted_t2_player_scores));
+            json_object_set_new(field2, "inline", json_true());
+            json_array_append_new(fields, field2);
+
+            json_t *field3 = json_object();
+            json_object_set_new(field3, "name", json_string(field3content));
+            json_object_set_new(field3, "value", json_string(formatted_t3_player_scores));
+            json_object_set_new(field3, "inline", json_true());
+            json_array_append_new(fields, field3);
+        }
+    }
+
+    // Add "username" field to the root object
+    json_object_set_new(root, "username", json_string(hostname->string));
+
+    // Convert the JSON object to a string
+    char *json_payload = json_dumps(root, JSON_INDENT(4));
+
+    // Decrement the reference count of the root object to free memory
+    json_decref(root);
+
+    return json_payload;
+}
+
 /*
 Call this with a string containing the message you want to send to the webhook.
 Limited to 1024 chars.
@@ -158,11 +334,16 @@ Limited to 1024 chars.
 void lc_discord_webhook(char* message, Discord_Notifications msgtype)
 {
     request_t *request;
-    char json_payload[1024];
+    char json_payload[2048];
+
+    // Debug prints
+    gi.dprintf("msgflags value: %d\n", (int)msgflags->value);
+    gi.dprintf("msgtype value: %d\n", msgtype);
 
     // Check if the msgtype is within the allowed message flags
     // Look at the Discord_Notifications enum in g_local.h for the flags
     if (!(msgtype & (int)msgflags->value)) {
+        gi.dprintf("Message type not allowed by msgflags\n");
         return;
     }
 
@@ -187,8 +368,22 @@ void lc_discord_webhook(char* message, Discord_Notifications msgtype)
         *newline = '\0';
     }
 
-    // Format the message as a JSON payload
-    snprintf(json_payload, sizeof(json_payload), "{\"content\":\"```%s```\"}", message);
+    // Format the message as a JSON payload based on msgtype
+    if (msgtype == CHAT_MSG || msgtype == DEATH_MSG) {
+        snprintf(json_payload, sizeof(json_payload), 
+        "{\"content\":\"```%s```\"}", 
+        message);
+    } else if (msgtype == MATCH_END_MSG){
+        char *matchendmsg = discord_MatchEndMsg();
+            if (matchendmsg) {
+            // Print the JSON payload
+            gi.dprintf("%s\n", matchendmsg);
+            snprintf(json_payload, sizeof(json_payload), "%s", matchendmsg);
+
+            free(matchendmsg);
+        }
+    }
+
     request->url = url;
     request->payload = strdup(json_payload);
 

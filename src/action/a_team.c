@@ -3180,25 +3180,25 @@ void A_Scoreboard (edict_t * ent)
 }
 
 
-static int G_PlayerCmp( const void *p1, const void *p2 )
+int G_PlayerCmp(const void *p1, const void *p2)
 {
-	gclient_t *a = *(gclient_t * const *)p1;
-	gclient_t *b = *(gclient_t * const *)p2;
-	
-	if (a->resp.score != b->resp.score)
-		return b->resp.score - a->resp.score;
-	
-	if (a->resp.deaths < b->resp.deaths)
-		return -1;
-	if (a->resp.deaths > b->resp.deaths) 
-		return 1;
-	
-	if (a->resp.damage_dealt > b->resp.damage_dealt)
-		return -1;
-	if (a->resp.damage_dealt < b->resp.damage_dealt)
-		return 1;
-	
-	return 0;
+    gclient_t *a = *(gclient_t * const *)p1;
+    gclient_t *b = *(gclient_t * const *)p2;
+
+    if (a->resp.score != b->resp.score)
+        return b->resp.score - a->resp.score;
+
+    if (a->resp.deaths < b->resp.deaths)
+        return -1;
+    if (a->resp.deaths > b->resp.deaths)
+        return 1;
+
+    if (a->resp.damage_dealt > b->resp.damage_dealt)
+        return -1;
+    if (a->resp.damage_dealt < b->resp.damage_dealt)
+        return 1;
+
+    return (byte *)a - (byte *)b;
 }
 
 int G_SortedClients( gclient_t **sortedList )
@@ -3898,6 +3898,7 @@ void TallyEndOfLevelTeamScores (void)
 			LogMatch(); // Generates end of game stats
 			LogEndMatchStats(); // Generates end of match logs
 		}
+		lc_discord_webhook(MM_MATCH_END_MSG, MATCH_END_MSG);
 	#endif
 	// Stats: Reset roundNum
 	game.roundNum = 0;

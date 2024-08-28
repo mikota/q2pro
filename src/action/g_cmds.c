@@ -1466,6 +1466,9 @@ void Cmd_Say_f (edict_t * ent, qboolean team, qboolean arg0, qboolean partner_ms
 		}
 	}
 
+	// Send message to Discord -- this must come before the newline add or it screws up formatting in-game
+	lc_discord_webhook(text, CHAT_MSG);
+
 	Q_strncatz(text, "\n", sizeof(text));
 
 	if (FloodCheck(ent))
