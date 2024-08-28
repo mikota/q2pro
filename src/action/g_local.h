@@ -433,7 +433,8 @@ typedef enum {
     CHAT_MSG = BIT(3),            // 8
     SERVER_MSG = BIT(4),          // 16
 	MATCH_END_MSG = BIT(5),       // 32
-    NOTIFY_MAX = BIT(6)           // 64
+	FIVE_MIN_WARN = BIT(6),       // 64
+    NOTIFY_MAX = BIT(7)           // 128
 } Discord_Notifications;
 
 // Default messages
@@ -1339,8 +1340,8 @@ extern cvar_t *sv_discord_announce_enable;
 extern cvar_t *sv_curl_stat_enable;
 extern cvar_t *sv_aws_access_key;
 extern cvar_t *sv_aws_secret_key;
-extern cvar_t *sv_curl_discord_chat_url;
-extern cvar_t *sv_curl_discord_server_url;
+extern cvar_t *sv_curl_discord_info_url;
+extern cvar_t *sv_curl_discord_pickup_url;
 extern cvar_t *server_ip;
 extern cvar_t *server_port;
 extern cvar_t *sv_last_announce_interval;

@@ -27,3 +27,4 @@ extern size_t current_requests;
 void lc_server_announce(char *path, char *message);
 void announce_server_populating(void);
 void lc_aqtion_stat_send(char *stats);
+qboolean message_timer_check(int delay);

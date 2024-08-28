@@ -139,7 +139,7 @@ void announce_server_populating(void)
 
     json_t *root = json_object();
     json_object_set_new(root, "srv_announce", srv_announce);
-    json_object_set_new(root, "webhook_url", json_string(sv_curl_discord_server_url->string));
+    json_object_set_new(root, "webhook_url", json_string(sv_curl_discord_pickup_url->string));
 
     char *message = json_dumps(root, 0); // 0 is the flags parameter, you can set it to JSON_INDENT(4) for pretty printing
 
@@ -352,7 +352,7 @@ static char *discord_MatchEndMsg(void)
 
 /*
 Call this with a string containing the message you want to send to the webhook.
-Limited to 1024 chars.
+Limited to 2048 chars.
 */
 void lc_discord_webhook(char* message, Discord_Notifications msgtype)
 {
@@ -371,12 +371,12 @@ void lc_discord_webhook(char* message, Discord_Notifications msgtype)
     }
 
     // Don't run this if curl is disabled or the webhook URL is set to "disabled"
-    if (!sv_curl_enable->value || strcmp(sv_curl_discord_chat_url->string, "disabled") == 0)
+    if (!sv_curl_enable->value || strcmp(sv_curl_discord_info_url->string, "disabled") == 0)
         return;
 
     // Use webhook.site to test curl, it's very handy!
     //char *url = "https://webhook.site/4de34388-9f3b-47fc-9074-7bdcd3cfa346";
-    char* url = sv_curl_discord_chat_url->string;
+    char* url = sv_curl_discord_info_url->string;
 
     // Get a new request object
     request = new_request();
@@ -392,9 +392,13 @@ void lc_discord_webhook(char* message, Discord_Notifications msgtype)
     }
 
     // Format the message as a JSON payload based on msgtype
-    if (msgtype == CHAT_MSG || msgtype == DEATH_MSG) {
+    if (msgtype == CHAT_MSG || msgtype == DEATH_MSG || msgtype == SERVER_MSG) {
         snprintf(json_payload, sizeof(json_payload), 
         "{\"content\":\"```%s```\"}", 
+        message);
+    } else if (msgtype == SERVER_MSG) {
+        snprintf(json_payload, sizeof(json_payload), 
+        "{\"content\":\"%s\"}",
         message);
     } else if (msgtype == MATCH_END_MSG){
         char *matchendmsg = discord_MatchEndMsg();
@@ -453,7 +457,7 @@ void lc_server_announce(char *path, char *message)
     // Don't run this if curl is disabled or the webhook URLs are set to "disabled" or empty, or if no server IP or port is set
     if (!cvar_check(sv_curl_enable) 
         || !cvar_check(server_announce_url)
-        || !cvar_check(sv_curl_discord_server_url)
+        || !cvar_check(sv_curl_discord_pickup_url)
         || !cvar_check(server_ip)
         || !cvar_check(server_port))
     {
@@ -658,9 +662,14 @@ void lc_once_per_gameframe(void)
 		current_requests = 0;
 }
 
-qboolean ready_to_announce(void)
+qboolean message_timer_check(int delay)
 {
-    if (level.framenum % 100 == 0 && level.lc_recently_sent)
+    static time_t last_announcement_time = 0;
+    time_t current_time = time(NULL);
+
+    if (difftime(current_time, last_announcement_time) >= delay) {
+        last_announcement_time = current_time;
         return true;
+    }
     return false;
 }

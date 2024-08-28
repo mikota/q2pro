@@ -561,14 +561,14 @@ cvar_t *sv_discord_announce_enable;		// Enable Discord announcements
 cvar_t *sv_curl_stat_enable;			// Enable cURL stat logging
 cvar_t *sv_aws_access_key;				// AWS Access Key (stat logs)
 cvar_t *sv_aws_secret_key;				// AWS Secret Key (stat logs)
-cvar_t *sv_curl_discord_chat_url;		// Discord message URL (sending messages to Discord via webhook)
-cvar_t *sv_curl_discord_server_url;		// Discord server URL
+cvar_t *sv_curl_discord_info_url;		// Discord webhook (#info-feed channel)
+cvar_t *sv_curl_discord_pickup_url;		// Discord webhook (#pickup channel)
 cvar_t *server_ip;						// Server IP
 cvar_t *server_port;					// Server port
 cvar_t *sv_last_announce_interval;		// Interval between announcements
 cvar_t *sv_last_announce_time;			// Last announcement time
 cvar_t *server_announce_url;			// Server announce URL
-cvar_t *msgflags;						// Message flags (like dmflags)
+cvar_t *msgflags;						// Message flags (like dmflags) see Discord_Notifications enum for more info
 // end cURL integration cvars
 
 cvar_t *training_mode; // Sets training mode vars
