@@ -138,6 +138,8 @@ void BeginIntermission(edict_t *targ)
 		LogMatch();
 		LogEndMatchStats(); // Generates end of match logs
 	}
+	if(!teamplay->value)
+		lc_discord_webhook(DM_MATCH_END_MSG, MATCH_END_MSG);
 	#endif
 
 	// respawn any dead clients

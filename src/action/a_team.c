@@ -3898,7 +3898,7 @@ void TallyEndOfLevelTeamScores (void)
 			LogMatch(); // Generates end of game stats
 			LogEndMatchStats(); // Generates end of match logs
 		}
-		lc_discord_webhook(MM_MATCH_END_MSG, MATCH_END_MSG);
+		lc_discord_webhook(TP_MATCH_END_MSG, MATCH_END_MSG);
 	#endif
 	// Stats: Reset roundNum
 	game.roundNum = 0;

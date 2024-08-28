@@ -437,8 +437,9 @@ typedef enum {
 } Discord_Notifications;
 
 // Default messages
-#define MM_MATCH_END_MSG "Match Results"
-
+#define MM_MATCH_END_MSG "Matchmode Results"
+#define TP_MATCH_END_MSG "Teamplay Results"
+#define DM_MATCH_END_MSG "Deathmatch Results"
 
 //deadflag
 #define DEAD_NO                         0

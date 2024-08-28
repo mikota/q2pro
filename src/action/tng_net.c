@@ -236,10 +236,20 @@ static char *discord_MatchEndMsg(void)
     json_t *embed = json_object();
     json_array_append_new(embeds, embed);
 
+    // Adjust description and color based on mode
+    if (teamplay->value) { // Green
+        json_object_set_new(embed, "description", json_string(TP_MATCH_END_MSG));
+        json_object_set_new(embed, "color", json_integer(65280));
+    } else if (matchmode->value) {  // Light blue
+        json_object_set_new(embed, "description", json_string(MM_MATCH_END_MSG));
+        json_object_set_new(embed, "color", json_integer(65535));
+    } else { // Red
+        json_object_set_new(embed, "description", json_string(DM_MATCH_END_MSG));
+        json_object_set_new(embed, "color", json_integer(16711680));
+    }
+
     // Add fields to the embed object
-    json_object_set_new(embed, "description", json_string("Match results"));
     json_object_set_new(embed, "title", json_string(level.mapname));
-    json_object_set_new(embed, "color", json_integer(16711680));
 
     // Create the "thumbnail" object
     json_t *thumbnail = json_object();
@@ -254,69 +264,82 @@ static char *discord_MatchEndMsg(void)
     json_object_set_new(embed, "fields", fields);
 
     // Create field objects and add them to the "fields" array
+    // Checks teamplay first, then deathmatch
     if (teamplay->value) {
-        char *t1name = TeamName(TEAM1);
-        char *t2name = TeamName(TEAM2);
-        int t1score = teams[TEAM1].score;
-        int t2score = teams[TEAM2].score;
-        char field1content[64];
-        snprintf(field1content, sizeof(field1content), "%s: %d", t1name, t1score);
-        char field2content[64];
-        snprintf(field2content, sizeof(field2content), "%s: %d", t2name, t2score);
-        char *t1_player_scores = TeamConstructPlayerScoreString(TEAM1);
-        char *t2_player_scores = TeamConstructPlayerScoreString(TEAM2);
+        for (int team = TEAM1; team <= teamCount; team++) {
+            char *team_name = TeamName(team);
+            int team_score = teams[team].score;
+            char field_content[64];
+            snprintf(field_content, sizeof(field_content), "%s: %d", team_name, team_score);
+            char *team_player_scores = TeamConstructPlayerScoreString(team);
+
+            // Format team player scores
+            char formatted_team_player_scores[1024] = ""; // Initialize buffer to empty string
+            char line[64]; // Buffer for each formatted line
+            char *token;
+            int offset = 0;
+
+            // Tokenize the team_player_scores string and format each line
+            token = strtok(team_player_scores, "\n");
+            while (token != NULL) {
+                char player[17]; // Buffer for player name (16 characters + null terminator)
+                int score;
+                sscanf(token, "%16[^:]: %d", player, &score); // Read player name and score
+                snprintf(line, sizeof(line), "%-16s %4d\n", player, score); // Format with fixed width
+                offset += snprintf(formatted_team_player_scores + offset, sizeof(formatted_team_player_scores) - offset, "%s", line);
+                token = strtok(NULL, "\n");
+            }
+
+            // Add triple backticks for Discord formatting
+            char discord_formatted_team_player_scores[1280];
+            snprintf(discord_formatted_team_player_scores, sizeof(discord_formatted_team_player_scores), "```%s```", formatted_team_player_scores);
+
+            json_t *field = json_object();
+            json_object_set_new(field, "name", json_string(field_content));
+            json_object_set_new(field, "value", json_string(discord_formatted_team_player_scores));
+            json_object_set_new(field, "inline", json_false());
+            json_array_append_new(fields, field);
+        }
+    } else { // Deathmatch
+        char *player_scores = DMConstructPlayerScoreString();
+        char formatted_player_scores[1024]; // Increase buffer size to accommodate formatted scores
+        char line[64]; // Buffer for each formatted line
+        char *token;
+        int offset = 0;
+
+        // Tokenize the player_scores string and format each line
+        token = strtok(player_scores, "\n");
+        while (token != NULL) {
+            char player[17]; // Buffer for player name (16 characters + null terminator)
+            int score;
+            // Read player name and score, allowing spaces in player names
+            sscanf(token, "%16[^:]: %d", player, &score); 
+            // Format with fixed width
+            snprintf(line, sizeof(line), "%-16s %4d\n", player, score); 
+            // Append formatted line to the result
+            offset += snprintf(formatted_player_scores + offset, sizeof(formatted_player_scores) - offset, "%s", line);
+            token = strtok(NULL, "\n");
+        }
 
         // Add triple backticks for Discord formatting
-        char formatted_t1_player_scores[256];
-        snprintf(formatted_t1_player_scores, sizeof(formatted_t1_player_scores), "```%s```", t1_player_scores);
-        char formatted_t2_player_scores[256];
-        snprintf(formatted_t2_player_scores, sizeof(formatted_t2_player_scores), "```%s```", t2_player_scores);
+        char discord_formatted_scores[1280];
+        snprintf(discord_formatted_scores, sizeof(discord_formatted_scores), "```%s```", formatted_player_scores);
 
-        
-        if(teamCount == 2) {
-            json_t *field1 = json_object();
-            json_object_set_new(field1, "name", json_string(field1content));
-            json_object_set_new(field1, "value", json_string(formatted_t1_player_scores));
-            json_object_set_new(field1, "inline", json_true());
-            json_array_append_new(fields, field1);
+        json_t *field = json_object();
+        json_object_set_new(field, "name", json_string("")); // Empty on purpose
+        json_object_set_new(field, "value", json_string(discord_formatted_scores));
+        json_object_set_new(field, "inline", json_true());
+        json_array_append_new(fields, field);
 
-            json_t *field2 = json_object();
-            json_object_set_new(field2, "name", json_string(field2content));
-            json_object_set_new(field2, "value", json_string(formatted_t2_player_scores));
-            json_object_set_new(field2, "inline", json_true());
-            json_array_append_new(fields, field2);
-        } else {
-            char *t3name = TeamName(TEAM3);
-            int t3score = teams[TEAM3].score;
-            char field3content[64];
-            snprintf(field3content, sizeof(field3content), "%s: %d", t3name, t3score);
-            char *t3_player_scores = TeamConstructPlayerScoreString(TEAM3);
-            // Add triple backticks for Discord formatting
-            char formatted_t3_player_scores[256];
-            snprintf(formatted_t3_player_scores, sizeof(formatted_t3_player_scores), "```%s```", t3_player_scores);
-
-            json_t *field1 = json_object();
-            json_object_set_new(field1, "name", json_string(field1content));
-            json_object_set_new(field1, "value", json_string(formatted_t1_player_scores));
-            json_object_set_new(field1, "inline", json_true());
-            json_array_append_new(fields, field1);
-
-            json_t *field2 = json_object();
-            json_object_set_new(field2, "name", json_string(field2content));
-            json_object_set_new(field2, "value", json_string(formatted_t2_player_scores));
-            json_object_set_new(field2, "inline", json_true());
-            json_array_append_new(fields, field2);
-
-            json_t *field3 = json_object();
-            json_object_set_new(field3, "name", json_string(field3content));
-            json_object_set_new(field3, "value", json_string(formatted_t3_player_scores));
-            json_object_set_new(field3, "inline", json_true());
-            json_array_append_new(fields, field3);
-        }
     }
 
     // Add "username" field to the root object
     json_object_set_new(root, "username", json_string(hostname->string));
+
+    // Create the "author" object (hostname)
+    json_t *author = json_object();
+    json_object_set_new(author, "name", json_string(hostname->string));
+    json_object_set_new(embed, "author", author);
 
     // Convert the JSON object to a string
     char *json_payload = json_dumps(root, JSON_INDENT(4));
