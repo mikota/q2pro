@@ -2576,10 +2576,10 @@ qboolean CheckTimelimit( void )
 				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("tng/3_minutes.wav"), 1.0, ATTN_NONE, 0.0 );
 				timewarning = 1;
 			}
-			else if( timewarning < 1 && timelimit->value > 5 && level.matchTime >= ((timelimit->value - 5) * 60) && !during_countdown)
-			{
-				lc_discord_webhook(NULL, FIVE_MIN_WARN);
-			}
+		}
+		else if ( use_warnings->value && matchmode->value ){
+			if( timelimit->value > 5 && level.matchTime >= ((timelimit->value - 5) * 60) && !during_countdown)
+				lc_discord_webhook(MM_FIVE_MIN_WARN, FIVE_MIN_WARN);
 		}
 	}
 	

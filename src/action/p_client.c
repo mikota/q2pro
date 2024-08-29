@@ -388,7 +388,7 @@ void Announce_Reward(edict_t *ent, int rewardType) {
 			gi.dprintf("%s: Unknown reward type %d for %s\n", __FUNCTION__, rewardType, playername);
             return;  // Something didn't jive here?
     }
-
+	ent->client->resp.awardstats[rewardType]++;
     CenterPrintAll(buf);
     gi.sound(&g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex(soundFile), 1.0, ATTN_NONE, 0.0);
 
@@ -3823,6 +3823,7 @@ void CreateGhost(edict_t * ent)
 
 	memcpy(ghost->hitsLocations, ent->client->resp.hitsLocations, sizeof(ghost->hitsLocations));
 	memcpy(ghost->gunstats, ent->client->resp.gunstats, sizeof(ghost->gunstats));
+	memcpy(ghost->awardstats, ent->client->resp.awardstats, sizeof(ghost->awardstats));
 }
 
 //==============================================================

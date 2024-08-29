@@ -86,6 +86,9 @@ void ResetStats(edict_t *ent)
 	for (i = 0; i<LOC_MAX; i++)
 		ent->client->resp.hitsLocations[i] = 0;
 
+	for (i = 0; i<AWARD_MAX; i++)
+		ent->client->resp.awardstats[i] = 0;
+
 	memset(ent->client->resp.gunstats, 0, sizeof(ent->client->resp.gunstats));
 }
 
@@ -671,19 +674,6 @@ static void G_SaveScores(void)
 
     fclose(fp);
 }
-
-// static int G_PlayerCmp(const void *p1, const void *p2)
-// {
-//     gclient_t *a = *(gclient_t * const *)p1;
-//     gclient_t *b = *(gclient_t * const *)p2;
-
-//     int r = b->resp.score - a->resp.score;
-//     if (!r)
-//         r = a->resp.deaths - b->resp.deaths;
-//     if (!r)
-//         r = (byte *)a - (byte *)b;
-//     return r;
-// }
 
 int G_CalcRanks(gclient_t **ranks)
 {
@@ -1516,6 +1506,7 @@ void LogEndMatchStats(void)
 			// Copy all gunstats and hit locations to this dummy entity
 			memcpy(ghlient->resp.hitsLocations, ghost->hitsLocations, sizeof(ghlient->resp.hitsLocations));
 			memcpy(ghlient->resp.gunstats, ghost->gunstats, sizeof(ghlient->resp.gunstats));
+			memcpy(ghlient->resp.awardstats, ghost->awardstats, sizeof(ghlient->resp.awardstats));
 
 		WriteLogEndMatchStats(ghlient);
 		}

@@ -8,6 +8,8 @@ Special thanks to Phatman for a bulk of the core code
 #include "g_local.h"
 #include <jansson.h>
 
+qboolean curldebug = false;
+
 // You will need one of these for each of the requests ...
 // ... if you allow concurrent requests to be sent at the same time
 request_list_t *active_requests, *unused_requests;
@@ -151,6 +153,79 @@ void announce_server_populating(void)
     gi.cvar_forceset("sv_last_announce_time", va("%d", (int)time(NULL)));
 }
 
+static char* ConstructPlayerAwardStatString(void) {
+    gclient_t **ranks = (gclient_t **)malloc(game.maxclients * sizeof(gclient_t *));
+    int total = G_CalcRanks(ranks);
+
+    // Calculate the required buffer size
+    int buffer_size = 0;
+    for (int award = 0; award < AWARD_MAX; award++) {
+        for (int i = 0; i < total; i++) {
+            if (ranks[i]->resp.awardstats[award] > 0) {
+                buffer_size += snprintf(NULL, 0, "%s: %s (%d)\n", 
+                    award == ACCURACY ? "Accuracy" :
+                    award == IMPRESSIVE ? "Impressive" :
+                    award == EXCELLENT ? "Excellent" :
+                    award == DOMINATING ? "Domination" :
+                    award == UNSTOPPABLE ? "Unstoppable" : "Unknown",
+                    ranks[i]->pers.netname, ranks[i]->resp.awardstats[award]);
+            }
+        }
+    }
+
+    // Allocate the buffer
+    char *result = (char *)malloc(buffer_size + 1);
+    if (!result) {
+        free(ranks);
+        return NULL; // Handle memory allocation failure
+    }
+
+    // Construct the string
+    char *ptr = result;
+    for (int award = 0; award < AWARD_MAX; award++) {
+        for (int i = 0; i < total; i++) {
+            if (ranks[i]->resp.awardstats[award] > 0) {
+                ptr += sprintf(ptr, "%s: %s (%d)\n", 
+                    award == ACCURACY ? "Accuracy" :
+                    award == IMPRESSIVE ? "Impressive" :
+                    award == EXCELLENT ? "Excellent" :
+                    award == DOMINATING ? "Dominating" :
+                    award == UNSTOPPABLE ? "Unstoppable" : "Unknown",
+                    ranks[i]->pers.netname, ranks[i]->resp.awardstats[award]);
+            }
+        }
+    }
+
+    // Construct the string for additional stats
+    double accuracy;
+    int shots;
+    // Variables to track the highest accuracy
+    double highest_accuracy = 0.0;
+    gclient_t *highest_accuracy_player = NULL;
+
+    for (int i = 0; i < total; i++) {
+        shots = min(ranks[i]->resp.shotsTotal, 9999);
+        if (shots)
+            accuracy = (double)ranks[i]->resp.hitsTotal * 100.0 / (double)ranks[i]->resp.shotsTotal;
+        else
+            accuracy = 0;
+
+        if (accuracy > highest_accuracy) {
+            highest_accuracy = accuracy;
+            highest_accuracy_player = ranks[i];
+        }
+    }
+
+    // Print the player with the highest accuracy
+    if (highest_accuracy_player) {
+        ptr += sprintf(ptr, "Highest accuracy: %s (%.2f%%)\n", highest_accuracy_player->pers.netname, highest_accuracy);
+    }
+
+
+    free(ranks);
+    return result;
+}
+
 static char* DMConstructPlayerScoreString(void) {
     gclient_t **ranks = (gclient_t **)malloc(game.maxclients * sizeof(gclient_t *));
     int total = G_CalcRanks(ranks);
@@ -259,6 +334,14 @@ static char *discord_MatchEndMsg(void)
     snprintf(mapimgurl, sizeof(mapimgurl), "https://raw.githubusercontent.com/vrolse/AQ2-pickup-bot/main/thumbnails/%s.jpg", level.mapname);
     json_object_set_new(thumbnail, "url", json_string(mapimgurl));
 
+    // Add "username" field to the root object
+    json_object_set_new(root, "username", json_string(hostname->string));
+
+    // Create the "author" object (hostname)
+    json_t *author = json_object();
+    json_object_set_new(author, "name", json_string(hostname->string));
+    json_object_set_new(embed, "author", author);
+
     // Create the "fields" array
     json_t *fields = json_array();
     json_object_set_new(embed, "fields", fields);
@@ -328,18 +411,40 @@ static char *discord_MatchEndMsg(void)
         json_t *field = json_object();
         json_object_set_new(field, "name", json_string("")); // Empty on purpose
         json_object_set_new(field, "value", json_string(discord_formatted_scores));
-        json_object_set_new(field, "inline", json_true());
+        json_object_set_new(field, "inline", json_true()); // Inline true here because it's only one list
         json_array_append_new(fields, field);
-
     }
 
-    // Add "username" field to the root object
-    json_object_set_new(root, "username", json_string(hostname->string));
+    //  TODO: Testing out player award stats printing, broken for now
 
-    // Create the "author" object (hostname)
-    json_t *author = json_object();
-    json_object_set_new(author, "name", json_string(hostname->string));
-    json_object_set_new(embed, "author", author);
+    // char *player_stats = ConstructPlayerAwardStatString();
+    // // Format stats
+    // char formatted_player_stats[1024] = ""; // Initialize buffer to empty string
+    // char line[128]; // Buffer for each formatted line
+    // char *token;
+    // int offset = 0;
+
+    // // Tokenize the player_stats string and format each line
+    // token = strtok(player_stats, "\n");
+    // while (token != NULL) {
+    //     char award[32]; // Buffer for award name
+    //     char player[17]; // Buffer for player name (16 characters + null terminator)
+    //     int count;
+    //     sscanf(token, "Most %31[^:]: %16[^ ] (%d)", award, player, &count); // Read award, player name, and count
+    //     snprintf(line, sizeof(line), "Most %-16s %s (%d)\n", award, player, count); // Format with fixed width
+    //     offset += snprintf(formatted_player_stats + offset, sizeof(formatted_player_stats) - offset, "%s", line);
+    //     token = strtok(NULL, "\n");
+    // }
+
+    // // Add triple backticks for Discord formatting
+    // char discord_formatted_scores[1280];
+    // snprintf(discord_formatted_scores, sizeof(discord_formatted_scores), "```%s```", formatted_player_stats);
+
+    // json_t *gamesettings = json_object();
+    // json_object_set_new(gamesettings, "name", json_string("Awards / Stats"));
+    // json_object_set_new(gamesettings, "value", json_string(discord_formatted_scores));
+    // json_object_set_new(gamesettings, "inline", json_true());
+    // json_array_append_new(fields, gamesettings);
 
     // Convert the JSON object to a string
     char *json_payload = json_dumps(root, JSON_INDENT(4));
@@ -359,24 +464,32 @@ void lc_discord_webhook(char* message, Discord_Notifications msgtype)
     request_t *request;
     char json_payload[2048];
 
-    // Debug prints
-    gi.dprintf("msgflags value: %d\n", (int)msgflags->value);
-    gi.dprintf("msgtype value: %d\n", msgtype);
+    if (curldebug) {
+        // Debug prints
+        gi.dprintf("msgflags value: %d\n", (int)msgflags->value);
+        gi.dprintf("msgtype value: %d\n", msgtype);
 
-    // Check if the msgtype is within the allowed message flags
-    // Look at the Discord_Notifications enum in g_local.h for the flags
-    if (!(msgtype & (int)msgflags->value)) {
-        gi.dprintf("Message type not allowed by msgflags\n");
-        return;
+        // Check if the msgtype is within the allowed message flags
+        // Look at the Discord_Notifications enum in g_local.h for the flags
+        if (!(msgtype & (int)msgflags->value)) {
+            gi.dprintf("Message type not allowed by msgflags\n");
+            return;
+        }
     }
 
     // Don't run this if curl is disabled or the webhook URL is set to "disabled"
     if (!sv_curl_enable->value || strcmp(sv_curl_discord_info_url->string, "disabled") == 0)
         return;
 
+    // Default url is to the #info-feed channel
+    char* url = sv_curl_discord_info_url->string;
+    // Change webhook URL based on message type
+    if (msgtype == FIVE_MIN_WARN)
+        url = sv_curl_discord_pickup_url->string;
+
     // Use webhook.site to test curl, it's very handy!
     //char *url = "https://webhook.site/4de34388-9f3b-47fc-9074-7bdcd3cfa346";
-    char* url = sv_curl_discord_info_url->string;
+    //char* url = sv_curl_discord_info_url->string;
 
     // Get a new request object
     request = new_request();
@@ -396,7 +509,7 @@ void lc_discord_webhook(char* message, Discord_Notifications msgtype)
         snprintf(json_payload, sizeof(json_payload), 
         "{\"content\":\"```%s```\"}", 
         message);
-    } else if (msgtype == SERVER_MSG) {
+    } else if (msgtype == SERVER_MSG || msgtype == FIVE_MIN_WARN) {
         snprintf(json_payload, sizeof(json_payload), 
         "{\"content\":\"%s\"}",
         message);

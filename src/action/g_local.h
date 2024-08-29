@@ -441,6 +441,7 @@ typedef enum {
 #define MM_MATCH_END_MSG "Matchmode Results"
 #define TP_MATCH_END_MSG "Teamplay Results"
 #define DM_MATCH_END_MSG "Deathmatch Results"
+#define MM_FIVE_MIN_WARN "5 minutes remaining in the map"
 
 //deadflag
 #define DEAD_NO                         0
@@ -1929,7 +1930,7 @@ typedef struct
 
   int hitsLocations[LOC_MAX];		//Number of hits for different locations
   gunStats_t gunstats[MOD_TOTAL]; //Number of shots/hits for different guns, adjusted to MOD_TOTAL to allow grenade, kick and punch stats
-
+  int awardstats[AWARD_MAX];			//Number of impressive, excellent and accuracy awards
   //AQ2:TNG - Slicer: Video Checking and further Cheat cheking vars
   char vidref[16];
   char gldriver[16];
@@ -2703,6 +2704,7 @@ typedef struct
 	int hitsTotal;
 	int hitsLocations[LOC_MAX];
 	gunStats_t gunstats[MOD_TOTAL];
+	int awardstats[AWARD_MAX];
 	int team;
 	gitem_t *weapon;
 	gitem_t *item;
