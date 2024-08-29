@@ -393,10 +393,10 @@ if sdl2.found()
   config.set('USE_SDL', 'USE_CLIENT')
 endif
 
-common_deps = [zlib]
-client_deps = [png, curl, sdl2]
-server_deps = [curl]
-game_deps = [zlib, curl]
+common_deps = [zlib, curl]
+client_deps = [png, sdl2]
+server_deps = []
+game_deps = [zlib]
 
 jpeg = dependency('libjpeg',
   required:        get_option('libjpeg'),
