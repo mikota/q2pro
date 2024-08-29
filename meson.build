@@ -381,11 +381,6 @@ if sdl2.found()
   config.set('USE_SDL', 'USE_CLIENT')
 endif
 
-common_deps = [zlib]
-client_deps = [png, curl, sdl2]
-server_deps = []
-game_deps = [zlib]
-
 curl = dependency('libcurl',
   version:         '>= 7.68.0',
   required:        get_option('libcurl'),
@@ -395,9 +390,12 @@ curl = dependency('libcurl',
 if curl.found()
   client_src += 'src/client/http.c'
   config.set10('USE_CURL', true)
-  client_deps += curl
-  game_deps += curl
 endif
+
+common_deps = [zlib]
+client_deps = [png, curl, sdl2]
+server_deps = []
+game_deps = [zlib]
 
 jpeg = dependency('libjpeg',
   required:        get_option('libjpeg'),
