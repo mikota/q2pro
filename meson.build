@@ -381,6 +381,11 @@ curl = dependency('libcurl',
   default_options: fallback_opt,
 )
 
+if curl.found()
+  client_src += 'src/client/http.c'
+  config.set10('USE_CURL', true)
+endif
+
 sdl2 = dependency('sdl2', required: get_option('sdl2'))
 if sdl2.found()
   client_src += 'src/unix/video/sdl.c'
@@ -391,15 +396,6 @@ common_deps = [zlib]
 client_deps = [png, curl, sdl2]
 server_deps = []
 game_deps = [zlib]
-
-if curl.found()
-  client_src += 'src/client/http.c'
-  if not win32
-    action_src += 'src/action/tng_net.c'  ## Not supporting libcurl on Windows for gamelib
-    game_deps += curl
-  endif
-  config.set10('USE_CURL', true)
-endif
 
 jpeg = dependency('libjpeg',
   required:        get_option('libjpeg'),
@@ -445,7 +441,6 @@ jansson_dep = dependency('jansson',
 )
 if jansson_dep.found()
   game_deps += jansson_dep
-  #dll_link_args += '-ljansson'
 endif
 
 if not win32
@@ -460,6 +455,11 @@ if not win32
     config.set10('USE_UUID', true)
     dll_link_args += '-luuid'
   endif
+endif
+
+if not win32
+  action_src += 'src/action/tng_net.c'  ## Not supporting libcurl on Windows for gamelib
+  game_deps += curl
 endif
 
 if host_machine.system() == 'darwin'
