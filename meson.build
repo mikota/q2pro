@@ -396,7 +396,7 @@ endif
 common_deps = [zlib]
 client_deps = [png, curl, sdl2]
 server_deps = [curl]
-game_deps = [zlib]
+game_deps = [zlib, curl]
 
 jpeg = dependency('libjpeg',
   required:        get_option('libjpeg'),
