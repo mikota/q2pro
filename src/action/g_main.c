@@ -1274,9 +1274,11 @@ void G_RunFrame (void)
 		CycleLights ();
 
 		//Run pending curl requests
-		#ifdef USE_CURL
+		#if USE_CURL
+		#if AQTION_CURL
 		if (sv_curl_enable->value)
 			lc_once_per_gameframe();
+		#endif
 		#endif
 
 		//

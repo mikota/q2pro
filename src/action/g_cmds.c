@@ -1467,7 +1467,9 @@ void Cmd_Say_f (edict_t * ent, qboolean team, qboolean arg0, qboolean partner_ms
 	}
 
 	// Send message to Discord -- this must come before the newline add or it screws up formatting in-game
+	#if AQTION_CURL
 	lc_discord_webhook(text, CHAT_MSG);
+	#endif
 
 	Q_strncatz(text, "\n", sizeof(text));
 
@@ -2002,7 +2004,9 @@ static cmdList_t commandList[] =
 	{ "volunteer", Cmd_Volunteer_f, 0},
 	{ "leader", Cmd_Volunteer_f, 0},
 	{ "highscores", Cmd_HighScores_f, 0},
+#if AQTION_CURL
 	{ "pickup", Cmd_Pickup_f, 0},
+#endif
 };
 
 #define MAX_COMMAND_HASH 64

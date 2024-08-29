@@ -91,7 +91,9 @@ void SendScores(void)
 			LogMatch();  // Generates end of game stats
 			LogEndMatchStats();  // Generates end of match stats
 		}
+		#if AQTION_CURL
 		lc_discord_webhook(MM_MATCH_END_MSG, MATCH_END_MSG);
+		#endif
 	#endif
 	// Stats: Reset roundNum
 	game.roundNum = 0;

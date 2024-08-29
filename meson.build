@@ -564,6 +564,12 @@ if get_option('aqtion-build')
   dll_link_args += '-lcurl'
 endif
 
+if get_option('aqtion-curl')
+  config.set10('AQTION_CURL', true)
+  action_src += 'src/action/tng_net.c'
+  game_deps += curl
+endif
+
 if get_option('discord-sdk')
   #if host_machine.system() == 'linux'
   if host_machine.cpu_family() == 'aarch64' # I am Linux ARM 64-bit

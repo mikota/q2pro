@@ -26,6 +26,7 @@ env:
     -Dwayland=disabled
     -Dwrap_mode=forcefallback
     -Dx11=disabled
+    -Daqtion-curl=false
 
   MESON_ARGS_LINUX_WAYLAND: >-
     -Dwindows-crash-dumps=disabled

@@ -1455,6 +1455,7 @@ void GetNearbyTeammates( edict_t *self, char *buf )
 	}
 }
 
+#if AQTION_CURL
 void Cmd_Pickup_f(edict_t* ent)
 {
     char *playername = ent->client->pers.netname;
@@ -1469,3 +1470,4 @@ void Cmd_Pickup_f(edict_t* ent)
 		gi.cprintf(ent, PRINT_HIGH, "It is too early to send another request, please wait.\n");
 	}
 }
+#endif

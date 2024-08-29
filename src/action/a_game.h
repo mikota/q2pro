@@ -150,4 +150,6 @@ void Cmd_NextMap_f( edict_t * ent );
 void Cmd_PrintRules_f(edict_t *ent);
 
 //a_game.c
+#if AQTION_CURL
 void Cmd_Pickup_f( edict_t * ent );
+#endif

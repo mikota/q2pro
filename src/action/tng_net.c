@@ -468,13 +468,13 @@ void lc_discord_webhook(char* message, Discord_Notifications msgtype)
         // Debug prints
         gi.dprintf("msgflags value: %d\n", (int)msgflags->value);
         gi.dprintf("msgtype value: %d\n", msgtype);
-
-        // Check if the msgtype is within the allowed message flags
-        // Look at the Discord_Notifications enum in g_local.h for the flags
-        if (!(msgtype & (int)msgflags->value)) {
+    }
+    // Check if the msgtype is within the allowed message flags
+    // Look at the Discord_Notifications enum in g_local.h for the flags
+    if (!(msgtype & (int)msgflags->value)) {
+        if (curldebug)
             gi.dprintf("Message type not allowed by msgflags\n");
-            return;
-        }
+        return;
     }
 
     // Don't run this if curl is disabled or the webhook URL is set to "disabled"

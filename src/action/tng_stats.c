@@ -889,7 +889,11 @@ void Write_Stats(const char* msg, ...)
 
 	// Send stats to API, else write to local file
 	if (sv_curl_enable->value && sv_curl_stat_enable->value) {
+		#if AQTION_CURL
 		lc_aqtion_stat_send(stat_cpy);
+		#else
+		return;
+		#endif
 	} else {
 		logfile_name = gi.cvar("logfile_name", "", CVAR_NOSET);
 		sprintf(logpath, "action/logs/%s.stats", logfile_name->string);

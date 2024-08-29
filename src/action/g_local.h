@@ -2926,8 +2926,10 @@ void addTimedMessage(int teamNum, edict_t *ent, int seconds, char *msg);
 void FireTimedMessages(void);
 
 //tng_net.c
+#if AQTION_CURL
 void lc_shutdown_function(void);
 qboolean lc_init_function(void);
 void lc_once_per_gameframe(void);
 void lc_discord_webhook(char* message, Discord_Notifications msgtype);
 void lc_start_request_function(request_t* request);
+#endif

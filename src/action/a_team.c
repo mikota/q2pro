@@ -2577,10 +2577,12 @@ qboolean CheckTimelimit( void )
 				timewarning = 1;
 			}
 		}
+		#if AQTION_CURL
 		else if ( use_warnings->value && matchmode->value ){
 			if( timelimit->value > 5 && level.matchTime >= ((timelimit->value - 5) * 60) && !during_countdown)
 				lc_discord_webhook(MM_FIVE_MIN_WARN, FIVE_MIN_WARN);
 		}
+		#endif
 	}
 	
 	return false;
@@ -3902,7 +3904,9 @@ void TallyEndOfLevelTeamScores (void)
 			LogMatch(); // Generates end of game stats
 			LogEndMatchStats(); // Generates end of match logs
 		}
+		#if AQTION_CURL
 		lc_discord_webhook(TP_MATCH_END_MSG, MATCH_END_MSG);
+		#endif
 	#endif
 	// Stats: Reset roundNum
 	game.roundNum = 0;
