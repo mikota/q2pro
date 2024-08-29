@@ -78,11 +78,6 @@ option('libcurl',
   type: 'feature',
   value: 'auto',
   description: 'libcurl support')
-
-option('jansson',
-  type: 'feature',
-  value: 'auto',
-  description: 'AQtion jansson support')
   
 option('libjpeg',
   type: 'feature',
