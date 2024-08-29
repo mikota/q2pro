@@ -205,7 +205,6 @@ action_src = [
   'src/action/tng_flashlight.c',
   'src/action/tng_ini.c',
   'src/action/tng_irc.c',
-  'src/action/tng_net.c',
   'src/action/tng_jump.c',
   'src/action/tng_stats.c',
   'src/shared/shared.c'
@@ -384,6 +383,10 @@ curl = dependency('libcurl',
 
 if curl.found()
   client_src += 'src/client/http.c'
+  if not win32
+    action_src += 'src/action/tng_net.c'  ## Not supporting libcurl on Windows for gamelib
+    game_deps += curl
+  endif
   config.set10('USE_CURL', true)
 endif
 
@@ -393,8 +396,8 @@ if sdl2.found()
   config.set('USE_SDL', 'USE_CLIENT')
 endif
 
-common_deps = [zlib, curl]
-client_deps = [png, sdl2]
+common_deps = [zlib]
+client_deps = [png, curl, sdl2]
 server_deps = []
 game_deps = [zlib]
 
