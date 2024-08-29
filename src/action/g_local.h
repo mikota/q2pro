@@ -291,7 +291,9 @@
 #include	"tng_jump.h"
 #include	"g_grapple.h"
 #include	"p_antilag.h"
+#if AQTION_CURL
 #include 	"tng_net.h"
+#endif
 
 #ifndef NO_BOTS
 //#include	"acesrc/botnav.h"
