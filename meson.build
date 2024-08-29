@@ -457,10 +457,10 @@ if not win32
   endif
 endif
 
-if not win32
-  action_src += 'src/action/tng_net.c'  ## Not supporting libcurl on Windows for gamelib
-  game_deps += curl
-endif
+# if not win32
+#   action_src += 'src/action/tng_net.c'  ## Not supporting libcurl on Windows for gamelib
+#   game_deps += curl
+# endif
 
 if host_machine.system() == 'darwin'
   # Darwin is warning-spamming because of its SDL_config defines
