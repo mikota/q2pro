@@ -382,7 +382,7 @@ if sdl2.found()
 endif
 
 common_deps = [zlib]
-client_deps = [png, sdl2]
+client_deps = [png, curl, sdl2]
 server_deps = []
 game_deps = [zlib]
 
