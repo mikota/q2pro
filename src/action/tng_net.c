@@ -8,7 +8,7 @@ Special thanks to Phatman for a bulk of the core code
 #include "g_local.h"
 #include <jansson.h>
 
-qboolean curldebug = true;
+qboolean curldebug = false;
 
 // You will need one of these for each of the requests ...
 // ... if you allow concurrent requests to be sent at the same time
