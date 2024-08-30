@@ -353,7 +353,7 @@ static char* ConstructGameSettingsString(void) {
     return result;
 }
 
-static char *discord_MatchEndMsg(void)
+static char *discord_MatchEndMsg(char* msg)
 {
     // Create the root object
     json_t *root = json_object();
@@ -368,15 +368,13 @@ static char *discord_MatchEndMsg(void)
     json_t *embed = json_object();
     json_array_append_new(embeds, embed);
 
-    // Adjust description and color based on mode
+    // Adjust color based on mode
+    json_object_set_new(embed, "description", json_string(msg));
     if (teamplay->value) { // Green
-        json_object_set_new(embed, "description", json_string(TP_MATCH_END_MSG));
         json_object_set_new(embed, "color", json_integer(65280));
     } else if (matchmode->value) {  // Light blue
-        json_object_set_new(embed, "description", json_string(MM_MATCH_END_MSG));
         json_object_set_new(embed, "color", json_integer(65535));
     } else { // Red
-        json_object_set_new(embed, "description", json_string(DM_MATCH_END_MSG));
         json_object_set_new(embed, "color", json_integer(16711680));
     }
 
@@ -465,7 +463,7 @@ static char *discord_MatchEndMsg(void)
 
         // Add triple backticks for Discord formatting
         char discord_formatted_scores[1280];
-        snprintf(discord_formatted_scores, sizeof(discord_formatted_scores), "```%s```", formatted_player_scores);
+        snprintf(discord_formatted_scores, sizeof(discord_formatted_scores), "```\n%s```", formatted_player_scores);
 
         json_t *field = json_object();
         json_object_set_new(field, "name", json_string("")); // Empty on purpose
@@ -516,7 +514,7 @@ static char *discord_MatchEndMsg(void)
     return json_payload;
 }
 
-static char *discord_MatchStartMsg(void)
+static char *discord_MatchStartMsg(char* msg)
 {
     // Create the root object
     json_t *root = json_object();
@@ -533,7 +531,7 @@ static char *discord_MatchStartMsg(void)
 
     // Adjust description and color based on mode
     if (teamplay->value) { // Green
-        json_object_set_new(embed, "description", json_string(TP_MATCH_START_MSG));
+        json_object_set_new(embed, "description", json_string(msg));
         json_object_set_new(embed, "color", json_integer(65280));
     }
 
@@ -556,6 +554,15 @@ static char *discord_MatchStartMsg(void)
     json_object_set_new(author, "name", json_string(hostname->string));
     json_object_set_new(embed, "author", author);
 
+    // Create the "footer" object (server ip and port) if server_ip is valid
+    if (is_valid_ipv4(server_ip->string)) {
+        json_t *footer = json_object();
+        char footerinfo[64];
+        snprintf(footerinfo, sizeof(footerinfo), "Server: %s:%s", server_ip->string, net_port->string);
+        json_object_set_new(footer, "text", json_string(footerinfo));
+        json_object_set_new(embed, "footer", footer);
+    }
+
     // Create the "fields" array
     json_t *fields = json_array();
     json_object_set_new(embed, "fields", fields);
@@ -569,7 +576,7 @@ static char *discord_MatchStartMsg(void)
 
         // Add triple backticks for Discord formatting
         char discord_formatted_players[1280];
-        snprintf(discord_formatted_players, sizeof(discord_formatted_players), "```%s```", team_players);
+        snprintf(discord_formatted_players, sizeof(discord_formatted_players), "```\n%s```", team_players);
 
 
         json_t *field = json_object();
@@ -591,7 +598,6 @@ static char *discord_MatchStartMsg(void)
     // Convert the JSON object to a string
     char *json_payload = json_dumps(root, JSON_INDENT(4));
 
-    gi.dprintf("%s\n", json_payload);
     // Decrement the reference count of the root object to free memory
     json_decref(root);
 
@@ -657,7 +663,7 @@ void lc_discord_webhook(char* message, Discord_Notifications msgtype)
         "{\"content\":\"%s\"}",
         message);
     } else if (msgtype == MATCH_START_MSG) {
-        char *matchstartmsg = discord_MatchStartMsg();
+        char *matchstartmsg = discord_MatchStartMsg(message);
         if (matchstartmsg) {
             // Print the JSON payload
             if (curldebug)
@@ -667,7 +673,7 @@ void lc_discord_webhook(char* message, Discord_Notifications msgtype)
             free(matchstartmsg);
         }
     } else if (msgtype == MATCH_END_MSG){
-        char *matchendmsg = discord_MatchEndMsg();
+        char *matchendmsg = discord_MatchEndMsg(message);
         if (matchendmsg) {
             // Print the JSON payload
             if (curldebug)

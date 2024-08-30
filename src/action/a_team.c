@@ -2346,9 +2346,7 @@ void RunWarmup (void)
 	}
 	#if USE_AQTION
 	if (warmup_bots->value){
-		gi.cvar_forceset("am", "1");
-		gi.cvar_forceset("am_botcount", warmup_bots->string);
-		//attract_mode_bot_check();
+		bot_connections.desire_bots = warmup_bots->value;
 	}
 	#endif
 }
@@ -2881,9 +2879,8 @@ int CheckTeamRules (void)
 				// Cleanup and remove all bots, it's go time!
 				if (warmup_bots->value){
 					gi.cvar_forceset("am", "0");
-					gi.cvar_forceset("am_botcount", "0");
-					//attract_mode_bot_check();
-					ACESP_RemoveBot("all");
+					bot_connections.desire_bots = 0;
+					//ACESP_RemoveBot("all");
 					CenterPrintAll("All bots removed, good luck and have fun!");
 
 					//Re-enable stats now that the bots are gone
@@ -2996,7 +2993,8 @@ int CheckTeamRules (void)
 						sprintf( buf, "The round will begin in %d seconds!", warmup_length );
 					}
 					#if AQTION_CURL
-					lc_discord_webhook(buf, MATCH_START_MSG);
+					if (game.roundNum == 0)  // Only announce on game start, so match pauses don't send the msg
+						lc_discord_webhook(buf, MATCH_START_MSG);
 					#endif
 
 					CenterPrintAll( buf );

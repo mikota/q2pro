@@ -1868,6 +1868,12 @@ int bot_teamcheckfrequency = 0;
 int bot_teamchangefrequency = 0;
 void BOTLIB_CheckBotRules(void)
 {
+	// This is so we automatically report when a server has bots or not
+	if (bot_connections.desire_bots == 0)
+		gi.cvar_forceset("am", "0"); // Turn off attract mode
+	else
+		gi.cvar_forceset("am", "1"); // Turn on attract mode
+
 	if (matchmode->value) // Bots never allowed in matchmode
 		return;
 

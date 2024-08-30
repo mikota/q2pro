@@ -389,7 +389,7 @@ void Announce_Reward(edict_t *ent, int rewardType) {
             return;  // Something didn't jive here?
     }
 	ent->client->resp.awardstats[rewardType]++;
-	
+
 	#if AQTION_CURL
 	lc_discord_webhook(buf, AWARD_MSG);
 	#endif
@@ -3345,11 +3345,6 @@ void ClientBeginDeathmatch(edict_t * ent)
     	ACEIT_RebuildPlayerList();
 #if USE_AQTION
 		StatBotCheck();
-		#if USE_AQTION
-			if(am->value){
-				//attract_mode_bot_check();
-		}
-	#endif
 #endif
 #endif
 
@@ -3770,12 +3765,6 @@ void ClientDisconnect(edict_t * ent)
 	ACEIT_RebuildPlayerList();
 #if USE_AQTION
 	StatBotCheck();
-
-	#if USE_AQTION
-		if(am->value){
-			//attract_mode_bot_check();
-		}
-	#endif
 #endif
 #endif
 }
