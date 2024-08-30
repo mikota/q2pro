@@ -2553,7 +2553,7 @@ qboolean CheckTimelimit( void )
 				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("tng/3_minutes.wav"), 1.0, ATTN_NONE, 0.0 );
 				timewarning = 1;
 				#if AQTION_CURL
-				if (!game.time_warning) {
+				if (!game.time_warning && matchmode->value) {
 					lc_discord_webhook(MM_3_MIN_WARN, SERVER_MSG, AWARD_NONE);
 					game.time_warning = true;
 				}
@@ -2580,7 +2580,7 @@ qboolean CheckTimelimit( void )
 				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("tng/3_minutes.wav"), 1.0, ATTN_NONE, 0.0 );
 				timewarning = 1;
 				#if AQTION_CURL
-				if (!game.time_warning) {
+				if (!game.time_warning && matchmode->value) {
 					lc_discord_webhook(MM_3_MIN_WARN, SERVER_MSG, AWARD_NONE);
 					game.time_warning = true;
 				}
