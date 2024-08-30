@@ -390,12 +390,21 @@ static char *discord_MatchEndMsg(char* msg)
     json_object_set_new(thumbnail, "url", json_string(mapimgurl));
 
     // Add "username" field to the root object
-    json_object_set_new(root, "username", json_string(hostname->string));
+    json_object_set_new(root, "username", json_string(TP_MATCH_END_MSG));
 
     // Create the "author" object (hostname)
     json_t *author = json_object();
     json_object_set_new(author, "name", json_string(hostname->string));
     json_object_set_new(embed, "author", author);
+
+    // Create the "footer" object (server ip and port) if server_ip is valid
+    if (is_valid_ipv4(server_ip->string)) {
+        json_t *footer = json_object();
+        char footerinfo[64];
+        snprintf(footerinfo, sizeof(footerinfo), "%s: %s:%s", hostname->string, server_ip->string, net_port->string);
+        json_object_set_new(footer, "text", json_string(footerinfo));
+        json_object_set_new(embed, "footer", footer);
+    }
 
     // Create the "fields" array
     json_t *fields = json_array();
@@ -547,7 +556,7 @@ static char *discord_MatchStartMsg(char* msg)
     json_object_set_new(thumbnail, "url", json_string(mapimgurl));
 
     // Add "username" field to the root object
-    json_object_set_new(root, "username", json_string(hostname->string));
+    json_object_set_new(root, "username", json_string(TP_MATCH_START_MSG));
 
     // Create the "author" object (hostname)
     json_t *author = json_object();
@@ -558,7 +567,7 @@ static char *discord_MatchStartMsg(char* msg)
     if (is_valid_ipv4(server_ip->string)) {
         json_t *footer = json_object();
         char footerinfo[64];
-        snprintf(footerinfo, sizeof(footerinfo), "Server: %s:%s", server_ip->string, net_port->string);
+        snprintf(footerinfo, sizeof(footerinfo), "%s: %s:%s", hostname->string, server_ip->string, net_port->string);
         json_object_set_new(footer, "text", json_string(footerinfo));
         json_object_set_new(embed, "footer", footer);
     }
@@ -604,11 +613,79 @@ static char *discord_MatchStartMsg(char* msg)
     return json_payload;
 }
 
+static char *discord_ServerMsg(char* msg, Discord_Notifications msgtype, Awards awardtype)
+{
+    // Create the root object
+    json_t *root = json_object();
+
+    json_object_set_new(root, "content", json_string(""));
+
+    // Create the "embeds" array
+    json_t *embeds = json_array();
+    json_object_set_new(root, "embeds", embeds);
+
+    // Create the embed object
+    json_t *embed = json_object();
+    json_array_append_new(embeds, embed);
+
+    // Adjust description and color based on mode
+    json_object_set_new(embed, "description", json_string(msg));
+    json_object_set_new(embed, "color", json_integer(65280));
+
+    // Add fields to the embed object
+    json_object_set_new(embed, "title", json_string(level.mapname));
+
+    // Create the "thumbnail" object
+    json_t *thumbnail = json_object();
+    json_object_set_new(embed, "thumbnail", thumbnail);
+    char mapimgurl[512];
+    snprintf(mapimgurl, sizeof(mapimgurl), "https://raw.githubusercontent.com/vrolse/AQ2-pickup-bot/main/thumbnails/%s.jpg", level.mapname);
+    json_object_set_new(thumbnail, "url", json_string(mapimgurl));
+
+    // Add "username" field to the root object
+    json_object_set_new(root, "username", json_string(hostname->string));
+
+    // Adjust the icon based on msgtype
+    switch (awardtype) {
+    case EXCELLENT:
+        json_object_set_new(root, "avatar_url", json_string("https://raw.githubusercontent.com/darkshade9/aq2world/master/docs/assets/img/common/excellent.png"));
+        break;
+    case IMPRESSIVE:
+        json_object_set_new(root, "avatar_url", json_string("https://raw.githubusercontent.com/darkshade9/aq2world/master/docs/assets/img/common/impressive.png"));
+        break;
+    default:
+        break;
+}
+
+    if (awardtype == EXCELLENT) {
+        json_object_set_new(root, "avatar_url", json_string("https://raw.githubusercontent.com/darkshade9/aq2world/master/docs/assets/img/common/excellent.png"));
+    } else if (msgtype == SERVER_MSG) {
+        json_object_set_new(root, "avatar_url", json_string("https://raw.githubusercontent.com/vrolse/AQ2-pickup-bot/main/icons/server.png"));
+    }
+
+    // Create the "footer" object (server ip and port) if server_ip is valid
+    if (is_valid_ipv4(server_ip->string)) {
+        json_t *footer = json_object();
+        char footerinfo[64];
+        snprintf(footerinfo, sizeof(footerinfo), "%s: %s:%s", hostname->string, server_ip->string, net_port->string);
+        json_object_set_new(footer, "text", json_string(footerinfo));
+        json_object_set_new(embed, "footer", footer);
+    }
+
+    // Convert the JSON object to a string
+    char *json_payload = json_dumps(root, JSON_INDENT(4));
+
+    // Decrement the reference count of the root object to free memory
+    json_decref(root);
+
+    return json_payload;
+}
+
 /*
 Call this with a string containing the message you want to send to the webhook.
 Limited to 2048 chars.
 */
-void lc_discord_webhook(char* message, Discord_Notifications msgtype)
+void lc_discord_webhook(char* message, Discord_Notifications msgtype, Awards awardtype)
 {
     request_t *request;
     char json_payload[2048];
@@ -633,8 +710,8 @@ void lc_discord_webhook(char* message, Discord_Notifications msgtype)
     // Default url is to the #info-feed channel
     char* url = sv_curl_discord_info_url->string;
     // Change webhook URL based on message type
-    if (msgtype == FIVE_MIN_WARN)
-        url = sv_curl_discord_pickup_url->string;
+    // if (msgtype == SERVER_MSG)
+    //     url = sv_curl_discord_pickup_url->string;
 
     // Use webhook.site to test curl, it's very handy!
     //char *url = "https://webhook.site/4de34388-9f3b-47fc-9074-7bdcd3cfa346";
@@ -653,36 +730,50 @@ void lc_discord_webhook(char* message, Discord_Notifications msgtype)
         *newline = '\0';
     }
 
-    // Format the message as a JSON payload based on msgtype
-    if (msgtype == CHAT_MSG || msgtype == DEATH_MSG || msgtype == AWARD_MSG || msgtype == SERVER_MSG) {
-        snprintf(json_payload, sizeof(json_payload), 
-        "{\"content\":\"```%s```\"}", 
-        message);
-    } else if (msgtype == FIVE_MIN_WARN) {
-        snprintf(json_payload, sizeof(json_payload), 
-        "{\"content\":\"%s\"}",
-        message);
-    } else if (msgtype == MATCH_START_MSG) {
-        char *matchstartmsg = discord_MatchStartMsg(message);
-        if (matchstartmsg) {
-            // Print the JSON payload
-            if (curldebug)
-                gi.dprintf("%s\n", matchstartmsg);
-            snprintf(json_payload, sizeof(json_payload), "%s", matchstartmsg);
+    switch (msgtype) {
+        case CHAT_MSG:
+        case DEATH_MSG:
+            snprintf(json_payload, sizeof(json_payload), 
+                    "{\"content\":\"```%s```\"}", 
+                    message);
+            break;
 
-            free(matchstartmsg);
+        case AWARD_MSG:
+        case SERVER_MSG: {
+            char *srvmsg = discord_ServerMsg(message, msgtype, awardtype);
+            if (srvmsg) {
+                snprintf(json_payload, sizeof(json_payload), "%s", srvmsg);
+                free(srvmsg);
+            }
+            break;
         }
-    } else if (msgtype == MATCH_END_MSG){
-        char *matchendmsg = discord_MatchEndMsg(message);
-        if (matchendmsg) {
-            // Print the JSON payload
-            if (curldebug)
-                gi.dprintf("%s\n", matchendmsg);
-            snprintf(json_payload, sizeof(json_payload), "%s", matchendmsg);
 
-            free(matchendmsg);
+        case MATCH_START_MSG: {
+            char *matchstartmsg = discord_MatchStartMsg(message);
+            if (matchstartmsg) {
+                snprintf(json_payload, sizeof(json_payload), "%s", matchstartmsg);
+                free(matchstartmsg);
+            }
+            break;
         }
+
+        case MATCH_END_MSG: {
+            char *matchendmsg = discord_MatchEndMsg(message);
+            if (matchendmsg) {           
+                snprintf(json_payload, sizeof(json_payload), "%s", matchendmsg);
+                free(matchendmsg);
+            }
+            break;
+        }
+
+        default:
+            if (curldebug)
+                gi.dprintf("%s: Unknown message type\n", __func__);
+            break;
     }
+
+    if (curldebug)
+        gi.dprintf("%s\n", json_payload);
 
     request->url = url;
     request->payload = strdup(json_payload);

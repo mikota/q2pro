@@ -2552,6 +2552,12 @@ qboolean CheckTimelimit( void )
 				CenterPrintAll( "3 MINUTES LEFT..." );
 				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("tng/3_minutes.wav"), 1.0, ATTN_NONE, 0.0 );
 				timewarning = 1;
+				#if AQTION_CURL
+				if (!game.time_warning) {
+					lc_discord_webhook(MM_3_MIN_WARN, SERVER_MSG, AWARD_NONE);
+					game.time_warning = true;
+				}
+				#endif
 			}
 		}
 		// Deathmatch and Team Deathmatch warnings
@@ -2573,14 +2579,14 @@ qboolean CheckTimelimit( void )
 				CenterPrintAll( "3 MINUTES LEFT..." );
 				gi.sound( &g_edicts[0], CHAN_VOICE | CHAN_NO_PHS_ADD, gi.soundindex("tng/3_minutes.wav"), 1.0, ATTN_NONE, 0.0 );
 				timewarning = 1;
+				#if AQTION_CURL
+				if (!game.time_warning) {
+					lc_discord_webhook(MM_3_MIN_WARN, SERVER_MSG, AWARD_NONE);
+					game.time_warning = true;
+				}
+				#endif
 			}
 		}
-		#if AQTION_CURL
-		else if ( use_warnings->value && matchmode->value ){
-			if( timelimit->value > 5 && level.matchTime >= ((timelimit->value - 5) * 60) && !during_countdown)
-				lc_discord_webhook(MM_FIVE_MIN_WARN, FIVE_MIN_WARN);
-		}
-		#endif
 	}
 	
 	return false;
@@ -2994,7 +3000,7 @@ int CheckTeamRules (void)
 					}
 					#if AQTION_CURL
 					if (game.roundNum == 0)  // Only announce on game start, so match pauses don't send the msg
-						lc_discord_webhook(buf, MATCH_START_MSG);
+						lc_discord_webhook(buf, MATCH_START_MSG, AWARD_NONE);
 					#endif
 
 					CenterPrintAll( buf );
@@ -3907,7 +3913,7 @@ void TallyEndOfLevelTeamScores (void)
 			LogEndMatchStats(); // Generates end of match logs
 		}
 		#if AQTION_CURL
-		lc_discord_webhook(TP_MATCH_END_MSG, MATCH_END_MSG);
+		lc_discord_webhook(TP_MATCH_END_MSG, MATCH_END_MSG, AWARD_NONE);
 		#endif
 	#endif
 	// Stats: Reset roundNum

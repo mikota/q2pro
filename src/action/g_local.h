@@ -437,16 +437,15 @@ typedef enum {
     SERVER_MSG = BIT(5),          // 32
 	MATCH_START_MSG = BIT(6),     // 64
 	MATCH_END_MSG = BIT(7),       // 128
-	FIVE_MIN_WARN = BIT(8),       // 256
-    NOTIFY_MAX = BIT(9)           // 512 (enable all)
+    NOTIFY_MAX = BIT(8)           // 256 (enable all)
 } Discord_Notifications;
 
 // Default messages
 #define MM_MATCH_END_MSG "Matchmode Results"
-#define TP_MATCH_END_MSG "Teamplay Results"
 #define DM_MATCH_END_MSG "Deathmatch Results"
-#define MM_FIVE_MIN_WARN "5 minutes remaining in the map"
+#define MM_3_MIN_WARN "3 minutes remaining in the map"
 #define TP_MATCH_START_MSG "Match is about to begin!"
+#define TP_MATCH_END_MSG "Match has ended!"
 
 //deadflag
 #define DEAD_NO                         0
@@ -809,6 +808,11 @@ typedef struct
   char* bot_file_path[MAX_QPATH];
   int used_bot_personalities;
   #endif
+
+  #if AQTION_CURL
+  // Discord Webhook limits
+  qboolean time_warning;
+  #endif
 }
 game_locals_t;
 
@@ -1047,6 +1051,7 @@ typedef enum {
 
 // Awards
 typedef enum {
+	AWARD_NONE,
     ACCURACY,
     IMPRESSIVE,
     EXCELLENT,
@@ -1326,10 +1331,6 @@ extern cvar_t *esp_debug; // Enable or disable debug mode (very spammy)
 // 2023
 extern cvar_t *use_killcounts;  // Adjust how kill streaks are counted
 extern cvar_t *am; // Enable or disable Attract Mode (ltk bots)
-extern cvar_t *am_newnames; // Enable or disable new names for Attract Mode (ltk bots)
-extern cvar_t *am_botcount; // Number of bots in Attract Mode
-extern cvar_t *am_delay; // Delay between bot spawns after players leave in Attract Mode (not implemented)
-extern cvar_t *am_team; // Set which team the bots will join in Attract Mode
 extern cvar_t *zoom_comp;  // Enable or disable zoom compensation
 extern cvar_t *item_kit_mode;  // Enable or disable item kit mode
 extern cvar_t *gun_dualmk23_enhance; // Enable or disable enhanced dual mk23s (laser + silencer)
@@ -2935,6 +2936,6 @@ void FireTimedMessages(void);
 void lc_shutdown_function(void);
 qboolean lc_init_function(void);
 void lc_once_per_gameframe(void);
-void lc_discord_webhook(char* message, Discord_Notifications msgtype);
+void lc_discord_webhook(char* message, Discord_Notifications msgtype, Awards awardtype);
 void lc_start_request_function(request_t* request);
 #endif

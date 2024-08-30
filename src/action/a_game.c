@@ -1464,7 +1464,7 @@ void Cmd_Pickup_f(edict_t* ent)
 
 	// 5 minute timer
 	if(message_timer_check(300)) {
-		lc_discord_webhook(msg, SERVER_MSG);
+		lc_discord_webhook(msg, SERVER_MSG, AWARD_NONE);
 		gi.cprintf(ent, PRINT_HIGH, "Pickup request sent.\n");
 	} else {
 		gi.cprintf(ent, PRINT_HIGH, "It is too early to send another request, please wait.\n");

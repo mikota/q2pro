@@ -140,7 +140,7 @@ void BeginIntermission(edict_t *targ)
 	}
 	#if AQTION_CURL
 	if(!teamplay->value)
-		lc_discord_webhook(DM_MATCH_END_MSG, MATCH_END_MSG);
+		lc_discord_webhook(DM_MATCH_END_MSG, MATCH_END_MSG, AWARD_NONE);
 	#endif
 	#endif
 

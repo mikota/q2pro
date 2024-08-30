@@ -391,7 +391,7 @@ void Announce_Reward(edict_t *ent, int rewardType) {
 	ent->client->resp.awardstats[rewardType]++;
 
 	#if AQTION_CURL
-	lc_discord_webhook(buf, AWARD_MSG);
+	lc_discord_webhook(buf, AWARD_MSG, rewardType);
 	#endif
 
     CenterPrintAll(buf);
@@ -1181,7 +1181,7 @@ void ClientObituary(edict_t * self, edict_t * inflictor, edict_t * attacker)
 			PrintDeathMessage(death_msg, self);
 			//Using discord webhook for death messaging
 			#if AQTION_CURL
-			lc_discord_webhook(death_msg, DEATH_MSG);
+			lc_discord_webhook(death_msg, DEATH_MSG, AWARD_NONE);
 			#endif
 			IRC_printf(IRC_T_KILL, death_msg);
 			AddKilledPlayer(self->client->attacker, self);
@@ -1216,7 +1216,7 @@ void ClientObituary(edict_t * self, edict_t * inflictor, edict_t * attacker)
 			sprintf( death_msg, "%s %s\n", self->client->pers.netname, message );
 			//Using discord webhook for death messaging
 			#if AQTION_CURL
-			lc_discord_webhook(death_msg, DEATH_MSG);
+			lc_discord_webhook(death_msg, DEATH_MSG, AWARD_NONE);
 			#endif
 			PrintDeathMessage(death_msg, self );
 			IRC_printf( IRC_T_DEATH, death_msg );
@@ -1572,7 +1572,7 @@ void ClientObituary(edict_t * self, edict_t * inflictor, edict_t * attacker)
 			PrintDeathMessage(death_msg, self);
 			//Using discord webhook for death messaging
 			#if AQTION_CURL
-			lc_discord_webhook(death_msg, DEATH_MSG);
+			lc_discord_webhook(death_msg, DEATH_MSG, AWARD_NONE);
 			#endif
 			IRC_printf(IRC_T_KILL, death_msg);
 			AddKilledPlayer(attacker, self);
@@ -1620,7 +1620,7 @@ void ClientObituary(edict_t * self, edict_t * inflictor, edict_t * attacker)
 	PrintDeathMessage(death_msg, self);
 	//Using discord webhook for death messaging
 	#if AQTION_CURL
-	lc_discord_webhook(death_msg, DEATH_MSG);
+	lc_discord_webhook(death_msg, DEATH_MSG, AWARD_NONE);
 	#endif
 	IRC_printf(IRC_T_DEATH, death_msg);
 

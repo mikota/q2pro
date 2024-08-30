@@ -1468,7 +1468,7 @@ void Cmd_Say_f (edict_t * ent, qboolean team, qboolean arg0, qboolean partner_ms
 
 	// Send message to Discord -- this must come before the newline add or it screws up formatting in-game
 	#if AQTION_CURL
-	lc_discord_webhook(text, CHAT_MSG);
+	lc_discord_webhook(text, CHAT_MSG, AWARD_NONE);
 	#endif
 
 	Q_strncatz(text, "\n", sizeof(text));
