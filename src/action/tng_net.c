@@ -329,10 +329,11 @@ char* TeamConstructPlayerList(int team) {
 
 static char* ConstructGameSettingsString(void) {
     // Calculate the required buffer size
-    int buffer_size = snprintf(NULL, 0, "tgren %s\ntimelimit %s\nuse_xerp %s\n",
+    int buffer_size = snprintf(NULL, 0, "tgren %s\ntimelimit %s\nuse_xerp %s\ndmflags %s\n",
         tgren->string,
         timelimit->string,
-        use_xerp->string
+        use_xerp->string,
+        dmflags->string
     );
 
     // Allocate the buffer
@@ -342,10 +343,11 @@ static char* ConstructGameSettingsString(void) {
     }
 
     // Construct the string
-    sprintf(result, "```tgren %s\ntimelimit %s\nuse_xerp %s\n```",
+    sprintf(result, "```tgren %s\ntimelimit %s\nuse_xerp %s\ndmflags %s\n```",
         tgren->string,
         timelimit->string,
-        use_xerp->string
+        use_xerp->string,
+        dmflags->string
     );
 
     return result;
