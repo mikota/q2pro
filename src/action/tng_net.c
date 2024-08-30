@@ -647,22 +647,15 @@ static char *discord_ServerMsg(char* msg, Discord_Notifications msgtype, Awards 
 
     // Adjust the icon based on msgtype
     switch (awardtype) {
-    case EXCELLENT:
-        json_object_set_new(root, "avatar_url", json_string("https://raw.githubusercontent.com/darkshade9/aq2world/master/docs/assets/img/common/excellent.png"));
-        break;
-    case IMPRESSIVE:
-        json_object_set_new(root, "avatar_url", json_string("https://raw.githubusercontent.com/darkshade9/aq2world/master/docs/assets/img/common/impressive.png"));
-        break;
-    default:
-        break;
-}
-
-    if (awardtype == EXCELLENT) {
-        json_object_set_new(root, "avatar_url", json_string("https://raw.githubusercontent.com/darkshade9/aq2world/master/docs/assets/img/common/excellent.png"));
-    } else if (msgtype == SERVER_MSG) {
-        json_object_set_new(root, "avatar_url", json_string("https://raw.githubusercontent.com/vrolse/AQ2-pickup-bot/main/icons/server.png"));
+        case EXCELLENT:
+            json_object_set_new(root, "avatar_url", json_string("https://raw.githubusercontent.com/darkshade9/aq2world/master/docs/assets/img/common/excellent.png"));
+            break;
+        case IMPRESSIVE:
+            json_object_set_new(root, "avatar_url", json_string("https://raw.githubusercontent.com/darkshade9/aq2world/master/docs/assets/img/common/impressive.png"));
+            break;
+        default:
+            break;
     }
-
     // Create the "footer" object (server ip and port) if server_ip is valid
     if (is_valid_ipv4(server_ip->string)) {
         json_t *footer = json_object();
@@ -709,9 +702,13 @@ void lc_discord_webhook(char* message, Discord_Notifications msgtype, Awards awa
 
     // Default url is to the #info-feed channel
     char* url = sv_curl_discord_info_url->string;
-    // Change webhook URL based on message type
-    // if (msgtype == SERVER_MSG)
-    //     url = sv_curl_discord_pickup_url->string;
+    // Change webhook URL based on message type.  If pickup url is disabled, use info url
+    if (msgtype == SERVER_MSG) {
+        if (strcmp(sv_curl_discord_pickup_url->string, "disabled") == 0)
+            url = sv_curl_discord_info_url->string;
+        else
+            url = sv_curl_discord_pickup_url->string;
+    }
 
     // Use webhook.site to test curl, it's very handy!
     //char *url = "https://webhook.site/4de34388-9f3b-47fc-9074-7bdcd3cfa346";
