@@ -433,10 +433,12 @@ typedef enum {
     SERVER_WARMING_UP = BIT(1),   // 2
     DEATH_MSG = BIT(2),           // 4
     CHAT_MSG = BIT(3),            // 8
-    SERVER_MSG = BIT(4),          // 16
-	MATCH_END_MSG = BIT(5),       // 32
-	FIVE_MIN_WARN = BIT(6),       // 64
-    NOTIFY_MAX = BIT(7)           // 128
+	AWARD_MSG = BIT(4),           // 16
+    SERVER_MSG = BIT(5),          // 32
+	MATCH_START_MSG = BIT(6),     // 64
+	MATCH_END_MSG = BIT(7),       // 128
+	FIVE_MIN_WARN = BIT(8),       // 256
+    NOTIFY_MAX = BIT(9)           // 512 (enable all)
 } Discord_Notifications;
 
 // Default messages
@@ -444,6 +446,7 @@ typedef enum {
 #define TP_MATCH_END_MSG "Teamplay Results"
 #define DM_MATCH_END_MSG "Deathmatch Results"
 #define MM_FIVE_MIN_WARN "5 minutes remaining in the map"
+#define TP_MATCH_START_MSG "Match is about to begin!"
 
 //deadflag
 #define DEAD_NO                         0

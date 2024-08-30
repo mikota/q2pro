@@ -8,7 +8,7 @@ Special thanks to Phatman for a bulk of the core code
 #include "g_local.h"
 #include <jansson.h>
 
-qboolean curldebug = false;
+qboolean curldebug = true;
 
 // You will need one of these for each of the requests ...
 // ... if you allow concurrent requests to be sent at the same time
@@ -296,6 +296,61 @@ char* TeamConstructPlayerScoreString(int team) {
     return result;
 }
 
+char* TeamConstructPlayerList(int team) {
+    gclient_t **filtered = (gclient_t **)malloc(game.maxclients * sizeof(gclient_t *));
+    if (!filtered) {
+        return NULL; // Handle memory allocation failure
+    }
+
+    int total = FilterPlayersByTeam(filtered, team);
+
+    // Calculate the required buffer size
+    int buffer_size = 0;
+    for (int i = 0; i < total; i++) {
+        buffer_size += snprintf(NULL, 0, "%s\n", filtered[i]->pers.netname);
+    }
+
+    // Allocate the buffer
+    char *result = (char *)malloc(buffer_size + 1);
+    if (!result) {
+        free(filtered);
+        return NULL; // Handle memory allocation failure
+    }
+
+    // Construct the string
+    char *ptr = result;
+    for (int i = 0; i < total; i++) {
+        ptr += sprintf(ptr, "%s\n", filtered[i]->pers.netname);
+    }
+
+    free(filtered);
+    return result;
+}
+
+static char* ConstructGameSettingsString(void) {
+    // Calculate the required buffer size
+    int buffer_size = snprintf(NULL, 0, "tgren %s\ntimelimit %s\nuse_xerp %s\n",
+        tgren->string,
+        timelimit->string,
+        use_xerp->string
+    );
+
+    // Allocate the buffer
+    char *result = (char *)malloc(buffer_size + 1);
+    if (!result) {
+        return NULL; // Handle memory allocation failure
+    }
+
+    // Construct the string
+    sprintf(result, "```tgren %s\ntimelimit %s\nuse_xerp %s\n```",
+        tgren->string,
+        timelimit->string,
+        use_xerp->string
+    );
+
+    return result;
+}
+
 static char *discord_MatchEndMsg(void)
 {
     // Create the root object
@@ -382,6 +437,8 @@ static char *discord_MatchEndMsg(void)
             json_object_set_new(field, "value", json_string(discord_formatted_team_player_scores));
             json_object_set_new(field, "inline", json_false());
             json_array_append_new(fields, field);
+
+            free(team_player_scores); // Free the allocated memory for team_player_scores
         }
     } else { // Deathmatch
         char *player_scores = DMConstructPlayerScoreString();
@@ -413,6 +470,8 @@ static char *discord_MatchEndMsg(void)
         json_object_set_new(field, "value", json_string(discord_formatted_scores));
         json_object_set_new(field, "inline", json_true()); // Inline true here because it's only one list
         json_array_append_new(fields, field);
+
+        free(player_scores); // Free the allocated memory for player_scores
     }
 
     //  TODO: Testing out player award stats printing, broken for now
@@ -449,6 +508,88 @@ static char *discord_MatchEndMsg(void)
     // Convert the JSON object to a string
     char *json_payload = json_dumps(root, JSON_INDENT(4));
 
+    // Decrement the reference count of the root object to free memory
+    json_decref(root);
+
+    return json_payload;
+}
+
+static char *discord_MatchStartMsg(void)
+{
+    // Create the root object
+    json_t *root = json_object();
+
+    json_object_set_new(root, "content", json_string(""));
+
+    // Create the "embeds" array
+    json_t *embeds = json_array();
+    json_object_set_new(root, "embeds", embeds);
+
+    // Create the embed object
+    json_t *embed = json_object();
+    json_array_append_new(embeds, embed);
+
+    // Adjust description and color based on mode
+    if (teamplay->value) { // Green
+        json_object_set_new(embed, "description", json_string(TP_MATCH_START_MSG));
+        json_object_set_new(embed, "color", json_integer(65280));
+    }
+
+    // Add fields to the embed object
+    json_object_set_new(embed, "title", json_string(level.mapname));
+
+    // Create the "thumbnail" object
+    json_t *thumbnail = json_object();
+    json_object_set_new(embed, "thumbnail", thumbnail);
+
+    char mapimgurl[512];
+    snprintf(mapimgurl, sizeof(mapimgurl), "https://raw.githubusercontent.com/vrolse/AQ2-pickup-bot/main/thumbnails/%s.jpg", level.mapname);
+    json_object_set_new(thumbnail, "url", json_string(mapimgurl));
+
+    // Add "username" field to the root object
+    json_object_set_new(root, "username", json_string(hostname->string));
+
+    // Create the "author" object (hostname)
+    json_t *author = json_object();
+    json_object_set_new(author, "name", json_string(hostname->string));
+    json_object_set_new(embed, "author", author);
+
+    // Create the "fields" array
+    json_t *fields = json_array();
+    json_object_set_new(embed, "fields", fields);
+
+    // Create field objects and add them to the "fields" array
+    for (int team = TEAM1; team <= teamCount; team++) {
+        char *team_name = TeamName(team);
+        char field_content[64];
+        snprintf(field_content, sizeof(field_content), "%s", team_name);
+        char *team_players = TeamConstructPlayerList(team);
+
+        // Add triple backticks for Discord formatting
+        char discord_formatted_players[1280];
+        snprintf(discord_formatted_players, sizeof(discord_formatted_players), "```%s```", team_players);
+
+
+        json_t *field = json_object();
+        json_object_set_new(field, "name", json_string(field_content));
+        json_object_set_new(field, "value", json_string(discord_formatted_players));
+        json_object_set_new(field, "inline", json_true());
+        json_array_append_new(fields, field);
+
+        free(team_players); // Free the allocated memory for team_players
+    }
+
+    // Game Settings
+    json_t *gamesettings = json_object();
+    json_object_set_new(gamesettings, "name", json_string("Game Settings"));
+    json_object_set_new(gamesettings, "value", json_string(ConstructGameSettingsString()));
+    json_object_set_new(gamesettings, "inline", json_true());
+    json_array_append_new(fields, gamesettings);
+
+    // Convert the JSON object to a string
+    char *json_payload = json_dumps(root, JSON_INDENT(4));
+
+    gi.dprintf("%s\n", json_payload);
     // Decrement the reference count of the root object to free memory
     json_decref(root);
 
@@ -505,19 +646,30 @@ void lc_discord_webhook(char* message, Discord_Notifications msgtype)
     }
 
     // Format the message as a JSON payload based on msgtype
-    if (msgtype == CHAT_MSG || msgtype == DEATH_MSG || msgtype == SERVER_MSG) {
+    if (msgtype == CHAT_MSG || msgtype == DEATH_MSG || msgtype == AWARD_MSG || msgtype == SERVER_MSG) {
         snprintf(json_payload, sizeof(json_payload), 
         "{\"content\":\"```%s```\"}", 
         message);
-    } else if (msgtype == SERVER_MSG || msgtype == FIVE_MIN_WARN) {
+    } else if (msgtype == FIVE_MIN_WARN) {
         snprintf(json_payload, sizeof(json_payload), 
         "{\"content\":\"%s\"}",
         message);
+    } else if (msgtype == MATCH_START_MSG) {
+        char *matchstartmsg = discord_MatchStartMsg();
+        if (matchstartmsg) {
+            // Print the JSON payload
+            if (curldebug)
+                gi.dprintf("%s\n", matchstartmsg);
+            snprintf(json_payload, sizeof(json_payload), "%s", matchstartmsg);
+
+            free(matchstartmsg);
+        }
     } else if (msgtype == MATCH_END_MSG){
         char *matchendmsg = discord_MatchEndMsg();
-            if (matchendmsg) {
+        if (matchendmsg) {
             // Print the JSON payload
-            gi.dprintf("%s\n", matchendmsg);
+            if (curldebug)
+                gi.dprintf("%s\n", matchendmsg);
             snprintf(json_payload, sizeof(json_payload), "%s", matchendmsg);
 
             free(matchendmsg);

@@ -2995,6 +2995,10 @@ int CheckTeamRules (void)
 					} else {
 						sprintf( buf, "The round will begin in %d seconds!", warmup_length );
 					}
+					#if AQTION_CURL
+					lc_discord_webhook(buf, MATCH_START_MSG);
+					#endif
+
 					CenterPrintAll( buf );
 					team_round_countdown = warmup_length * 10 + 2;
 
