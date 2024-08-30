@@ -627,20 +627,8 @@ static char *discord_ServerMsg(char* msg, Discord_Notifications msgtype, Awards 
     // Create the embed object
     json_t *embed = json_object();
     json_array_append_new(embeds, embed);
-
-    // Adjust description and color based on mode
     json_object_set_new(embed, "description", json_string(msg));
-    json_object_set_new(embed, "color", json_integer(65280));
-
-    // Add fields to the embed object
-    json_object_set_new(embed, "title", json_string(level.mapname));
-
-    // Create the "thumbnail" object
-    json_t *thumbnail = json_object();
-    json_object_set_new(embed, "thumbnail", thumbnail);
-    char mapimgurl[512];
-    snprintf(mapimgurl, sizeof(mapimgurl), "https://raw.githubusercontent.com/vrolse/AQ2-pickup-bot/main/thumbnails/%s.jpg", level.mapname);
-    json_object_set_new(thumbnail, "url", json_string(mapimgurl));
+    json_object_set_new(embed, "color", json_integer(16766720));
 
     // Add "username" field to the root object
     json_object_set_new(root, "username", json_string(hostname->string));
@@ -683,8 +671,8 @@ void lc_discord_webhook(char* message, Discord_Notifications msgtype, Awards awa
     request_t *request;
     char json_payload[2048];
 
+    // Debug prints
     if (curldebug) {
-        // Debug prints
         gi.dprintf("msgflags value: %d\n", (int)msgflags->value);
         gi.dprintf("msgtype value: %d\n", msgtype);
     }
@@ -692,7 +680,7 @@ void lc_discord_webhook(char* message, Discord_Notifications msgtype, Awards awa
     // Look at the Discord_Notifications enum in g_local.h for the flags
     if (!(msgtype & (int)msgflags->value)) {
         if (curldebug)
-            gi.dprintf("Message type not allowed by msgflags\n");
+            gi.dprintf("Message type (%d) not allowed by msgflags (%d)\n", msgtype, (int)msgflags->value);
         return;
     }
 

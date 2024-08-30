@@ -429,15 +429,15 @@ ammo_t;
 
 //tng_net.c
 typedef enum {
-    NOTIFY_NONE = BIT(0),         // 1
-    SERVER_WARMING_UP = BIT(1),   // 2
-    DEATH_MSG = BIT(2),           // 4
-    CHAT_MSG = BIT(3),            // 8
-	AWARD_MSG = BIT(4),           // 16
-    SERVER_MSG = BIT(5),          // 32
-	MATCH_START_MSG = BIT(6),     // 64
-	MATCH_END_MSG = BIT(7),       // 128
-    NOTIFY_MAX = BIT(8)           // 256 (enable all)
+	SERVER_WARMING_UP = BIT(0),   // 1
+	DEATH_MSG = BIT(1),           // 2
+	CHAT_MSG = BIT(2),            // 4
+	AWARD_MSG = BIT(3),           // 8
+	SERVER_MSG = BIT(4),          // 16
+	MATCH_START_MSG = BIT(5),     // 32
+	MATCH_END_MSG = BIT(6),       // 64
+	PICKUP_REQ_MSG = BIT(7),      // 128
+	NOTIFY_MAX = BIT(8)           // 256 (enable all)
 } Discord_Notifications;
 
 // Default messages
