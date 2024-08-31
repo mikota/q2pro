@@ -811,7 +811,8 @@ typedef struct
 
   #if AQTION_CURL
   // Discord Webhook limits
-  qboolean time_warning;
+  qboolean time_warning_sent; 	// This is set to true when the time warning has been sent, resets every map
+  
   #endif
 }
 game_locals_t;
