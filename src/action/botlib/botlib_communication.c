@@ -791,7 +791,7 @@ void BOTLIB_Radio(edict_t* self, usercmd_t* ucmd)
 	// Bandaging
 	if (self->bot.radioBandaging) // If bandaging, flag the bot to radio this in
 	{
-		if (IS_ALIVE(self))
+		if (IS_ALIVE(self) && self->health < 100)
 		{
 			sprintf(buffer, " %c Bandaging [ %d%c ] %c", '\x04', self->health, '\x05', '\x04'); // Build string - 0x04 bandage symbol, 0x05 heart symbol
 			BOTLIB_Say(self, buffer, true);					// Say it

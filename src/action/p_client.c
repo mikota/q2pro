@@ -3055,11 +3055,11 @@ void PutClientInServer(edict_t * ent)
 				else
 					BOTLIB_BotPersonalityChooseItem(ent);
 			}
-			gi.dprintf("Bot %s has chosen %s and %s\n", 
-				ent->client->pers.netname, 
-				PrintWeaponName(ent->client->pers.chosenWeapon->typeNum),
-				PrintItemName(ent->client->pers.chosenItem->typeNum)
-			);
+			// gi.dprintf("Bot %s has chosen %s and %s\n", 
+			// 	ent->client->pers.netname, 
+			// 	PrintWeaponName(ent->client->pers.chosenWeapon->typeNum),
+			// 	PrintItemName(ent->client->pers.chosenItem->typeNum)
+			// );
 		}
 		else // LTK bots
 		{
