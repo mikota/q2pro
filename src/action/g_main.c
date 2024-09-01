@@ -489,7 +489,8 @@ cvar_t* bot_skill;		// Skill setting for bots, range 0-10. 0 = easy, 10 = aimbot
 cvar_t* bot_skill_threshold; // Dynamic skill adjustment kicks in if a threshold has been hit
 cvar_t* bot_remember;	// How long (in seconds) the bot remembers an enemy after visibility has been lost
 cvar_t* bot_reaction;	// How long (in seconds) until the bot reacts to an enemy in sight
-cvar_t* bot_maxteam;	// Max bots allowed in autoteam
+cvar_t* bot_maxteam;	// Max bots allowed in autoteam, default 10 (10 max bots per team)
+cvar_t* bot_playercount;  // Preferred number of total clients (bots + humans) on the server
 cvar_t* bot_rush;		// Bots rush players by going directly for them
 cvar_t* bot_randvoice;	// Bots use random user voice wavs - percentage [min: 0 max: 100]
 cvar_t* bot_randskill;	// When random bot join a game, they pick a random skill [min: 1, max: 10]. Using 0 will turn this off.

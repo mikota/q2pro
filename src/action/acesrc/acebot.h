@@ -539,6 +539,7 @@ extern cvar_t* gib_heads;
 //rekkie -- DEV_1 -- Gib Players -- e
 
 extern cvar_t* bot_maxteam;
+extern cvar_t* bot_playercount;
 extern cvar_t* bot_rush;
 extern cvar_t* bot_randvoice;
 extern cvar_t* bot_randskill;

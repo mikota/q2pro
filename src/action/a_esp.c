@@ -2036,8 +2036,6 @@ void EspCleanUp(void)
 		if (esp_debug->value)
 			gi.dprintf("%s: Bodies cleaned, cleanupinterval is now %d\n", __func__, cleanupInterval);
 	}
-	//gi.dprintf("the time is now %d\n", roundseconds);
-	
 }
 
 /*

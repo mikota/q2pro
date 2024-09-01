@@ -19,6 +19,10 @@ qboolean BOTLIB_SV_Cmds(void)
 		{
 			bot_connections.desire_bots = atoi(gi.argv(2)); // How many bots
 			bot_connections.auto_balance_bots = true;
+
+			if (bot_playercount->value > 0 && !(gameSettings & GS_ROUNDBASED))
+				gi.dprintf("bot_playercount is set to %i, sv bots has no effect\n", (int)bot_playercount->value);
+
 			return true;
 		}
 
@@ -73,6 +77,11 @@ qboolean BOTLIB_SV_Cmds(void)
 				gi.cprintf(NULL, PRINT_HIGH, "CTF bots on T1[%d] T2[%d] Total[%d]\n", bot_connections.team1_bots, bot_connections.team2_bots, bot_connections.total_bots);
 			else if (teamplay->value)
 				gi.cprintf(NULL, PRINT_HIGH, "TP bots on T1[%d] T2[%d] Total[%d]\n", bot_connections.team1_bots, bot_connections.team2_bots, bot_connections.total_bots);
+			
+			if (bot_playercount->value > 0 && !(gameSettings & GS_ROUNDBASED)) {
+				gi.cprintf(NULL, PRINT_HIGH, "**---------------------------**\n");
+				gi.cprintf(NULL, PRINT_HIGH, "bot_playercount is set to %i, sv bots has no effect\n", (int)bot_playercount->value);
+			}
 			gi.cprintf(NULL, PRINT_HIGH, "-------------------------------\n");
 		}
 

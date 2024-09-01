@@ -211,89 +211,106 @@ qboolean BotCountManagerTimer(void)
 	return false;
 }
 
-int BOTLIB_BotCountManager(void)
+void BOTLIB_BotCountAdd(int bots_to_spawn)
 {
-	int bots_desired = bot_connections.desire_bots;
-	gi.dprintf("%s: desire_bots[%i]\n", __func__, bot_connections.desire_bots);
-
-	// If we aren't rotating bots, just return existing desire_bots value
-	if (!BotCountManagerTimer() || !bot_rotate->value)
-		return (bots_desired - bot_connections.total_bots);
-
-	int bcmin = bot_count_min->value;
-	int bcmax = bot_count_max->value;
-
-	// Percent is used in tandem with BotCountManagerTimer to determine when to rotate bots
-	float percent = (float)(bot_connections.total_humans_playing + bot_connections.total_bots) / maxclients->value * 100;
-
-	// This value determines if we add, remove or keep the same amount of bots
-	// 1 = add, -1 = remove, 0 = keep the same
-	int up_down_same = 0;
-
-	// Basic value validation
-	if (bcmin < 0) {
-		gi.dprintf("%s: bot_count_min < 0, setting it to 0\n", __func__);
-		gi.cvar_forceset(bot_count_min->name, "0");
-		bcmin = 0;
-	}
-	if (bcmax > maxclients->value) {
-		gi.dprintf("%s: bot_count_max > maxclients, setting it to maxclients\n", __func__);
-		gi.cvar_forceset(bot_count_max->name, va("%s", maxclients->name));
-		bcmax = maxclients->value;
-	}
-	if (bcmin > bcmax) {
-		gi.dprintf("%s: bot_count_min > bot_count_max, setting them to be the same\n", __func__);
-		gi.cvar_forceset(bot_count_min->name, va("%s", bot_count_max->name));
-		bcmin = bcmax;
-	}
-	if (bcmin == 0 && bcmax == 0)
-	{
-		gi.dprintf("%s: bot_count_min and bot_count_max are both 0, not rotating bots, setting bot_rotate to 0\n", __func__);
-		gi.cvar_forceset(bot_rotate->name, "0");
-		return (bots_desired - bot_connections.total_bots);
-	}
-
-	//The following logic only applies if BotCountManagerTimer() returns true
-	
-	/* 
-	  If we have more than 80% of the server filled with players and bots, remove bots
-	     else if we're low on clients, consider adding bots
-	       else keep the same amount of bots
-	*/
-
-	// Don't add more bots if we're at the max
-	BOTLIB_Debug("%s: desire_bots[%i] total_bots[%i] total_humans[%i] percent[%f]\n", __func__, bots_desired, bot_connections.total_bots, bot_connections.total_humans_playing, percent);
-	if (bot_connections.total_bots < bcmax) {
-		if (rand() % 2 == 0) {
-			if (percent > 80)
-				up_down_same = -1;
-			else if (percent < 30)
-				up_down_same = 1;
-			else
-				up_down_same = 0;
-		} else {
-			// Bot just feels like leaving
-			if (rand() % 100 < 5)
-				up_down_same = -1;
+	bots_to_spawn = abs(bots_to_spawn);
+	for (int i = 0; i < bots_to_spawn; i++) {
+		if (teamplay->value) // Add a bot to a team with the lowest player count
+		{
+			if (use_3teams->value) // 3TEAMS
+			{
+				if (bot_connections.total_team1 <= bot_connections.total_team2 && bot_connections.total_team1 <= bot_connections.total_team3)
+					BOTLIB_SpawnBot(TEAM1, INVALID, NULL, NULL);
+				else if (bot_connections.total_team2 <= bot_connections.total_team1 && bot_connections.total_team2 <= bot_connections.total_team3)
+					BOTLIB_SpawnBot(TEAM2, INVALID, NULL, NULL);
+				else if (bot_connections.total_team3 <= bot_connections.total_team1 && bot_connections.total_team3 <= bot_connections.total_team2)
+					BOTLIB_SpawnBot(TEAM3, INVALID, NULL, NULL);
+				else // If all teams are equal size, randomly add bot to one of the teams
+				{
+					int choice = rand() % 3;
+					if (choice == 0)
+						BOTLIB_SpawnBot(TEAM1, INVALID, NULL, NULL);
+					else if (choice == 1)
+						BOTLIB_SpawnBot(TEAM2, INVALID, NULL, NULL);
+					else
+						BOTLIB_SpawnBot(TEAM3, INVALID, NULL, NULL);
+				}
+			}
+			else // 2-team Teamplay
+			{
+				if (bot_connections.total_team1 < bot_connections.total_team2)
+					BOTLIB_SpawnBot(TEAM1, INVALID, NULL, NULL);
+				else if (bot_connections.total_team1 > bot_connections.total_team2)
+					BOTLIB_SpawnBot(TEAM2, INVALID, NULL, NULL);
+				else // If both teams are equal size, randomly add bot to one of the teams
+				{
+					if (rand() % 2 == 0)
+						BOTLIB_SpawnBot(TEAM1, INVALID, NULL, NULL);
+					else
+						BOTLIB_SpawnBot(TEAM2, INVALID, NULL, NULL);
+				}
+			}
 		}
-	} else {
-		return (bot_connections.desire_bots - bot_connections.total_bots);
+		else // DM
+			BOTLIB_SpawnBot(0, INVALID, NULL, NULL);
 	}
+}
 
-	// This will add, remove or keep the same amount of bots
-	bot_connections.desire_bots += up_down_same;
-	return (bot_connections.desire_bots);
+void BOTLIB_BotCountRemove(int bots_to_spawn)
+{
+	bots_to_spawn = abs(bots_to_spawn);
+	for (int i = 0; i < bots_to_spawn; i++) {
+		if (teamplay->value) // Remove a bot from team with the highest player count
+		{
+			if (use_3teams->value)
+			{
+				if (bot_connections.total_team1 >= bot_connections.total_team2 && bot_connections.total_team1 >= bot_connections.total_team3)
+					BOTLIB_RemoveTeamplayBot(TEAM1);
+				else if (bot_connections.total_team2 >= bot_connections.total_team1 && bot_connections.total_team2 >= bot_connections.total_team3)
+					BOTLIB_RemoveTeamplayBot(TEAM2);
+				else if (bot_connections.total_team3 >= bot_connections.total_team1 && bot_connections.total_team3 >= bot_connections.total_team2)
 
-	// // Choose a random number between bcmin and bcmax, minimum count of bots is bcmin
-	// int bot_count_rotate = bcmin + rand() % (bcmax - bcmin + 1);
+					BOTLIB_RemoveTeamplayBot(TEAM3);
+				else // If all teams are equal size, randomly remove bot to one of the teams
+				{
+					int choice = rand() % 3;
+					if (choice == 0)
+						BOTLIB_RemoveTeamplayBot(TEAM1);
+					else if (choice == 1)
+						BOTLIB_RemoveTeamplayBot(TEAM2);
+					else
+						BOTLIB_RemoveTeamplayBot(TEAM3);
+				}
+			}
+			else
+			{
+				if (bot_connections.total_team1 > bot_connections.total_team2)
+					BOTLIB_RemoveTeamplayBot(TEAM1);
+				else if (bot_connections.total_team1 < bot_connections.total_team2)
+					BOTLIB_RemoveTeamplayBot(TEAM2);
+				else // If both teams are equal size, randomly remove bot to one of the teams
+				{
+					if (rand() % 2 == 0)
+						BOTLIB_RemoveTeamplayBot(TEAM1);
+					else
+						BOTLIB_RemoveTeamplayBot(TEAM2);
+				}
+			}
+		}
+		else // DM
+			BOTLIB_RemoveBot("");
+	}
+}
 
-	// // Make the change
-	// if (bot_count_rotate == bc){
-	// 	return bc; // No change
-	// } else {  // Set desired bots to be how many we rotate in or out
-	// 	bot_connections.desire_bots = bot_count_rotate;
-	// 	return bot_count_rotate;
-	// }
+void BOTLIB_BotCountManager(int bots_to_spawn)
+{
+	if (bots_to_spawn < 0) {
+		BOTLIB_BotCountRemove(bots_to_spawn);
+	} else if (bots_to_spawn > 0) {
+		BOTLIB_BotCountAdd(bots_to_spawn);
+	} else {  // bots_to_spawn == 0 - no bots to add or remove
+		return;
+	}
 }
 
 // Add bots from the previous map from file
@@ -1622,64 +1639,70 @@ void BOTLIB_RemoveBot(char* name)
 	int bot_to_kick = 0;
 	int num_bots = 0;
 	int bot_count = 0;
-	for (i = 0; i < game.maxclients; i++)
-	{
+
+	// First, try to find a dead bot to remove
+	for (int i = 0; i < game.maxclients; i++) {
 		bot = g_edicts + i + 1;
-		if (bot->inuse)
-		{
-			if (bot->is_bot)
-			{
+
+		if (bot->inuse && !IS_ALIVE(bot) && bot->is_bot) {
+			num_bots++;
+		}
+	}
+
+	// If no dead bots were found, find any bot to remove
+	if (num_bots == 0) {
+		for (int i = 0; i < game.maxclients; i++) {
+			bot = g_edicts + i + 1;
+
+			if (bot->inuse && bot->is_bot) {
 				num_bots++;
 			}
 		}
-	}
-	if (num_bots == 0)
-	{
-		return;
-	}
-	else if (num_bots > 1)
-	{
-		bot_to_kick = (rand() % num_bots);
-	}
-	for (i = 0; i < game.maxclients; i++)
-	{
-		bot = g_edicts + i + 1;
-		if (bot->inuse)
-		{
-			if (bot->is_bot && bot_to_kick == bot_count)
-			{
-				//darksaint -- Bot Chat -- s
-				// Generates chat message (goodbyes)
-				if (bot_chat->value)
-					BOTLIB_Chat(bot, CHAT_GOODBYE);
-				//darksaint -- Bot Chat -- e
 
-				//rekkie -- Fake Bot Client -- s
-				gi.SV_BotDisconnect(bot->client->pers.netname); // So the server can remove the fake client
-				//rekkie -- Fake Bot Client -- e
+		// If still no bots were found, return
+		if (num_bots == 0) {
+			return;
+		}
+	}
+
+	// If more than one bot is found, select a random bot to kick
+	if (num_bots > 1) {
+		bot_to_kick = rand() % num_bots;
+	}
+
+	// Iterate again to find the bot to kick
+	for (int i = 0; i < game.maxclients; i++) {
+		bot = g_edicts + i + 1;
+
+		if (bot->inuse && bot->is_bot) {
+			if (bot_to_kick == bot_count) {
+				// Bot Chat - Generates chat message (goodbyes)
+				if (bot_chat->value) {
+					BOTLIB_Chat(bot, CHAT_GOODBYE);
+				}
+
+				// Fake Bot Client - Disconnect the bot
+				gi.SV_BotDisconnect(bot->client->pers.netname);
 
 				bot->health = 0;
 				player_die(bot, bot, bot, 100000, vec3_origin);
-				// don't even bother waiting for death frames
-				//bot->deadflag = DEAD_DEAD;
-				//bot->inuse = false;
-				freed = true;
 				ClientDisconnect(bot);
 				game.bot_count--;
-				if (bot_personality->value && bot->bot.personality.isActive)
+
+				if (bot_personality->value && bot->bot.personality.isActive) {
 					BOTLIB_FreeBotPersonality(bot);
-				//gi.bprintf (PRINT_MEDIUM, "%s removed\n", bot->client->pers.netname);
+				}
+
+				freed = true;
 				break;
 			}
-			if (bot->is_bot)
-				bot_count--;
+			bot_count++;
 		}
 	}
 
-	if (!freed) {
-		if (debug_mode) {
-			gi.bprintf(PRINT_MEDIUM, "No bot removed\n");
-		}
+	// If no bot was removed, print debug message
+	if (!freed && debug_mode) {
+		gi.bprintf(PRINT_MEDIUM, "No bot removed\n");
 	}
 }
 
@@ -1741,9 +1764,9 @@ void BOTLIB_ChangeBotTeam(int from_team, int to_team)
 		{
 			if (bot->is_bot) // Is a bot
 			{
-				// Only kick when the bot isn't actively in a match
-				//if (bot->client->resp.team == team && (team_round_going == 0 || bot->health <= 0 || bot->solid == SOLID_NOT))
-				if (bot->client->resp.team == from_team && team_round_going == 0)
+				// Only kick when the bot isn't actively in a match or dead
+				if ((bot->client->resp.team == from_team && team_round_going == 0) || 
+					(bot->client->resp.team == from_team && !IS_ALIVE(bot)))
 				{
 					if (from_team == TEAM1) bot_connections.total_team1--;
 					else if (from_team == TEAM2) bot_connections.total_team2--;
@@ -1862,6 +1885,37 @@ void BOTLIB_GetTotalPlayers(bot_connections_t* bc)
 	bc->total_humans_playing = bc->total_humans - bc->spec_humans;
 }
 
+static void BOTLIB_TeamBotShuffle(void)
+{
+	if (use_3teams->value && (bot_connections.total_team1 != bot_connections.total_team2 || bot_connections.total_team1 != bot_connections.total_team3 || bot_connections.total_team2 != bot_connections.total_team3))
+	{
+		if (abs(bot_connections.total_team1 - bot_connections.total_team2) > 1 && bot_connections.total_team1 < bot_connections.total_team2)
+			BOTLIB_ChangeBotTeam(TEAM2, TEAM1);
+		if (abs(bot_connections.total_team1 - bot_connections.total_team3) > 1 && bot_connections.total_team1 < bot_connections.total_team3)
+			BOTLIB_ChangeBotTeam(TEAM3, TEAM1);
+
+		if (abs(bot_connections.total_team2 - bot_connections.total_team1) > 1 && bot_connections.total_team2 < bot_connections.total_team1)
+			BOTLIB_ChangeBotTeam(TEAM1, TEAM2);
+		if (abs(bot_connections.total_team2 - bot_connections.total_team3) > 1 && bot_connections.total_team2 < bot_connections.total_team3)
+			BOTLIB_ChangeBotTeam(TEAM3, TEAM2);
+
+		if (abs(bot_connections.total_team3 - bot_connections.total_team1) > 1 && bot_connections.total_team3 < bot_connections.total_team1)
+			BOTLIB_ChangeBotTeam(TEAM1, TEAM3);
+		if (abs(bot_connections.total_team3 - bot_connections.total_team2) > 1 && bot_connections.total_team3 < bot_connections.total_team2)
+			BOTLIB_ChangeBotTeam(TEAM2, TEAM3);
+	}
+	else if (bot_connections.total_team1 != bot_connections.total_team2)
+	{
+		if (abs(bot_connections.total_team1 - bot_connections.total_team2) > 1)
+		{
+			if (bot_connections.total_team1 < bot_connections.total_team2)
+				BOTLIB_ChangeBotTeam(TEAM2, TEAM1);
+			else
+				BOTLIB_ChangeBotTeam(TEAM1, TEAM2);
+		}
+	}
+}
+
 // Bots auto join teams to keep them equal in teamplay. 
 // Empty servers have a bot join a team upon a player connecting.
 int bot_teamcheckfrequency = 0;
@@ -1894,7 +1948,10 @@ void BOTLIB_CheckBotRules(void)
 	}
 
 	BOTLIB_GetTotalPlayers(&bot_connections);
-	//Com_Printf("%s hs[%d] ht1[%d] ht2[%d] ht3[%d] bs[%d] bt1[%d] bt2[%d] bt3[%d]\n", __func__, bot_connections.spec_humans, bot_connections.team1_humans, bot_connections.team2_humans, bot_connections.team3_humans, bot_connections.spec_bots, bot_connections.team1_bots, bot_connections.team2_bots, bot_connections.team3_bots);
+
+	// All bots are counted as being on team 1 if in DM mode
+
+	//gi.dprintf("%s hs[%d] ht1[%d] ht2[%d] ht3[%d] bs[%d] bt1[%d] bt2[%d] bt3[%d] tb[%d] th[%d]\n", __func__, bot_connections.spec_humans, bot_connections.team1_humans, bot_connections.team2_humans, bot_connections.team3_humans, bot_connections.spec_bots, bot_connections.team1_bots, bot_connections.team2_bots, bot_connections.team3_bots, bot_connections.total_bots, bot_connections.total_humans);
 
 	if (bot_connections.tried_adding_prev_bots == false)
 	{
@@ -1903,7 +1960,8 @@ void BOTLIB_CheckBotRules(void)
 		BOTLIB_GetTotalPlayers(&bot_connections); // Update connection stats
 	}
 
-	if (bot_maxteam->value > 0) bot_connections.auto_balance_bots = true; // Turn on team balance if bot_maxteam is used
+	// Turn on team balance if bot_maxteam is used
+	if (bot_maxteam->value > 0) bot_connections.auto_balance_bots = true;
 
 	// ========================================================================================================
 	// Manually add bots to a select team
@@ -1984,90 +2042,47 @@ void BOTLIB_CheckBotRules(void)
 				BOTLIB_GetTotalPlayers(&bot_connections); // Update connection stats
 			}
 		}
-
-		/*
-		// Sanity check
-		if (bot_connections.desire_team1 < -1) bot_connections.desire_team1 = 0;
-		if (bot_connections.desire_team2 < -1) bot_connections.desire_team2 = 0;
-		if (bot_connections.desire_team3 < -1) bot_connections.desire_team3 = 0;
-
-		int count = (bot_connections.desire_team1 + bot_connections.desire_team2 + bot_connections.desire_team3);
-		if (count == -1) // Remove all bots from team
-		{
-			// Remove all bots from team
-			if (bot_connections.desire_team1 == -1)
-			{
-				while (bot_connections.team1_bots)
-				{
-					BOTLIB_RemoveTeamplayBot(TEAM1);
-					bot_connections.team1_bots--;
-				}
-			}
-			else if (bot_connections.desire_team2 == -1)
-			{
-				while (bot_connections.team2_bots)
-				{
-					BOTLIB_RemoveTeamplayBot(TEAM2);
-					bot_connections.team2_bots--;
-				}
-			}
-			else if (use_3teams->value && bot_connections.desire_team3 == -1)
-			{
-				while (bot_connections.team3_bots)
-				{
-					BOTLIB_RemoveTeamplayBot(TEAM3);
-					bot_connections.team3_bots--;
-				}
-			}
-		}
-		if (count > 0) // Add bots to team
-		{
-			for (int i = 0; i < count; i++)
-			{
-				if (bot_connections.total_bots + bot_connections.total_humans + 1 < maxclients->value) // Max allowed
-				{
-					if (bot_connections.desire_team1)
-					{
-						if (bot_connections.team1_bots < bot_connections.desire_team1)
-							BOTLIB_SpawnBot(TEAM1, INVALID, NULL, NULL);
-						else if (bot_connections.team1_bots > bot_connections.desire_team1)
-							BOTLIB_RemoveTeamplayBot(TEAM1);
-						else
-							break;
-					}
-					else if (bot_connections.desire_team2)
-					{
-						if (bot_connections.team2_bots < bot_connections.desire_team2)
-							BOTLIB_SpawnBot(TEAM2, INVALID, NULL, NULL);
-						else if (bot_connections.team2_bots > bot_connections.desire_team2)
-							BOTLIB_RemoveTeamplayBot(TEAM2);
-						else
-							break;
-					}
-					else if (use_3teams->value && bot_connections.desire_team3)
-					{
-						if (bot_connections.team3_bots < bot_connections.desire_team3)
-							BOTLIB_SpawnBot(TEAM3, INVALID, NULL, NULL);
-						else if (bot_connections.team3_bots > bot_connections.desire_team3)
-							BOTLIB_RemoveTeamplayBot(TEAM3);
-						else
-							break;
-					}
-				}
-			}
-			bot_connections.desire_team1 = 0;
-			bot_connections.desire_team2 = 0;
-			bot_connections.desire_team3 = 0;
-			return;
-		}
-		*/
 	}
 	// ========================================================================================================
 
 
-	// Auto balance bots
-	if (bot_connections.auto_balance_bots == false)
-		return;
+	// Manage bot counts in DM mode
+	int bots_to_spawn = 0;
+	if (bot_playercount->value > 0 && (gameSettings & GS_DEATHMATCH)) {
+		// Calculate the desired number of bots based on bot_playercount and total_humans
+		bot_connections.desire_bots = (int)bot_playercount->value - bot_connections.total_humans;
+
+		// Ensure desire_bots does not exceed maxclients - total_humans
+		if (bot_connections.desire_bots + bot_connections.total_humans > maxclients->value) {
+			bot_connections.desire_bots = (int)(maxclients->value - bot_connections.total_humans);
+		}
+
+		// Sanity check - safety limits
+		if (bot_connections.desire_bots < 0) bot_connections.desire_bots = 0;
+		int bots_adj = 0;
+		int total_players = bot_connections.total_bots + bot_connections.total_humans;
+
+		if (total_players > bot_playercount->value) {
+			//gi.dprintf("I should remove a bot\n");
+			bots_adj = -1;
+		} else if (total_players < bot_playercount->value) {
+			// gi.dprintf("I should add a bot\n");
+			// gi.dprintf("total_players: %d, bot_playercount->value: %d\n", total_players, bot_playercount->value);
+			bots_adj = 1;
+		} else {
+			bots_to_spawn = (int)bot_playercount->value;
+			bot_connections.desire_bots = bots_to_spawn;
+		}
+
+		bots_to_spawn = bots_adj; // Set bots_to_spawn to +1 or -1 based on the adjustment needed
+		//gi.dprintf("bots_adj: %d\n", bots_to_spawn);
+	} else {
+		bots_to_spawn = bot_connections.desire_bots - bot_connections.total_bots;
+	}
+
+	// // Auto balance bots
+	// if (bot_connections.auto_balance_bots == false)
+	// 	return;
 
 
 	//bot_connections.desire_bots += (bot_connections.desire_team1 + bot_connections.desire_team2 + bot_connections.desire_team3);
@@ -2117,61 +2132,14 @@ void BOTLIB_CheckBotRules(void)
 		}
 	}
 
-
-	// Always leave room for another player to join
-	if (bot_connections.total_bots + bot_connections.total_humans + 1 > maxclients->value)
-		bot_connections.desire_bots = (maxclients->value - 1);
-
 	// Sanity check - safety limits
 	//if (bot_connections.desire_bots < 0) bot_connections.desire_bots = 0;
 
 	//int bots_to_spawn = abs(bot_connections.total_bots - bot_connections.desire_bots);
 
-	int bots_to_spawn = 0;
-	bots_to_spawn = bot_connections.desire_bots - bot_connections.total_bots;
-
-	// TODO: Fix BOTLIB_BotCountManager() to work
-	// if (!teamplay->value) {
-	// 	if (bot_rotate->value) {
-	// 		bots_to_spawn = BOTLIB_BotCountManager();
-	// 	} else {
-	// 		bots_to_spawn = bot_connections.desire_bots - bot_connections.total_bots;
-	// 	}
-	// }
-
 	// Shuffle bots around
-	//if (teamplay->value && bots_to_spawn == 0)
 	if (teamplay->value && bot_connections.auto_balance_bots)
-	{
-		if (use_3teams->value && (bot_connections.total_team1 != bot_connections.total_team2 || bot_connections.total_team1 != bot_connections.total_team3 || bot_connections.total_team2 != bot_connections.total_team3))
-		{
-			if (abs(bot_connections.total_team1 - bot_connections.total_team2) > 1 && bot_connections.total_team1 < bot_connections.total_team2)
-				BOTLIB_ChangeBotTeam(TEAM2, TEAM1);
-			if (abs(bot_connections.total_team1 - bot_connections.total_team3) > 1 && bot_connections.total_team1 < bot_connections.total_team3)
-				BOTLIB_ChangeBotTeam(TEAM3, TEAM1);
-
-			if (abs(bot_connections.total_team2 - bot_connections.total_team1) > 1 && bot_connections.total_team2 < bot_connections.total_team1)
-				BOTLIB_ChangeBotTeam(TEAM1, TEAM2);
-			if (abs(bot_connections.total_team2 - bot_connections.total_team3) > 1 && bot_connections.total_team2 < bot_connections.total_team3)
-				BOTLIB_ChangeBotTeam(TEAM3, TEAM2);
-
-			if (abs(bot_connections.total_team3 - bot_connections.total_team1) > 1 && bot_connections.total_team3 < bot_connections.total_team1)
-				BOTLIB_ChangeBotTeam(TEAM1, TEAM3);
-			if (abs(bot_connections.total_team3 - bot_connections.total_team2) > 1 && bot_connections.total_team3 < bot_connections.total_team2)
-				BOTLIB_ChangeBotTeam(TEAM2, TEAM3);
-		}
-		else if (bot_connections.total_team1 != bot_connections.total_team2)
-		{
-			if (abs(bot_connections.total_team1 - bot_connections.total_team2) > 1)
-			{
-				if (bot_connections.total_team1 < bot_connections.total_team2)
-					BOTLIB_ChangeBotTeam(TEAM2, TEAM1);
-				else
-					BOTLIB_ChangeBotTeam(TEAM1, TEAM2);
-			}
-		}
-
-	}
+		BOTLIB_TeamBotShuffle();
 
 	// Remove ALL bots
 	if (bot_connections.total_bots > 0 && bot_connections.desire_bots == 0)
@@ -2182,99 +2150,7 @@ void BOTLIB_CheckBotRules(void)
 		bot_connections.total_team3 = 0;
 	}
 
-	// Remove bots
-	//if (bot_connections.total_bots > bot_connections.desire_bots)
-	if (bots_to_spawn < 0)
-	{
-		bots_to_spawn = abs(bots_to_spawn);
-		for (int i = 0; i < bots_to_spawn; i++)
-		{
-			if (teamplay->value) // Remove a bot from team with the highest player count
-			{
-				if (use_3teams->value)
-				{
-					if (bot_connections.total_team1 >= bot_connections.total_team2 && bot_connections.total_team1 >= bot_connections.total_team3)
-						BOTLIB_RemoveTeamplayBot(TEAM1);
-					else if (bot_connections.total_team2 >= bot_connections.total_team1 && bot_connections.total_team2 >= bot_connections.total_team3)
-						BOTLIB_RemoveTeamplayBot(TEAM2);
-					else if (bot_connections.total_team3 >= bot_connections.total_team1 && bot_connections.total_team3 >= bot_connections.total_team2)
-
-						BOTLIB_RemoveTeamplayBot(TEAM3);
-					else // If all teams are equal size, randomly remove bot to one of the teams
-					{
-						int choice = rand() % 3;
-						if (choice == 0)
-							BOTLIB_RemoveTeamplayBot(TEAM1);
-						else if (choice == 1)
-							BOTLIB_RemoveTeamplayBot(TEAM2);
-						else
-							BOTLIB_RemoveTeamplayBot(TEAM3);
-					}
-				}
-				else
-				{
-					if (bot_connections.total_team1 > bot_connections.total_team2)
-						BOTLIB_RemoveTeamplayBot(TEAM1);
-					else if (bot_connections.total_team1 < bot_connections.total_team2)
-						BOTLIB_RemoveTeamplayBot(TEAM2);
-					else // If both teams are equal size, randomly remove bot to one of the teams
-					{
-						if (rand() % 2 == 0)
-							BOTLIB_RemoveTeamplayBot(TEAM1);
-						else
-							BOTLIB_RemoveTeamplayBot(TEAM2);
-					}
-				}
-			}
-			else // DM
-				BOTLIB_RemoveBot("");
-		}
-		return;
-	}
-	//else if (bot_connections.total_bots < bots_to_spawn)
-	else if (bots_to_spawn > 0)
-	{
-		for (int i = 0; i < bots_to_spawn; i++)
-		{
-			if (teamplay->value) // Add a bot to a team with the lowest player count
-			{
-				if (use_3teams->value) // 3TEAMS
-				{
-					if (bot_connections.total_team1 <= bot_connections.total_team2 && bot_connections.total_team1 <= bot_connections.total_team3)
-						BOTLIB_SpawnBot(TEAM1, INVALID, NULL, NULL);
-					else if (bot_connections.total_team2 <= bot_connections.total_team1 && bot_connections.total_team2 <= bot_connections.total_team3)
-						BOTLIB_SpawnBot(TEAM2, INVALID, NULL, NULL);
-					else if (bot_connections.total_team3 <= bot_connections.total_team1 && bot_connections.total_team3 <= bot_connections.total_team2)
-						BOTLIB_SpawnBot(TEAM3, INVALID, NULL, NULL);
-					else // If all teams are equal size, randomly add bot to one of the teams
-					{
-						int choice = rand() % 3;
-						if (choice == 0)
-							BOTLIB_SpawnBot(TEAM1, INVALID, NULL, NULL);
-						else if (choice == 1)
-							BOTLIB_SpawnBot(TEAM2, INVALID, NULL, NULL);
-						else
-							BOTLIB_SpawnBot(TEAM3, INVALID, NULL, NULL);
-					}
-				}
-				else // TP
-				{
-					if (bot_connections.total_team1 < bot_connections.total_team2)
-						BOTLIB_SpawnBot(TEAM1, INVALID, NULL, NULL);
-					else if (bot_connections.total_team1 > bot_connections.total_team2)
-						BOTLIB_SpawnBot(TEAM2, INVALID, NULL, NULL);
-					else // If both teams are equal size, randomly add bot to one of the teams
-					{
-						if (rand() % 2 == 0)
-							BOTLIB_SpawnBot(TEAM1, INVALID, NULL, NULL);
-						else
-							BOTLIB_SpawnBot(TEAM2, INVALID, NULL, NULL);
-					}
-				}
-			}
-			else // DM
-				BOTLIB_SpawnBot(0, INVALID, NULL, NULL);
-		}
-	}
+	// Time to add or remove bots
+	BOTLIB_BotCountManager(bots_to_spawn);
 }
 //rekkie -- DEV_1 -- e

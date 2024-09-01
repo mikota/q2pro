@@ -2264,6 +2264,8 @@ static void SpawnPlayers(void)
 #ifndef NO_BOTS
 		if (ent->bot.bot_type == BOT_TYPE_BOTLIB)
 		{
+			// Reset bandage state
+			ent->bot.radioBandaging = false;
 			BOTLIB_PutClientInServer(ent, true, ent->client->resp.team);
 		}
 #endif
