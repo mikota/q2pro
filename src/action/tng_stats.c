@@ -775,6 +775,7 @@ void G_RegisterScore(void)
     gi.dprintf("Added highscore entry for %s with %d score\n",
                c->pers.netname, score);
 
+	CenterPrintAll(va("New Highscore for map %s: %s with %i score and %.2f%% accuracy", level.mapname, c->pers.netname, score, accuracy));
     G_SaveScores();
 }
 
