@@ -691,6 +691,7 @@ void InitGame( void )
 	bot_reaction = gi.cvar("bot_reaction", "0.5", 0); // How long (in seconds) until the bot reacts to an enemy in sight
 	bot_showpath = gi.cvar("bot_showpath", "0", 0);
 	bot_maxteam = gi.cvar("bot_maxteam", "0", 0);
+	bot_playercount = gi.cvar("bot_playercount", "0", 0);
 	bot_rush = gi.cvar("bot_rush", "0", 0);
 	bot_randvoice = gi.cvar("bot_randvoice", "5", 0);
 	bot_randskill = gi.cvar("bot_randskill", "10", 0);

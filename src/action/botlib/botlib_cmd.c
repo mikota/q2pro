@@ -12,6 +12,9 @@ qboolean BOTLIB_SV_Cmds(void)
 	{
 		int cc = gi.argc();
 
+		if (bot_playercount->value > 0)
+			gi.dprintf("bot_playercount is set to %i, sv bots has no effect\n", (int)bot_playercount->value);
+
 		gi.cvar_set("bot_maxteam", va("%d", 0)); // Override if bots manually added
 
 		// sv bots <num>

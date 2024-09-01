@@ -2121,7 +2121,13 @@ void BOTLIB_CheckBotRules(void)
 
 	//int bots_to_spawn = abs(bot_connections.total_bots - bot_connections.desire_bots);
 
+
 	int bots_to_spawn = 0;
+	// Update desire_bots based on bot_playercount
+    if (bot_playercount->value != bot_connections.desire_bots) {
+        bot_connections.desire_bots = (int)bot_playercount->value - bot_connections.total_humans;
+    }
+
 	bots_to_spawn = bot_connections.desire_bots - bot_connections.total_bots;
 
 	// TODO: Fix BOTLIB_BotCountManager() to work
