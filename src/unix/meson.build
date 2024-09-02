@@ -30,7 +30,8 @@ if not config.has('USE_SDL') and not config.has('USE_X11') and not config.has('U
   client_deps += disabler()
 endif
 
-if not config.has('USE_X11')
+# This is needed due to specific OpenGL-specific symbols being used in the client for navmesh drawing
+if not config.has('USE_X11') and host_machine.system() == 'linux'
   exe_link_args += '-lGL'
 endif
 
