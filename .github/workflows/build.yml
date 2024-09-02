@@ -30,6 +30,7 @@ env:
   MESON_ARGS_LINUX_WAYLAND: >-
     -Dwindows-crash-dumps=disabled
     -Dwrap_mode=nofallback
+    -Dx11=disabled
 
   MESON_ARGS_LINUX_X11: >-
     -Dwindows-crash-dumps=disabled
