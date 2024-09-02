@@ -34,6 +34,7 @@ env:
 
   MESON_ARGS_LINUX_X11: >-
     -Dwindows-crash-dumps=disabled
+    -Dx11=disabled
     -Dwayland=disabled
     -Dwrap_mode=nofallback
 
