@@ -1516,7 +1516,10 @@ edict_t* BOTLIB_SpawnBot(int team, int force_gender, char* force_name, char* for
 	}
 
 	bot->is_bot = true;
-	bot->yaw_speed = 1000;  // aiming degrees per second
+	int base_yaw_speed = 1000;
+	int aim_speed = (base_yaw_speed * BOTLIB_SkillMultiplier(bot->bot.skill.aim, true));
+	bot->yaw_speed = aim_speed;
+	//bot->yaw_speed = 1000;  // aiming degrees per second
 
 	if (team == TEAM1)
 		bot_connections.total_team1++;

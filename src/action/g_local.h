@@ -2220,6 +2220,30 @@ typedef struct bot_personality_s
 
 } bot_personality_t;
 
+typedef enum bot_skill_types
+{
+	BOT_SKILL_OVERALL,
+	BOT_SKILL_AIM,
+	BOT_SKILL_REACTION,
+	BOT_SKILL_MOVEMENT,
+	BOT_SKILL_TEAMWORK,
+	BOT_SKILL_COMMUNICATION,
+	BOT_SKILL_WEAPON,
+	BOT_SKILL_MAP,
+} bot_skill_types_t;
+
+typedef struct bot_skill_s
+{
+	float overall;	// Overall skill
+	float aim;		// Aim skill
+	float reaction;	// Reaction skill
+	float movement;	// Movement skill
+	float teamwork;	// Teamwork skill
+	float communication;	// Communication skill
+	float weapon_skill[WEAPON_COUNT];	// Weapon skill
+	float map_skill;	// Map skill
+} bot_skill_t;
+
 typedef struct bot_s
 {
 	int bot_type;
@@ -2295,7 +2319,7 @@ typedef struct bot_s
 	int last_weapon_reload_time; // Delay time between reloading weapons
 
 	// Skill
-	float skill; // Variable bot skill. Allow the bot to increase or decrease its own skill based on its score (kills) and bot_skill
+	bot_skill_t skill; // Variable bot skill levels
 
 	// Items
 	edict_t *get_item; // The current item the bot wants and is located next or or inside of a node

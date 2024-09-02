@@ -3314,6 +3314,8 @@ void ClientBeginDeathmatch(edict_t * ent)
 
 #ifndef NO_BOTS
     	ACEIT_RebuildPlayerList();
+		BOTLIB_SKILL_Init(ent); // Initialize the skill levels
+
 #if USE_AQTION
 		StatBotCheck();
 		#if USE_AQTION

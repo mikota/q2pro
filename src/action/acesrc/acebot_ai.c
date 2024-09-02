@@ -1119,15 +1119,20 @@ qboolean BOTLIB_FindEnemy(edict_t *self)
 		trace_t tr = gi.trace(eyes, NULL, NULL, enemy_eyes, self, MASK_SHOT);
 		if (tr.ent && tr.ent->health > 0 && tr.ent->solid == SOLID_BBOX)
 		{
+			// Minimum time to remember an enemy is 15 seconds, maximum is 30 seconds
+			float remember_time = min((BOTLIB_SkillMultiplier(self->bot.skill.overall, true) * 15), 15);
+			if (remember_time > 30)
+				remember_time = 30;
+				
 			VectorCopy(self->enemy->s.origin, self->bot.enemy_seen_loc); // Update last seen location
-			self->bot.enemy_seen_time = level.framenum + bot_remember->value * HZ; // Update the last time we saw the enemy
+			self->bot.enemy_seen_time = level.framenum + remember_time * HZ; // Update the last time we saw the enemy
 			self->bot.enemy_in_xhair = BOTLIB_IsAimingAt(self, self->enemy);
 			self->bot.enemy_dist = VectorDistance(self->s.origin, self->enemy->s.origin);
 			self->bot.enemy_height_diff = fabs(self->s.origin[2] - self->enemy->s.origin[2]);
 
 			//Com_Printf("%s %s see %s R[%d vs %d]L\n", __func__, self->client->pers.netname, self->enemy->client->pers.netname, self->bot.reaction_time, level.framenum);
 
-			if (self->bot.reaction_time > level.framenum)
+			if (self->bot.skill.reaction > level.framenum)
 			{
 				//Com_Printf("%s %s no fire R[%d vs %d]L\n", __func__, self->client->pers.netname, self->bot.reaction_time, level.framenum);
 				return false;
@@ -1278,13 +1283,18 @@ qboolean BOTLIB_FindEnemy(edict_t *self)
 	// If we found an enemy
 	if (bestenemy != NULL)
 	{
+		// Minimum time to remember an enemy is 15 seconds, maximum is 30 seconds
+		float remember_time = min((BOTLIB_SkillMultiplier(self->bot.skill.overall, true) * 15), 15);
+		if (remember_time > 30)
+			remember_time = 30;
+
 		self->enemy = bestenemy;
-		self->bot.enemy_seen_time = level.framenum + bot_remember->value * HZ; // Update the last time we saw the enemy
+		self->bot.enemy_seen_time = level.framenum + remember_time * HZ; // Update the last time we saw the enemy
 		self->bot.enemy_in_xhair = BOTLIB_IsAimingAt(self, self->enemy);
 		self->bot.enemy_dist = VectorDistance(self->s.origin, self->enemy->s.origin);
 		self->bot.enemy_height_diff = fabs(self->s.origin[2] - self->enemy->s.origin[2]);
 
-		self->bot.reaction_time = level.framenum + 0.75 * HZ;
+		self->bot.reaction_time = BOTLIB_SKILL_Reaction(self->bot.skill.reaction) * HZ;
 		//Com_Printf("%s %s see %s R[%d vs %d]L\n", __func__, self->client->pers.netname, self->enemy->client->pers.netname, self->bot.reaction_time, level.framenum);
 
 		/*
@@ -1450,13 +1460,14 @@ qboolean BOTLIB_FindEnemy(edict_t *self)
 //R
 #endif
 
+	float reaction_multiplier = BOTLIB_SKILL_Reaction(self->bot.skill.reaction);
 	if (0)
 	{
 		self->bot.enemy_in_xhair = false;
 		self->bot.enemy_dist = 0;
 		self->bot.enemy_height_diff = 0;
 		self->bot.enemy_seen_time = 0;
-		self->bot.reaction_time = bot_reaction->value;
+		self->bot.reaction_time = reaction_multiplier * HZ;
 		self->enemy = NULL; // Reset any enemies, including any the bot remembered...
 		return false;
 	}
@@ -1483,7 +1494,7 @@ qboolean BOTLIB_FindEnemy(edict_t *self)
 		self->bot.enemy_dist = 0;
 		self->bot.enemy_height_diff = 0;
 		self->bot.enemy_seen_time = 0;
-		self->bot.reaction_time = bot_reaction->value;
+		self->bot.reaction_time = reaction_multiplier;
 		self->enemy = NULL; // Reset any enemies, including any the bot remembered...
 	}
 

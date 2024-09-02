@@ -373,7 +373,12 @@ void BOTLIB_RadioBroadcast(edict_t* ent, edict_t* partner, char* msg)
 	qboolean found = false;
 	radio_t* radio;
 
+	// Dead shit doesn't broadcast
 	if (!IS_ALIVE(ent))
+		return;
+
+	// Check if the bot should communicate based on skill level
+	if (!BOTLIB_SkillChance((ent->bot.skill.communication + ent->bot.skill.teamwork)))
 		return;
 
 	if (!teamplay->value)
@@ -381,22 +386,6 @@ void BOTLIB_RadioBroadcast(edict_t* ent, edict_t* partner, char* msg)
 		if (!DMFLAGS((DF_MODELTEAMS | DF_SKINTEAMS)))
 			return;			// don't allow in a non-team setup...
 	}
-
-	/*
-	//TempFile END
-		//AQ2:TNG Slicer
-	if (radio_repeat->value)
-	{  //SLIC2 Optimization
-		if (CheckForRepeat(ent, i) == false)
-			return;
-	}
-
-	if (radio_max->value)
-	{
-		if (CheckForFlood(ent) == false)
-			return;
-	}
-	*/
 
 	radio = &ent->client->resp.radio;
 	if (radio->gender)

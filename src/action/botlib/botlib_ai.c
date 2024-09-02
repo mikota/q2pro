@@ -23,15 +23,14 @@ void BOTLIB_Init(edict_t* self)
 
 	self->client->resp.radio.gender = (self->client->pers.gender == GENDER_FEMALE) ? 1 : 0;
 
-
-	// Save previous data
-	float prev_skill = self->bot.skill;
+	// Save previous data (TODO: copy entire bot.skill struct)
+	float prev_skill = self->bot.skill.overall;
 	int pId = self->bot.personality.pId;
 
 	memset(&self->bot, 0, sizeof(bot_t));
 
 	// Restore previous data
-	self->bot.skill = prev_skill;
+	self->bot.skill.overall = prev_skill;
 	self->bot.personality.pId = pId;
 
 	// Ping
@@ -44,9 +43,6 @@ void BOTLIB_Init(edict_t* self)
 	else
 		self->bot.bot_baseline_ping = (int)(7 + (random() * 227)); // High ping bastard
 
-
-
-	
 	// Enemies
 	self->bot.old_enemy = NULL;
 	self->bot.enemy_in_xhair = false;
@@ -54,7 +50,6 @@ void BOTLIB_Init(edict_t* self)
 	self->bot.enemy_height_diff = 0;
 	self->bot.enemy_seen_time = 0;
 	self->bot.enemy_chase_time = 0;
-	self->bot.reaction_time = bot_reaction->value;
 
 	//memset(&self->bot.noises, 0, sizeof(int) * MAX_CLIENTS);
 	//memset(&self->bot.noise_time, 0, sizeof(int) * MAX_CLIENTS);
@@ -106,9 +101,9 @@ void BOTLIB_Init(edict_t* self)
 		// Simple adjustments for now
 		int skillPlus = 0;
 		skillPlus += self->bot.personality.map_prefs;
-		self->bot.skill += skillPlus; // This will decrease skill if map_prefs is negative, max -1
-		if (self->bot.skill > MAX_BOTSKILL)
-			self->bot.skill = MAX_BOTSKILL;
+		self->bot.skill.overall += skillPlus; // This will decrease skill if map_prefs is negative, max -1
+		if (self->bot.skill.overall > MAX_BOTSKILL)
+			self->bot.skill.overall = MAX_BOTSKILL;
 	}
 }
 
@@ -474,20 +469,6 @@ void BOTLIB_BotInputToUserCommand(edict_t* ent, bot_input_t* bi, usercmd_t* ucmd
 	ent->bot.bi.actionflags = 0;
 }
 
-// Automatic adjustment of bot skills based on their current score compared to all other bots
-/*
-typedef struct {
-	int playernum;
-	int score;
-} PlayerScores;
-// Comparison function used by qsort()
-int BOTLIB_ScoreCompare(const void* a, const void* b)
-{
-	const PlayerScores* p1 = (PlayerScores*)a;
-	const PlayerScores* p2 = (PlayerScores*)b;
-	return p2->score - p1->score;  // Sort ascendingly by score
-}
-*/
 int BOTLIB_AutoAdjustSkill(edict_t * self)
 {
 	int highest_score = 0; // Highest player score
@@ -495,8 +476,8 @@ int BOTLIB_AutoAdjustSkill(edict_t * self)
 	float score_percent_diff = 1.0; // Difference in percent between player and best player's score 
 
 	//Init the variable bot skill
-	if (self->bot.skill < 1)
-		self->bot.skill = bot_skill->value;
+	if (self->bot.skill.overall < 1)
+		self->bot.skill.overall = bot_skill->value;
 
 	if (self->client == NULL)
 		return 0;
@@ -525,36 +506,36 @@ int BOTLIB_AutoAdjustSkill(edict_t * self)
 
 			if (score_percent_diff >= 0.75)
 			{
-				self->bot.skill = bot_skill->value;
+				self->bot.skill.overall = bot_skill->value;
 				//Com_Printf("%s %s adjusting bot skill [-] [%f]\n", __func__, self->client->pers.netname, bot_skill->value);
 				return 0; // Normal
 			}
 			else if (score_percent_diff >= 0.5)
 			{
-				self->bot.skill = self->bot.skill + 0.25; // Increase bot skill slower
+				self->bot.skill.overall = self->bot.skill.overall + 0.25; // Increase bot skill slower
 
-				if (self->bot.skill > (MAX_BOTSKILL - 1)) // Max skill
-					self->bot.skill = bot_skill->value; // Scale skill back down to base level
+				if (self->bot.skill.overall > (MAX_BOTSKILL - 1)) // Max skill
+					self->bot.skill.overall = bot_skill->value; // Scale skill back down to base level
 
-				//Com_Printf("%s %s adjusting bot skill [+] [%f]\n", __func__, self->client->pers.netname, self->bot.skill);
+				//Com_Printf("%s %s adjusting bot skill [+] [%f]\n", __func__, self->client->pers.netname, self->bot.skill.overall);
 
 				return 1; // Okay
 			}
 			else if (score_percent_diff < 0.5)
 			{
-				self->bot.skill = self->bot.skill + 0.5; // Increase bot skill faster
+				self->bot.skill.overall = self->bot.skill.overall + 0.5; // Increase bot skill faster
 
-				if (self->bot.skill > (MAX_BOTSKILL - 1)) // Max skill
-					self->bot.skill = bot_skill->value; // Scale skill back down to base level
+				if (self->bot.skill.overall > (MAX_BOTSKILL - 1)) // Max skill
+					self->bot.skill.overall = bot_skill->value; // Scale skill back down to base level
 
-				//Com_Printf("%s %s adjusting bot skill [+] [%f]\n", __func__, self->client->pers.netname, self->bot.skill);
+				//Com_Printf("%s %s adjusting bot skill [+] [%f]\n", __func__, self->client->pers.netname, self->bot.skill.overall);
 
 				return 2; // Poor
 			}
 		}
 	}
 
-	self->bot.skill = bot_skill->value;
+	self->bot.skill.overall = bot_skill->value;
 	//Com_Printf("%s %s adjusting bot skill [-] [%f]\n", __func__, self->client->pers.netname, bot_skill->value);
 	return 0; // Normal
 
@@ -616,25 +597,25 @@ int BOTLIB_AutoAdjustSkill(edict_t * self)
 	// If bot score is in the bottom half (50% or greater) adjust its skill so it can aim to be in the top 10%
 	if (percent >= 0.75) // Higher is worse
 	{
-		self->bot.skill = self->bot.skill + 0.5; // Increase bot skill faster
+		self->bot.skill.overall = self->bot.skill.overall + 0.5; // Increase bot skill faster
 
-		if (self->bot.skill > MAX_BOTSKILL) // Max skill
-			self->bot.skill = MAX_BOTSKILL;
+		if (self->bot.skill.overall > MAX_BOTSKILL) // Max skill
+			self->bot.skill.overall = MAX_BOTSKILL;
 
-		//Com_Printf("%s %s adjusting bot skill [+] [%d]\n", __func__, self->client->pers.netname, (int)self->bot.skill);
+		//Com_Printf("%s %s adjusting bot skill [+] [%d]\n", __func__, self->client->pers.netname, (int)self->bot.skill.overall);
 	}
 	else if (percent >= 0.5) // Higher is worse
 	{
-		self->bot.skill = self->bot.skill + 0.25; // Increase bot skill slower
+		self->bot.skill.overall = self->bot.skill.overall + 0.25; // Increase bot skill slower
 
-		if (self->bot.skill > MAX_BOTSKILL) // Max skill
-			self->bot.skill = MAX_BOTSKILL;
+		if (self->bot.skill.overall > MAX_BOTSKILL) // Max skill
+			self->bot.skill.overall = MAX_BOTSKILL;
 
-		//Com_Printf("%s %s adjusting bot skill [+] [%d]\n", __func__, self->client->pers.netname, (int)self->bot.skill);
+		//Com_Printf("%s %s adjusting bot skill [+] [%d]\n", __func__, self->client->pers.netname, (int)self->bot.skill.overall);
 	}
 	else // Return skill back to base level
 	{
-		self->bot.skill = bot_skill->value;
+		self->bot.skill.overall = bot_skill->value;
 		//Com_Printf("%s %s adjusting bot skill [-] [%d]\n", __func__, self->client->pers.netname, (int)bot_skill->value);
 	}
 

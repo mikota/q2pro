@@ -5237,7 +5237,7 @@ void BOTLIB_CrouchFire(edict_t* self)
 	gitem_t* clweapon = self->client->weapon;
 
 	// More skillful bots will crouch when firing
-	if (self->bot.skill >= 5) {
+	if (self->bot.skill.aim >= 0) {
 		if ((self->bot.bi.actionflags & ACTION_MOVELEFT) == 0 && 
 			(self->bot.bi.actionflags & ACTION_MOVERIGHT) == 0)
 		{
@@ -5903,14 +5903,14 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 					self->just_spawned_timeout = 0;										// No wait
 			} else { // bot_personality is enabled, let's make it more realistic
 				int rnd_rng = rand() % 4;
-				float skill_factor = 1.0f - (self->bot.skill / 10.0f); // Scale factor based on skill (0 to 1)
+				float skill_factor = (self->bot.skill.movement / 10.0f); // Scale factor based on skill (0 to 1)
 
 				if (rnd_rng == 0)
-					self->just_spawned_timeout = level.framenum + (random() * 10 * skill_factor) * HZ; // Long wait
+					self->just_spawned_timeout = level.framenum + (random() * 10 * (1.0f - skill_factor)) * HZ; // Long wait
 				else if (rnd_rng == 1)
-					self->just_spawned_timeout = level.framenum + (random() * 5 * skill_factor) * HZ;  // Medium wait
+					self->just_spawned_timeout = level.framenum + (random() * 5 * (1.0f - skill_factor)) * HZ;  // Medium wait
 				else if (rnd_rng == 2)
-					self->just_spawned_timeout = level.framenum + (random() * 2 * skill_factor) * HZ;  // Short wait
+					self->just_spawned_timeout = level.framenum + (random() * 2 * (1.0f - skill_factor)) * HZ;  // Short wait
 				else
 					self->just_spawned_timeout = 0; // No wait
 			}

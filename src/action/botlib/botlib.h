@@ -525,8 +525,12 @@ int BOTLIB_GetEquipment(edict_t* self);
 //rekkie -- collecting weapons, items, ammo -- e
 
 // ===========================================================================
-// botlib_debug.c
+// botlib_utils.c
 // ===========================================================================
+void BOTLIB_SKILL_Init(edict_t* bot);
+qboolean BOTLIB_SkillChance(float skilltype);
+float BOTLIB_SkillMultiplier(float skill_level, bool increase_with_skill);
+float BOTLIB_SKILL_Reaction(float reaction_skill);
 void BOTLIB_Debug(const char *debugmsg, ...);
 
 // ===========================================================================
