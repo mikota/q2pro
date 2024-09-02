@@ -30,6 +30,10 @@ if not config.has('USE_SDL') and not config.has('USE_X11') and not config.has('U
   client_deps += disabler()
 endif
 
+if not config.has('USE_X11')
+  exe_link_args += '-lGL'
+endif
+
 test_funcs = [
   'memccpy',
   'strchrnul',
