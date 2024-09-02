@@ -22,7 +22,7 @@ void BOTLIB_SKILL_Init(edict_t* bot)
 			bot->bot.skill.weapon_skill[i] = ((float)rand() / RAND_MAX) * 2 - 1;
 		}
 	} else {  // We know what values to provide if we have a personality
-		//copy the personality data
+		//copy the personality data when it's implemented
 	}
 	gi.dprintf("%s's bot skills:\noverall: %f\naim: %f\nreaction: %f\nmovement: %f\nteamwork: %f\ncommunication: %f\nmap_skill: %f\n",
 		bot->client->pers.netname, bot->bot.skill.overall, bot->bot.skill.aim, bot->bot.skill.reaction, bot->bot.skill.movement, bot->bot.skill.teamwork, bot->bot.skill.communication, bot->bot.skill.map_skill);
@@ -44,6 +44,8 @@ qboolean BOTLIB_SkillChance(float skill_level)
 }
 
 // This function will return a multiplier based on the skill level
+// Set increase_with_skill to true if you want the multiplier to increase with skill level (ex: aim)
+// Set increase_with_skill to false if you want the multiplier to decrease with skill level (ex: reaction time)
 float BOTLIB_SkillMultiplier(float skill_level, bool increase_with_skill)
 {
     // Seed the random number generator
