@@ -25,7 +25,7 @@ env:
     -Dsdl2=disabled
     -Dx11=disabled
     -Dwayland=disabled
-    -Dwindows-egl=enabled
+    -Dwindows-egl=true
     -Dwrap_mode=forcefallback
 
   MESON_ARGS_LINUX: >-
