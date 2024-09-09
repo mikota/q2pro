@@ -24,23 +24,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #define MAX_MSGLEN  0x8000      // max length of a message, 32 KiB
 
-<<<<<<< HEAD
-#define PROTOCOL_VERSION_OLD        26
-#define PROTOCOL_VERSION_DEFAULT    34
-#define PROTOCOL_VERSION_R1Q2       35
-#define PROTOCOL_VERSION_Q2PRO      36
-#define PROTOCOL_VERSION_MVD        37 // not used for UDP connections
-#define PROTOCOL_VERSION_AQTION     38
-#define PROTOCOL_VERSION_EXTENDED   3434
-=======
 #define PROTOCOL_VERSION_OLD            26
 #define PROTOCOL_VERSION_DEFAULT        34
 #define PROTOCOL_VERSION_R1Q2           35
 #define PROTOCOL_VERSION_Q2PRO          36
 #define PROTOCOL_VERSION_MVD            37      // not used for UDP connections
+#define PROTOCOL_VERSION_AQTION         38
 #define PROTOCOL_VERSION_EXTENDED_OLD   3434
 #define PROTOCOL_VERSION_EXTENDED       3435
->>>>>>> 9b15c229 (Support more protocol extensions.)
 
 #define PROTOCOL_VERSION_R1Q2_MINIMUM           1903    // b6377
 #define PROTOCOL_VERSION_R1Q2_UCMD              1904    // b7387
