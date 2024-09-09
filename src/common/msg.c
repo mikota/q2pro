@@ -2785,32 +2785,6 @@ void MSG_ParseDeltaPlayerstate_Enhanced(const player_state_t    *from,
             to->pmove.pm_flags = MSG_ReadByte();
     }
 
-<<<<<<< HEAD
-    if (extraflags & EPS_M_ORIGIN2)
-        to->pmove.origin[2] = MSG_ReadShort();
-
-    if (flags & PS_M_VELOCITY) {
-        to->pmove.velocity[0] = MSG_ReadShort();
-        to->pmove.velocity[1] = MSG_ReadShort();
-    }
-
-    if (extraflags & EPS_M_VELOCITY2)
-    {
-        to->pmove.velocity[2] = MSG_ReadShort();
-    }
-
-	if (flags & PS_M_TIME)
-	{
-		to->pmove.pm_time = MSG_ReadByte();
-	}
-
-	if (flags & PS_M_FLAGS)
-	{
-		to->pmove.pm_flags = MSG_ReadByte();
-	}
-
-=======
->>>>>>> 9b15c229 (Support more protocol extensions.)
     if (flags & PS_M_GRAVITY)
         to->pmove.gravity = MSG_ReadShort();
 
@@ -2909,29 +2883,6 @@ void MSG_ParseDeltaPlayerstate_Aqtion(const player_state_t    *from,
 	if (flags & PS_M_ORIGIN) {
 		to->pmove.origin[0] = MSG_ReadShort();
 		to->pmove.origin[1] = MSG_ReadShort();
-	}
-
-	if (extraflags & EPS_M_ORIGIN2) {
-		to->pmove.origin[2] = MSG_ReadShort();
-	}
-
-	if (flags & PS_M_VELOCITY) {
-		to->pmove.velocity[0] = MSG_ReadShort();
-		to->pmove.velocity[1] = MSG_ReadShort();
-	}
-
-	if (extraflags & EPS_M_VELOCITY2) {
-		to->pmove.velocity[2] = MSG_ReadShort();
-	}
-
-	if (flags & PS_M_TIME)
-	{
-		to->pmove.pm_time = MSG_ReadByte();
-	}
-
-	if (flags & PS_M_FLAGS)
-	{
-		to->pmove.pm_flags = MSG_ReadByte();
 	}
 
 	if (flags & PS_M_GRAVITY)

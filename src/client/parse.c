@@ -576,13 +576,8 @@ static void CL_ParseServerData(void)
         // BIG HACK to let demos from release work with the 3.0x patch!!!
         if (protocol == PROTOCOL_VERSION_EXTENDED || protocol == PROTOCOL_VERSION_EXTENDED_OLD) {
             cl.csr = cs_remap_new;
-<<<<<<< HEAD
-            protocol = PROTOCOL_VERSION_DEFAULT;
-        } else if (protocol < PROTOCOL_VERSION_OLD || protocol > PROTOCOL_VERSION_AQTION) {
-=======
             cls.serverProtocol = PROTOCOL_VERSION_DEFAULT;
-        } else if (protocol < PROTOCOL_VERSION_OLD || protocol > PROTOCOL_VERSION_DEFAULT) {
->>>>>>> 9b15c229 (Support more protocol extensions.)
+        } else if (protocol < PROTOCOL_VERSION_OLD || protocol > PROTOCOL_VERSION_AQTION) {
             Com_Error(ERR_DROP, "Demo uses unsupported protocol version %d.", protocol);
         } else {
             cls.serverProtocol = protocol;

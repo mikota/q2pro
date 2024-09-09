@@ -25,20 +25,16 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // game.h -- game dll information visible to server
 //
 
-<<<<<<< HEAD
-#if AQTION_EXTENSION
-#define GAME_API_VERSION        4
-#else
-#define GAME_API_VERSION        3
-=======
 #define GAME_API_VERSION_OLD    3       // game uses gclient_old_t
+#define GAME_API_VERSION_AQTION 4       // game uses gclient_t with AQtion extension (aliased to gclient_old_t)
 #define GAME_API_VERSION_NEW    3300    // game uses gclient_new_t
 
 #if USE_NEW_GAME_API
 #define GAME_API_VERSION    GAME_API_VERSION_NEW
+#elif AQTION_EXTENSION
+#define GAME_API_VERSION    GAME_API_VERSION_AQTION
 #else
 #define GAME_API_VERSION    GAME_API_VERSION_OLD
->>>>>>> 9b15c229 (Support more protocol extensions.)
 #endif
 
 // edict->svflags
@@ -96,12 +92,14 @@ typedef struct link_s
 link_t;
 
 typedef struct edict_s edict_t;
-typedef struct gclient_s gclient_t;
 
 #ifndef GAME_INCLUDE
 
 typedef struct gclient_old_s gclient_old_t;
 typedef struct gclient_new_s gclient_new_t;
+
+// AQtion compatible
+typedef gclient_old_t gclient_t;
 
 struct gclient_old_s {
     player_state_old_t  ps;     // communicated by server to clients
@@ -113,6 +111,9 @@ struct gclient_old_s {
 
     // the game dll can add anything it wants after
     // this point in the structure
+#if AQTION_EXTENSION
+	cvarsyncvalue_t cl_cvar[CVARSYNC_MAX];
+#endif
 };
 
 struct gclient_new_s {

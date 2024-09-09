@@ -297,6 +297,9 @@
 #include	"botlib/botlib.h"
 #endif
 
+// 9b15 commit from upstream -- using player_state_old_t instead of player_state_new_t
+typedef struct gclient_s gclient_t;
+
 #define		getEnt(entnum)	(edict_t *)((char *)globals.edicts + (globals.edict_size * entnum))	//AQ:TNG Slicer - This was missing
 #define		GAMEVERSION			"action"	// the "gameversion" client command will print this plus compile date
 
@@ -1941,14 +1944,15 @@ client_respawn_t;
 
 // this structure is cleared on each PutClientInServer(),
 // except for 'client->pers'
+// 9b15 commit from upstream -- using player_state_old_t instead of player_state_new_t
 struct gclient_s
 {
 	// known to server
-	player_state_t	ps;		// communicated by server to clients
-	int				ping;
+	player_state_old_t	ps;		// communicated by server to clients
+	int					ping;
 
 	// known to compatible server
-	int				clientNum;
+	int					clientNum;
 
 	// Reki: cvar sync
 #if AQTION_EXTENSION

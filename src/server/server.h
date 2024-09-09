@@ -180,20 +180,6 @@ typedef struct {
 
 #define MAX_TOTAL_ENT_LEAFS        128
 
-<<<<<<< HEAD
-// hack for smooth BSP model rotation
-#define Q2PRO_SHORTANGLES(c, e) \
-	((((c)->protocol == PROTOCOL_VERSION_Q2PRO && \
-	 (c)->version >= PROTOCOL_VERSION_Q2PRO_SHORT_ANGLES) || \
-	 (c)->protocol == PROTOCOL_VERSION_AQTION) && \
-     sv.state == ss_game && \
-     EDICT_POOL(c, e)->solid == SOLID_BSP)
-#define CLIENT_COMPATIBLE(csr, c) \
-    (!(csr)->extended || (((c)->protocol == PROTOCOL_VERSION_Q2PRO && (c)->version >= PROTOCOL_VERSION_Q2PRO_EXTENDED_LIMITS) \
-    || ((c)->protocol == PROTOCOL_VERSION_AQTION && (c)->version >= PROTOCOL_VERSION_AQTION_EXTENDED_LIMITS)))
-
-=======
->>>>>>> 9b15c229 (Support more protocol extensions.)
 #define ENT_EXTENSION(csr, ent)  ((csr)->extended ? &(ent)->x : NULL)
 
 typedef enum {
@@ -827,7 +813,6 @@ void SV_RegisterSavegames(void);
 #define SV_RegisterSavegames()          (void)0
 #endif
 
-<<<<<<< HEAD
 #if AQTION_EXTENSION
 //
 // sv_ghud.c
@@ -849,7 +834,6 @@ void SV_Ghud_SetSize(edict_t *ent, int i, int x, int y);
 extern int(*GE_customizeentityforclient)(edict_t *client, edict_t *ent, entity_state_t *state); // 0 don't send, 1 send normally
 extern void(*GE_CvarSync_Updated)(int index, edict_t *clent);
 #endif
-=======
 //
 // ugly gclient_(old|new)_t accessors
 //
@@ -888,7 +872,6 @@ static inline void SV_SetClient_Ping(const client_t *client, int ping)
     else
         ((gclient_old_t *)client->edict->client)->ping = ping;
 }
->>>>>>> 9b15c229 (Support more protocol extensions.)
 
 //============================================================
 

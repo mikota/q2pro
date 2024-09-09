@@ -1072,14 +1072,11 @@ typedef struct {
     short       gravity;
     short       delta_angles[3];    // add to command angles to get view direction
                                     // changed by spawns, rotating objects, and teleporters
-<<<<<<< HEAD
 #if AQTION_EXTENSION
 	short       pm_aq2_flags;   // limping, bandaging, etc
 	unsigned short pm_timestamp; // timestamp, resets every 60 seconds
 	byte		pm_aq2_leghits;		 // number of leg hits
 #endif
-} pmove_state_t;
-=======
 } pmove_state_old_t;
 
 #if USE_NEW_GAME_API
@@ -1093,9 +1090,13 @@ typedef struct {
     int16_t     gravity;
     int16_t     delta_angles[3];    // add to command angles to get view direction
                                     // changed by spawns, rotating objects, and teleporters
+#if AQTION_EXTENSION
+	short       pm_aq2_flags;   // limping, bandaging, etc
+	unsigned short pm_timestamp; // timestamp, resets every 60 seconds
+	byte		pm_aq2_leghits;		 // number of leg hits
+#endif
 } pmove_state_new_t;
 #endif
->>>>>>> 9b15c229 (Support more protocol extensions.)
 
 //
 // button bits
@@ -1457,7 +1458,6 @@ enum {
     STAT_LAYOUTS,
     STAT_FRAGS,
     STAT_FLASHES,           // cleared each frame, 1 = health, 2 = armor
-<<<<<<< HEAD
     STAT_CLIP_ICON,
     STAT_CLIP,
     STAT_SNIPER_ICON,
@@ -1480,14 +1480,9 @@ enum {
 
 #define STAT_TEAM1_HEADER  30
 #define STAT_TEAM2_HEADER  31
-=======
-    STAT_CHASE,
-    STAT_SPECTATOR,
-};
 
 #define MAX_STATS_OLD   32
 #define MAX_STATS_NEW   64
->>>>>>> 9b15c229 (Support more protocol extensions.)
 
 // STAT_LAYOUTS flags
 #define LAYOUTS_LAYOUT          BIT(0)

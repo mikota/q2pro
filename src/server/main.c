@@ -19,13 +19,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "server.h"
 #include "client/input.h"
 
-<<<<<<< HEAD
 bot_client_t bot_clients[MAX_CLIENTS];
 
 pmoveParams_t   sv_pmp;
 
-=======
->>>>>>> 9b15c229 (Support more protocol extensions.)
 master_t    sv_masters[MAX_MASTERS];   // address of group servers
 
 LIST_DECL(sv_banlist);
@@ -879,12 +876,8 @@ static bool parse_enhanced_params(conn_params_t *p)
 
         return reject("This is a protocol limit removing enhanced server.\n"
                       "Your client version is not compatible. Make sure you are "
-<<<<<<< HEAD
                       "running latest Q2PRO client version.\nYour major protocol version: %d\n "
                       "Your minor protocol version: %d\n", p->protocol, p->version);
-=======
-                      "running the latest Q2PRO client version.\n");
->>>>>>> 9b15c229 (Support more protocol extensions.)
     }
 
     return true;
