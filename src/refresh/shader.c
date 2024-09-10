@@ -17,24 +17,17 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 */
 
 #include "gl.h"
+#include "common/sizebuf.h"
 
 #define MAX_SHADER_CHARS    4096
 
-#define GLSL(x)     Q_strlcat(buf, #x "\n", MAX_SHADER_CHARS);
-#define GLSF(x)     Q_strlcat(buf, x, MAX_SHADER_CHARS)
-
-enum {
-    VERT_ATTR_POS,
-    VERT_ATTR_TC,
-    VERT_ATTR_LMTC,
-    VERT_ATTR_COLOR
-};
+#define GLSL(x)     SZ_Write(buf, CONST_STR_LEN(#x "\n"));
+#define GLSF(x)     SZ_Write(buf, CONST_STR_LEN(x))
 
 static void upload_u_block(void);
 
-static void write_header(char *buf)
+static void write_header(sizebuf_t *buf)
 {
-    *buf = 0;
     if (gl_config.ver_es) {
         GLSF("#version 300 es\n");
     } else if (gl_config.ver_sl >= QGL_VER(1, 40)) {
@@ -45,65 +38,89 @@ static void write_header(char *buf)
     }
 }
 
-static void write_block(char *buf)
+static void write_block(sizebuf_t *buf)
 {
     GLSF("layout(std140) uniform u_block {\n");
     GLSL(
-        mat4 m_view;
-        mat4 m_proj;
+        mat4 m_vp;
         float u_time;
         float u_modulate;
         float u_add;
         float u_intensity;
         float u_intensity2;
-        float pad;
+        float pad_1;
         vec2 w_amp;
         vec2 w_phase;
         vec2 u_scroll;
+        vec3 u_vieworg;
+        float pad_2;
     )
     GLSF("};\n");
 }
 
-static void write_vertex_shader(char *buf, GLbitfield bits)
+static void write_vertex_shader(sizebuf_t *buf, glStateBits_t bits)
 {
     write_header(buf);
     write_block(buf);
+
     GLSL(in vec4 a_pos;)
-    GLSL(in vec2 a_tc;)
-    GLSL(out vec2 v_tc;)
+    if (bits & GLS_CLASSIC_SKY) {
+        GLSL(out vec3 v_dir;)
+    } else {
+        GLSL(in vec2 a_tc;)
+        GLSL(out vec2 v_tc;)
+    }
+
     if (bits & GLS_LIGHTMAP_ENABLE) {
         GLSL(in vec2 a_lmtc;)
         GLSL(out vec2 v_lmtc;)
     }
+
     if (!(bits & GLS_TEXTURE_REPLACE)) {
         GLSL(in vec4 a_color;)
         GLSL(out vec4 v_color;)
     }
+
     GLSF("void main() {\n");
-        GLSL(vec2 tc = a_tc;)
-        if (bits & GLS_SCROLL_ENABLE)
-            GLSL(tc += u_time * u_scroll;)
-        GLSL(v_tc = tc;)
+        if (bits & GLS_CLASSIC_SKY) {
+            GLSL(v_dir = a_pos.xyz - u_vieworg.xyz;)
+            GLSL(v_dir[2] *= 3.0;)
+        } else if (bits & GLS_SCROLL_ENABLE) {
+            GLSL(v_tc = a_tc + u_scroll;)
+        } else {
+            GLSL(v_tc = a_tc;)
+        }
+
         if (bits & GLS_LIGHTMAP_ENABLE)
             GLSL(v_lmtc = a_lmtc;)
+
         if (!(bits & GLS_TEXTURE_REPLACE))
             GLSL(v_color = a_color;)
-        GLSL(gl_Position = m_proj * m_view * a_pos;)
+
+        GLSL(gl_Position = m_vp * a_pos;)
     GLSF("}\n");
 }
 
-static void write_fragment_shader(char *buf, GLbitfield bits)
+static void write_fragment_shader(sizebuf_t *buf, glStateBits_t bits)
 {
     write_header(buf);
 
     if (gl_config.ver_es)
         GLSL(precision mediump float;)
 
-    if (bits & (GLS_WARP_ENABLE | GLS_LIGHTMAP_ENABLE | GLS_INTENSITY_ENABLE))
+    if (bits & (GLS_WARP_ENABLE | GLS_LIGHTMAP_ENABLE | GLS_INTENSITY_ENABLE | GLS_CLASSIC_SKY))
         write_block(buf);
 
-    GLSL(uniform sampler2D u_texture;)
-    GLSL(in vec2 v_tc;)
+    if (bits & GLS_CLASSIC_SKY) {
+        GLSL(
+            uniform sampler2D u_texture1;
+            uniform sampler2D u_texture2;
+            in vec3 v_dir;
+        )
+    } else {
+        GLSL(uniform sampler2D u_texture;)
+        GLSL(in vec2 v_tc;)
+    }
 
     if (bits & GLS_LIGHTMAP_ENABLE) {
         GLSL(uniform sampler2D u_lightmap;)
@@ -119,12 +136,24 @@ static void write_fragment_shader(char *buf, GLbitfield bits)
     GLSL(out vec4 o_color;)
 
     GLSF("void main() {\n");
-        GLSL(vec2 tc = v_tc;)
+        if (bits & GLS_CLASSIC_SKY) {
+            GLSL(
+                float len = length(v_dir);
+                vec2 dir = v_dir.xy * (3.0 / len);
+                vec2 tc1 = dir + vec2(u_time * 0.0625);
+                vec2 tc2 = dir + vec2(u_time * 0.1250);
+                vec4 solid = texture(u_texture1, tc1);
+                vec4 alpha = texture(u_texture2, tc2);
+                vec4 diffuse = vec4((solid.rgb - alpha.rgb * 0.25) * 0.65, 1.0);
+            )
+        } else {
+            GLSL(vec2 tc = v_tc;)
 
-        if (bits & GLS_WARP_ENABLE)
-            GLSL(tc += w_amp * sin(tc.ts * w_phase + u_time);)
+            if (bits & GLS_WARP_ENABLE)
+                GLSL(tc += w_amp * sin(tc.ts * w_phase + u_time);)
 
-        GLSL(vec4 diffuse = texture(u_texture, tc);)
+            GLSL(vec4 diffuse = texture(u_texture, tc);)
+        }
 
         if (bits & GLS_ALPHATEST_ENABLE)
             GLSL(if (diffuse.a <= 0.666) discard;)
@@ -143,6 +172,12 @@ static void write_fragment_shader(char *buf, GLbitfield bits)
         if (bits & GLS_INTENSITY_ENABLE)
             GLSL(diffuse.rgb *= u_intensity;)
 
+        if (bits & GLS_DEFAULT_FLARE)
+            GLSL(
+                 diffuse.rgb *= (diffuse.r + diffuse.g + diffuse.b) / 3.0;
+                 diffuse.rgb *= v_color.a;
+            )
+
         if (!(bits & GLS_TEXTURE_REPLACE))
             GLSL(diffuse *= v_color;)
 
@@ -158,37 +193,43 @@ static void write_fragment_shader(char *buf, GLbitfield bits)
     GLSF("}\n");
 }
 
-static GLuint create_shader(GLenum type, const char *src)
+static GLuint create_shader(GLenum type, const sizebuf_t *buf)
 {
+    const GLchar *data = (const GLchar *)buf->data;
+    GLint size = buf->cursize;
+
     GLuint shader = qglCreateShader(type);
     if (!shader) {
         Com_EPrintf("Couldn't create shader\n");
         return 0;
     }
 
-    qglShaderSource(shader, 1, &src, NULL);
+    qglShaderSource(shader, 1, &data, &size);
     qglCompileShader(shader);
-    GLint status;
+    GLint status = 0;
     qglGetShaderiv(shader, GL_COMPILE_STATUS, &status);
     if (!status) {
-        char buffer[MAX_STRING_CHARS] = { 0 };
+        char buffer[MAX_STRING_CHARS];
 
+        buffer[0] = 0;
         qglGetShaderInfoLog(shader, sizeof(buffer), NULL, buffer);
         qglDeleteShader(shader);
 
         if (buffer[0])
             Com_Printf("%s", buffer);
 
-        Com_EPrintf("Error compiling shader\n");
+        Com_EPrintf("Error compiling %s shader\n",
+                    type == GL_VERTEX_SHADER ? "vertex" : "fragment");
         return 0;
     }
 
     return shader;
 }
 
-static GLuint create_and_use_program(GLbitfield bits)
+static GLuint create_and_use_program(glStateBits_t bits)
 {
     char buffer[MAX_SHADER_CHARS];
+    sizebuf_t sb;
 
     GLuint program = qglCreateProgram();
     if (!program) {
@@ -196,13 +237,15 @@ static GLuint create_and_use_program(GLbitfield bits)
         return 0;
     }
 
-    write_vertex_shader(buffer, bits);
-    GLuint shader_v = create_shader(GL_VERTEX_SHADER, buffer);
+    SZ_Init(&sb, buffer, sizeof(buffer), "GLSL");
+    write_vertex_shader(&sb, bits);
+    GLuint shader_v = create_shader(GL_VERTEX_SHADER, &sb);
     if (!shader_v)
         return program;
 
-    write_fragment_shader(buffer, bits);
-    GLuint shader_f = create_shader(GL_FRAGMENT_SHADER, buffer);
+    SZ_Clear(&sb);
+    write_fragment_shader(&sb, bits);
+    GLuint shader_f = create_shader(GL_FRAGMENT_SHADER, &sb);
     if (!shader_f) {
         qglDeleteShader(shader_v);
         return program;
@@ -212,7 +255,8 @@ static GLuint create_and_use_program(GLbitfield bits)
     qglAttachShader(program, shader_f);
 
     qglBindAttribLocation(program, VERT_ATTR_POS, "a_pos");
-    qglBindAttribLocation(program, VERT_ATTR_TC, "a_tc");
+    if (!(bits & GLS_CLASSIC_SKY))
+        qglBindAttribLocation(program, VERT_ATTR_TC, "a_tc");
     if (bits & GLS_LIGHTMAP_ENABLE)
         qglBindAttribLocation(program, VERT_ATTR_LMTC, "a_lmtc");
     if (!(bits & GLS_TEXTURE_REPLACE))
@@ -226,8 +270,9 @@ static GLuint create_and_use_program(GLbitfield bits)
     GLint status = 0;
     qglGetProgramiv(program, GL_LINK_STATUS, &status);
     if (!status) {
-        char buffer[MAX_STRING_CHARS] = { 0 };
+        char buffer[MAX_STRING_CHARS];
 
+        buffer[0] = 0;
         qglGetProgramInfoLog(program, sizeof(buffer), NULL, buffer);
 
         if (buffer[0])
@@ -254,97 +299,78 @@ static GLuint create_and_use_program(GLbitfield bits)
 
     qglUseProgram(program);
 
-    qglUniform1i(qglGetUniformLocation(program, "u_texture"), 0);
+    if (bits & GLS_CLASSIC_SKY) {
+        qglUniform1i(qglGetUniformLocation(program, "u_texture1"), TMU_TEXTURE);
+        qglUniform1i(qglGetUniformLocation(program, "u_texture2"), TMU_LIGHTMAP);
+    } else {
+        qglUniform1i(qglGetUniformLocation(program, "u_texture"), TMU_TEXTURE);
+    }
     if (bits & GLS_LIGHTMAP_ENABLE)
-        qglUniform1i(qglGetUniformLocation(program, "u_lightmap"), 1);
+        qglUniform1i(qglGetUniformLocation(program, "u_lightmap"), TMU_LIGHTMAP);
     if (bits & GLS_GLOWMAP_ENABLE)
-        qglUniform1i(qglGetUniformLocation(program, "u_glowmap"), 2);
+        qglUniform1i(qglGetUniformLocation(program, "u_glowmap"), TMU_GLOWMAP);
 
     return program;
 }
 
-static void shader_state_bits(GLbitfield bits)
+static void shader_use_program(glStateBits_t key)
 {
-    GLbitfield diff = bits ^ gls.state_bits;
+    GLuint *prog = HashMap_Lookup(GLuint, gl_static.programs, &key);
+
+    if (prog) {
+        qglUseProgram(*prog);
+    } else {
+        GLuint val = create_and_use_program(key);
+        HashMap_Insert(gl_static.programs, &key, &val);
+    }
+}
+
+static void shader_state_bits(glStateBits_t bits)
+{
+    glStateBits_t diff = bits ^ gls.state_bits;
 
     if (diff & GLS_COMMON_MASK)
         GL_CommonStateBits(bits);
 
-    if (diff & GLS_SHADER_MASK) {
-        GLuint i = (bits >> 6) & (MAX_PROGRAMS - 1);
-
-        if (gl_static.programs[i])
-            qglUseProgram(gl_static.programs[i]);
-        else
-            gl_static.programs[i] = create_and_use_program(bits);
-    }
+    if (diff & GLS_SHADER_MASK)
+        shader_use_program(bits & GLS_SHADER_MASK);
 
     if (diff & GLS_SCROLL_MASK && bits & GLS_SCROLL_ENABLE) {
-        GL_ScrollSpeed(gls.u_block.scroll, bits);
+        GL_ScrollPos(gls.u_block.scroll, bits);
         upload_u_block();
     }
 }
 
-static void shader_array_bits(GLbitfield bits)
+static void shader_array_bits(glArrayBits_t bits)
 {
-    GLbitfield diff = bits ^ gls.array_bits;
+    glArrayBits_t diff = bits ^ gls.array_bits;
 
-    if (diff & GLA_VERTEX) {
-        if (bits & GLA_VERTEX) {
-            qglEnableVertexAttribArray(VERT_ATTR_POS);
-        } else {
-            qglDisableVertexAttribArray(VERT_ATTR_POS);
-        }
+    for (int i = 0; i < VERT_ATTR_COUNT; i++) {
+        if (!(diff & BIT(i)))
+            continue;
+        if (bits & BIT(i))
+            qglEnableVertexAttribArray(i);
+        else
+            qglDisableVertexAttribArray(i);
     }
+}
 
-    if (diff & GLA_TC) {
-        if (bits & GLA_TC) {
-            qglEnableVertexAttribArray(VERT_ATTR_TC);
-        } else {
-            qglDisableVertexAttribArray(VERT_ATTR_TC);
-        }
-    }
+static void shader_array_pointers(const glVaDesc_t *desc, const GLfloat *ptr)
+{
+    uintptr_t base = (uintptr_t)ptr;
 
-    if (diff & GLA_LMTC) {
-        if (bits & GLA_LMTC) {
-            qglEnableVertexAttribArray(VERT_ATTR_LMTC);
-        } else {
-            qglDisableVertexAttribArray(VERT_ATTR_LMTC);
-        }
-    }
-
-    if (diff & GLA_COLOR) {
-        if (bits & GLA_COLOR) {
-            qglEnableVertexAttribArray(VERT_ATTR_COLOR);
-        } else {
-            qglDisableVertexAttribArray(VERT_ATTR_COLOR);
+    for (int i = 0; i < VERT_ATTR_COUNT; i++) {
+        const glVaDesc_t *d = &desc[i];
+        if (d->size) {
+            const GLenum type = d->type ? GL_UNSIGNED_BYTE : GL_FLOAT;
+            qglVertexAttribPointer(i, d->size, type, d->type, d->stride, (void *)(base + d->offset));
         }
     }
 }
 
-static void shader_vertex_pointer(GLint size, GLsizei stride, const GLfloat *pointer)
+static void shader_tex_coord_pointer(const GLfloat *ptr)
 {
-    qglVertexAttribPointer(VERT_ATTR_POS, size, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * stride, pointer);
-}
-
-static void shader_tex_coord_pointer(GLint size, GLsizei stride, const GLfloat *pointer)
-{
-    qglVertexAttribPointer(VERT_ATTR_TC, size, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * stride, pointer);
-}
-
-static void shader_light_coord_pointer(GLint size, GLsizei stride, const GLfloat *pointer)
-{
-    qglVertexAttribPointer(VERT_ATTR_LMTC, size, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * stride, pointer);
-}
-
-static void shader_color_byte_pointer(GLint size, GLsizei stride, const GLubyte *pointer)
-{
-    qglVertexAttribPointer(VERT_ATTR_COLOR, size, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(GLfloat) * stride, pointer);
-}
-
-static void shader_color_float_pointer(GLint size, GLsizei stride, const GLfloat *pointer)
-{
-    qglVertexAttribPointer(VERT_ATTR_COLOR, size, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * stride, pointer);
+    qglVertexAttribPointer(VERT_ATTR_TC, 2, GL_FLOAT, GL_FALSE, 0, ptr);
 }
 
 static void shader_color(GLfloat r, GLfloat g, GLfloat b, GLfloat a)
@@ -358,20 +384,20 @@ static void upload_u_block(void)
     c.uniformUploads++;
 }
 
-static void shader_load_view_matrix(const GLfloat *matrix)
+static void shader_load_matrix(GLenum mode, const GLfloat *matrix)
 {
-    static const GLfloat identity[16] = { [0] = 1, [5] = 1, [10] = 1, [15] = 1 };
+    switch (mode) {
+    case GL_MODELVIEW:
+        memcpy(gls.view_matrix, matrix, sizeof(gls.view_matrix));
+        break;
+    case GL_PROJECTION:
+        memcpy(gls.proj_matrix, matrix, sizeof(gls.proj_matrix));
+        break;
+    default:
+        Q_assert(!"bad mode");
+    }
 
-    if (!matrix)
-        matrix = identity;
-
-    memcpy(gls.u_block.view, matrix, sizeof(gls.u_block.view));
-    upload_u_block();
-}
-
-static void shader_load_proj_matrix(const GLfloat *matrix)
-{
-    memcpy(gls.u_block.proj, matrix, sizeof(gls.u_block.proj));
+    GL_MultMatrix(gls.u_block.mvp, gls.proj_matrix, gls.view_matrix);
     upload_u_block();
 }
 
@@ -383,10 +409,12 @@ static void shader_setup_2d(void)
     gls.u_block.intensity = 1.0f;
     gls.u_block.intensity2 = 1.0f;
 
-    gls.u_block.w_amp[0] = 0.00666f;
-    gls.u_block.w_amp[1] = 0.00666f;
+    gls.u_block.w_amp[0] = 0.0025f;
+    gls.u_block.w_amp[1] = 0.0025f;
     gls.u_block.w_phase[0] = M_PIf * 10;
     gls.u_block.w_phase[1] = M_PIf * 10;
+
+    VectorClear(gls.u_block.vieworg);
 }
 
 static void shader_setup_3d(void)
@@ -401,9 +429,11 @@ static void shader_setup_3d(void)
     gls.u_block.w_amp[1] = 0.0625f;
     gls.u_block.w_phase[0] = 4;
     gls.u_block.w_phase[1] = 4;
+
+    VectorCopy(glr.fd.vieworg, gls.u_block.vieworg);
 }
 
-static void shader_clear_state(void)
+static void shader_disable_state(void)
 {
     qglActiveTexture(GL_TEXTURE2);
     qglBindTexture(GL_TEXTURE_2D, 0);
@@ -414,39 +444,44 @@ static void shader_clear_state(void)
     qglActiveTexture(GL_TEXTURE0);
     qglBindTexture(GL_TEXTURE_2D, 0);
 
-    qglDisableVertexAttribArray(VERT_ATTR_POS);
-    qglDisableVertexAttribArray(VERT_ATTR_TC);
-    qglDisableVertexAttribArray(VERT_ATTR_LMTC);
-    qglDisableVertexAttribArray(VERT_ATTR_COLOR);
+    for (int i = 0; i < VERT_ATTR_COUNT; i++)
+        qglDisableVertexAttribArray(i);
+}
 
-    if (gl_static.programs[0])
-        qglUseProgram(gl_static.programs[0]);
-    else
-        gl_static.programs[0] = create_and_use_program(GLS_DEFAULT);
+static void shader_clear_state(void)
+{
+    shader_disable_state();
+    shader_use_program(GLS_DEFAULT);
 }
 
 static void shader_init(void)
 {
-    qglGenBuffers(1, &gl_static.u_bufnum);
-    qglBindBuffer(GL_UNIFORM_BUFFER, gl_static.u_bufnum);
-    qglBindBufferBase(GL_UNIFORM_BUFFER, 0, gl_static.u_bufnum);
+    gl_static.programs = HashMap_Create(glStateBits_t, GLuint, HashInt32, NULL);
+
+    qglGenBuffers(1, &gl_static.uniform_buffer);
+    qglBindBuffer(GL_UNIFORM_BUFFER, gl_static.uniform_buffer);
+    qglBindBufferBase(GL_UNIFORM_BUFFER, 0, gl_static.uniform_buffer);
     qglBufferData(GL_UNIFORM_BUFFER, sizeof(gls.u_block), NULL, GL_DYNAMIC_DRAW);
 }
 
 static void shader_shutdown(void)
 {
+    shader_disable_state();
     qglUseProgram(0);
-    for (int i = 0; i < MAX_PROGRAMS; i++) {
-        if (gl_static.programs[i]) {
-            qglDeleteProgram(gl_static.programs[i]);
-            gl_static.programs[i] = 0;
+
+    if (gl_static.programs) {
+        uint32_t map_size = HashMap_Size(gl_static.programs);
+        for (int i = 0; i < map_size; i++) {
+            GLuint *prog = HashMap_GetValue(GLuint, gl_static.programs, i);
+            qglDeleteProgram(*prog);
         }
+        HashMap_Destroy(gl_static.programs);
+        gl_static.programs = NULL;
     }
 
-    qglBindBuffer(GL_UNIFORM_BUFFER, 0);
-    if (gl_static.u_bufnum) {
-        qglDeleteBuffers(1, &gl_static.u_bufnum);
-        gl_static.u_bufnum = 0;
+    if (gl_static.uniform_buffer) {
+        qglDeleteBuffers(1, &gl_static.uniform_buffer);
+        gl_static.uniform_buffer = 0;
     }
 }
 
@@ -459,16 +494,13 @@ const glbackend_t backend_shader = {
     .setup_2d = shader_setup_2d,
     .setup_3d = shader_setup_3d,
 
-    .load_proj_matrix = shader_load_proj_matrix,
-    .load_view_matrix = shader_load_view_matrix,
+    .load_matrix = shader_load_matrix,
 
     .state_bits = shader_state_bits,
     .array_bits = shader_array_bits,
 
-    .vertex_pointer = shader_vertex_pointer,
+    .array_pointers = shader_array_pointers,
     .tex_coord_pointer = shader_tex_coord_pointer,
-    .light_coord_pointer = shader_light_coord_pointer,
-    .color_byte_pointer = shader_color_byte_pointer,
-    .color_float_pointer = shader_color_float_pointer,
+
     .color = shader_color,
 };

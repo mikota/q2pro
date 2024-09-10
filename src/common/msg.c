@@ -2440,7 +2440,7 @@ void MSG_ParseDeltaEntity(entity_state_t            *to,
     if (bits & U_FRAME8)
         to->frame = MSG_ReadByte();
     if (bits & U_FRAME16)
-        to->frame = MSG_ReadShort();
+        to->frame = MSG_ReadWord();
 
     if ((bits & U_SKIN32) == U_SKIN32)
         to->skinnum = MSG_ReadLong();
@@ -3031,19 +3031,11 @@ void MSG_ParseDeltaPlayerstate_Aqtion(const player_state_t    *from,
 MSG_ParseDeltaPlayerstate_Packet
 ===================
 */
-void MSG_ParseDeltaPlayerstate_Packet(const player_state_t  *from,
-                                      player_state_t        *to,
+void MSG_ParseDeltaPlayerstate_Packet(player_state_t        *to,
                                       int                   flags,
                                       msgPsFlags_t          psflags)
 {
     Q_assert(to);
-
-    // clear to old value before delta parsing
-    if (!from) {
-        memset(to, 0, sizeof(*to));
-    } else if (to != from) {
-        memcpy(to, from, sizeof(*to));
-    }
 
     //
     // parse the pmove_state_t

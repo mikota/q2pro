@@ -503,7 +503,7 @@ static void CL_AddPacketEntities(void)
     int                 autoanim;
     clientinfo_t        *ci;
     unsigned int        effects, renderfx;
-    bool                has_alpha;
+    bool                has_alpha, has_trail;
 
     // bonus items rotate at a fixed rate
     autorotate = anglemod(cl.time * 0.1f);
@@ -520,6 +520,8 @@ static void CL_AddPacketEntities(void)
         s1 = &cl.entityStates[i];
 
         cent = &cl_entities[s1->number];
+
+        has_trail = false;
 
         effects = s1->effects;
         renderfx = s1->renderfx;
@@ -623,6 +625,12 @@ static void CL_AddPacketEntities(void)
 #endif
         if (effects & (EF_GIB | EF_GREENGIB) && !cl_gibs->integer)
             goto skip;
+        if (!cl_gibs->integer) {
+            if (effects & EF_GIB && !(cl.csr.extended && effects & EF_ROCKET))
+                goto skip;
+            if (effects & EF_GREENGIB)
+                goto skip;
+        }
 
         // create a new entity
 
@@ -678,7 +686,7 @@ static void CL_AddPacketEntities(void)
         if (renderfx & RF_BEAM) {
             // the four beam colors are encoded in 32 bits of skinnum (hack)
             ent.alpha = 0.30f;
-            ent.skinnum = (s1->skinnum >> ((Q_rand() % 4) * 8)) & 0xff;
+            ent.skinnum = (s1->skinnum >> ((Com_SlowRand() % 4) * 8)) & 0xff;
             ent.model = 0;
         } else {
             // set skin
@@ -775,7 +783,7 @@ static void CL_AddPacketEntities(void)
         if (s1->morefx & EFX_GRENADE_LIGHT)
             V_AddLight(ent.origin, 100, 1, 1, 0);
 
-        if (s1->number == cl.frame.clientNum + 1) {
+        if (s1->number == cl.frame.clientNum + 1 && !cl.thirdPersonView) {
             if (effects & EF_FLAG1)
                 V_AddLight(ent.origin, 225, 1.0f, 0.1f, 0.1f);
             else if (effects & EF_FLAG2)
@@ -784,10 +792,7 @@ static void CL_AddPacketEntities(void)
                 V_AddLight(ent.origin, 225, 1.0f, 1.0f, 0.0f);
             else if (effects & EF_TRACKERTRAIL)
                 V_AddLight(ent.origin, 225, -1.0f, -1.0f, -1.0f);
-            if (!cl.thirdPersonView) {
-                //ent.flags |= RF_VIEWERMODEL;    // only draw from mirrors
-                goto skip;
-            }
+            goto skip;
         }
 
         // if set to invisible, skip
@@ -951,30 +956,39 @@ static void CL_AddPacketEntities(void)
             goto skip;
 
         if (effects & EF_ROCKET) {
-            if (!(cl_disable_particles->integer & NOPART_ROCKET_TRAIL))
-                CL_RocketTrail(cent->lerp_origin, ent.origin, cent);
+            if (cl.csr.extended && effects & EF_GIB) {
+                CL_DiminishingTrail(cent, ent.origin, DT_FIREBALL);
+                has_trail = true;
+            } else if (!(cl_disable_particles->integer & NOPART_ROCKET_TRAIL)) {
+                CL_RocketTrail(cent, ent.origin);
+                has_trail = true;
+            }
             if (cl_dlight_hacks->integer & DLHACK_ROCKET_COLOR)
                 V_AddLight(ent.origin, 200, 1, 0.23f, 0);
             else
                 V_AddLight(ent.origin, 200, 1, 1, 0);
         } else if (effects & EF_BLASTER) {
             if (effects & EF_TRACKER) {
-                CL_BlasterTrail2(cent->lerp_origin, ent.origin);
+                CL_BlasterTrail2(cent, ent.origin);
                 V_AddLight(ent.origin, 200, 0, 1, 0);
             } else {
-                CL_BlasterTrail(cent->lerp_origin, ent.origin);
+                CL_BlasterTrail(cent, ent.origin);
                 V_AddLight(ent.origin, 200, 1, 1, 0);
             }
+            has_trail = true;
         } else if (effects & EF_HYPERBLASTER) {
             if (effects & EF_TRACKER)
                 V_AddLight(ent.origin, 200, 0, 1, 0);
             else
                 V_AddLight(ent.origin, 200, 1, 1, 0);
         } else if (effects & EF_GIB) {
-            CL_DiminishingTrail(cent->lerp_origin, ent.origin, cent, effects);
+            CL_DiminishingTrail(cent, ent.origin, DT_GIB);
+            has_trail = true;
         } else if (effects & EF_GRENADE) {
-            if (!(cl_disable_particles->integer & NOPART_GRENADE_TRAIL))
-                CL_DiminishingTrail(cent->lerp_origin, ent.origin, cent, effects);
+            if (!(cl_disable_particles->integer & NOPART_GRENADE_TRAIL)) {
+                CL_DiminishingTrail(cent, ent.origin, DT_SMOKE);
+                has_trail = true;
+            }
         } else if (effects & EF_FLIES) {
             CL_FlyEffect(cent, ent.origin);
         } else if (effects & EF_BFG) {
@@ -989,17 +1003,20 @@ static void CL_AddPacketEntities(void)
         } else if (effects & EF_TRAP) {
             ent.origin[2] += 32;
             CL_TrapParticles(cent, ent.origin);
-            i = (Q_rand() % 100) + 100;
+            i = (Com_SlowRand() % 100) + 100;
             V_AddLight(ent.origin, i, 1, 0.8f, 0.1f);
         } else if (effects & EF_FLAG1) {
-            CL_FlagTrail(cent->lerp_origin, ent.origin, 242);
+            CL_FlagTrail(cent, ent.origin, 242);
             V_AddLight(ent.origin, 225, 1, 0.1f, 0.1f);
+            has_trail = true;
         } else if (effects & EF_FLAG2) {
-            CL_FlagTrail(cent->lerp_origin, ent.origin, 115);
+            CL_FlagTrail(cent, ent.origin, 115);
             V_AddLight(ent.origin, 225, 0.1f, 0.1f, 1);
+            has_trail = true;
         } else if (effects & EF_TAGTRAIL) {
-            CL_TagTrail(cent->lerp_origin, ent.origin, 220);
+            CL_TagTrail(cent, ent.origin, 220);
             V_AddLight(ent.origin, 225, 1.0f, 1.0f, 0.0f);
+            has_trail = true;
         } else if (effects & EF_TRACKERTRAIL) {
             if (effects & EF_TRACKER) {
                 float intensity = 50 + (500 * (sinf(cl.time / 500.0f) + 1.0f));
@@ -1009,23 +1026,29 @@ static void CL_AddPacketEntities(void)
                 V_AddLight(ent.origin, 155, -1.0f, -1.0f, -1.0f);
             }
         } else if (effects & EF_TRACKER) {
-            CL_TrackerTrail(cent->lerp_origin, ent.origin, 0);
+            CL_TrackerTrail(cent, ent.origin);
             V_AddLight(ent.origin, 200, -1, -1, -1);
+            has_trail = true;
         } else if (effects & EF_GREENGIB) {
-            CL_DiminishingTrail(cent->lerp_origin, ent.origin, cent, effects);
+            CL_DiminishingTrail(cent, ent.origin, DT_GREENGIB);
+            has_trail = true;
         } else if (effects & EF_IONRIPPER) {
-            CL_IonripperTrail(cent->lerp_origin, ent.origin);
+            CL_IonripperTrail(cent, ent.origin);
             V_AddLight(ent.origin, 100, 1, 0.5f, 0.5f);
+            has_trail = true;
         } else if (effects & EF_BLUEHYPERBLASTER) {
             V_AddLight(ent.origin, 200, 0, 0, 1);
         } else if (effects & EF_PLASMA) {
-            if (effects & EF_ANIM_ALLFAST)
-                CL_BlasterTrail(cent->lerp_origin, ent.origin);
+            if (effects & EF_ANIM_ALLFAST) {
+                CL_BlasterTrail(cent, ent.origin);
+                has_trail = true;
+            }
             V_AddLight(ent.origin, 130, 1, 0.5f, 0.5f);
         }
 
 skip:
-        VectorCopy(ent.origin, cent->lerp_origin);
+        if (!has_trail)
+            VectorCopy(ent.origin, cent->lerp_origin);
     }
 }
 
@@ -1085,8 +1108,15 @@ static void CL_AddViewWeapon(void)
         return;
     }
 
-    if (info_hand->integer == 2 && cl_gun->integer == 1) {
-        return;
+    if (cl_gun->integer == 1) {
+        // don't draw gun if in wide angle view
+        if (cls.demo.playback && cls.demo.compat && cl.frame.ps.fov > 90) {
+            return;
+        }
+        // don't draw gun if center handed
+        if (info_hand->integer == 2) {
+            return;
+        }
     }
 
     // find states to interpolate between
@@ -1277,7 +1307,7 @@ first:
 
 static inline float lerp_client_fov(float ofov, float nfov, float lerp)
 {
-    if (cls.demo.playback) {
+    if (cls.demo.playback && !cls.demo.compat) {
         int fov = info_fov->integer;
 
         if (fov < 1)
@@ -1401,7 +1431,8 @@ void CL_CalcViewValues(void)
     }
 
     // don't interpolate blend color
-    Vector4Copy(ps->blend, cl.refdef.blend);
+    Vector4Copy(ps->blend, cl.refdef.screen_blend);
+    Vector4Copy(ps->damage_blend, cl.refdef.damage_blend);
 
 #if USE_FPS
     ps = &cl.keyframe.ps;
