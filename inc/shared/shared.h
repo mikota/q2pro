@@ -927,7 +927,6 @@ typedef struct cvar_s {
     struct cvar_s *next;
 
 // ------ new stuff ------
-#if USE_CLIENT || USE_SERVER
 #if AQTION_EXTENSION
 	int			sync_index;
 #endif
@@ -1085,7 +1084,6 @@ typedef enum {
 #define PMF_IGNORE_PLAYER_COLLISION     BIT(7)
 #define PMF_ON_LADDER                   BIT(8)
 //KEX
-
 
 #if AQTION_EXTENSION
 // pmove->pm_aq2_flags
@@ -1789,9 +1787,6 @@ typedef struct {
     int16_t     stats[MAX_STATS_NEW];   // fast status bar updates
 } player_state_new_t;
 #endif
-
-#endif
-
 
 // Reki : Cvar Sync info shared between engine and game
 #define CVARSYNC_MAXSIZE	64
