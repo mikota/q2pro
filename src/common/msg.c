@@ -1359,7 +1359,6 @@ int MSG_WriteDeltaPlayerstate_Aqtion(const player_packed_t    *from,
 	player_packed_t    *to,
 	msgPsFlags_t       flags)
 {
-	int     i;
 	int     pflags, eflags, aqtflags;
 	int     statbits;
 
@@ -1437,13 +1436,16 @@ int MSG_WriteDeltaPlayerstate_Aqtion(const player_packed_t    *from,
 		pflags |= PS_KICKANGLES;
 
 	if (!(flags & MSG_PS_IGNORE_BLEND)) {
-		if (!Vector4Compare(from->blend, to->blend))
-			pflags |= PS_BLEND;
-	}
-	else {
-		// save previous state
-		Vector4Copy(from->blend, to->blend);
-	}
+        if (!Vector4Compare(from->blend, to->blend))
+            pflags |= PS_BLEND;
+        else if (flags & MSG_PS_EXTENSIONS_2 &&
+            !Vector4Compare(to->damage_blend, from->damage_blend))
+            pflags |= PS_BLEND;
+    } else {
+        // save previous state
+        Vector4Copy(from->blend, to->blend);
+        Vector4Copy(from->damage_blend, to->damage_blend);
+    }
 
 	if (from->fov != to->fov)
 		pflags |= PS_FOV;
@@ -1475,13 +1477,9 @@ int MSG_WriteDeltaPlayerstate_Aqtion(const player_packed_t    *from,
 		VectorCopy(from->gunangles, to->gunangles);
 	}
 
-	statbits = 0;
-	for (i = 0; i < MAX_STATS; i++)
-		if (to->stats[i] != from->stats[i])
-			statbits |= 1U << i;
-
-	if (statbits)
-		eflags |= EPS_STATS;
+	statbits = MSG_CalcStatBits(from, to, flags);
+    if (statbits)
+        eflags |= EPS_STATS;
 
 	//
 	// aqtion extension checks
@@ -1502,44 +1500,65 @@ int MSG_WriteDeltaPlayerstate_Aqtion(const player_packed_t    *from,
 	MSG_WriteShort(pflags);
 
 	//
-	// write the pmove_state_t
-	//
-	if (pflags & PS_M_TYPE)
-		MSG_WriteByte(to->pmove.pm_type);
+    // write the pmove_state_t
+    //
+    if (pflags & PS_M_TYPE)
+        MSG_WriteByte(to->pmove.pm_type);
 
-	if (pflags & PS_M_ORIGIN) {
-		MSG_WriteShort(to->pmove.origin[0]);
-		MSG_WriteShort(to->pmove.origin[1]);
-	}
+    if (flags & MSG_PS_EXTENSIONS_2) {
+        if (pflags & PS_M_ORIGIN) {
+            MSG_WriteDeltaInt23(from->pmove.origin[0], to->pmove.origin[0]);
+            MSG_WriteDeltaInt23(from->pmove.origin[1], to->pmove.origin[1]);
+        }
 
-	if (eflags & EPS_M_ORIGIN2)
-		MSG_WriteShort(to->pmove.origin[2]);
+        if (eflags & EPS_M_ORIGIN2)
+            MSG_WriteDeltaInt23(from->pmove.origin[2], to->pmove.origin[2]);
 
-	if (pflags & PS_M_VELOCITY) {
-		MSG_WriteShort(to->pmove.velocity[0]);
-		MSG_WriteShort(to->pmove.velocity[1]);
-	}
+        if (pflags & PS_M_VELOCITY) {
+            MSG_WriteDeltaInt23(from->pmove.velocity[0], to->pmove.velocity[0]);
+            MSG_WriteDeltaInt23(from->pmove.velocity[1], to->pmove.velocity[1]);
+        }
 
-	if (eflags & EPS_M_VELOCITY2)
-		MSG_WriteShort(to->pmove.velocity[2]);
+        if (eflags & EPS_M_VELOCITY2)
+            MSG_WriteDeltaInt23(from->pmove.velocity[2], to->pmove.velocity[2]);
 
-	if (pflags & PS_M_TIME) {
-		MSG_WriteByte(to->pmove.pm_time);
-	}
+        if (pflags & PS_M_TIME)
+            MSG_WriteShort(to->pmove.pm_time);
 
-	if (pflags & PS_M_FLAGS) {
-		MSG_WriteByte(to->pmove.pm_flags);
-	}
+        if (pflags & PS_M_FLAGS)
+            MSG_WriteShort(to->pmove.pm_flags);
+    } else {
+        if (pflags & PS_M_ORIGIN) {
+            MSG_WriteShort(to->pmove.origin[0]);
+            MSG_WriteShort(to->pmove.origin[1]);
+        }
 
-	if (pflags & PS_M_GRAVITY)
-		MSG_WriteShort(to->pmove.gravity);
+        if (eflags & EPS_M_ORIGIN2)
+            MSG_WriteShort(to->pmove.origin[2]);
 
-	if (pflags & PS_M_DELTA_ANGLES) {
-		MSG_WriteShort(to->pmove.delta_angles[0]);
-		MSG_WriteShort(to->pmove.delta_angles[1]);
-		MSG_WriteShort(to->pmove.delta_angles[2]);
-	}
+        if (pflags & PS_M_VELOCITY) {
+            MSG_WriteShort(to->pmove.velocity[0]);
+            MSG_WriteShort(to->pmove.velocity[1]);
+        }
 
+        if (eflags & EPS_M_VELOCITY2)
+            MSG_WriteShort(to->pmove.velocity[2]);
+
+        if (pflags & PS_M_TIME)
+            MSG_WriteByte(to->pmove.pm_time);
+
+        if (pflags & PS_M_FLAGS)
+            MSG_WriteByte(to->pmove.pm_flags);
+    }
+
+    if (pflags & PS_M_GRAVITY)
+        MSG_WriteShort(to->pmove.gravity);
+
+    if (pflags & PS_M_DELTA_ANGLES) {
+        MSG_WriteShort(to->pmove.delta_angles[0]);
+        MSG_WriteShort(to->pmove.delta_angles[1]);
+        MSG_WriteShort(to->pmove.delta_angles[2]);
+    }
 
 	//
 	// write aqtion extensions
@@ -1555,76 +1574,58 @@ int MSG_WriteDeltaPlayerstate_Aqtion(const player_packed_t    *from,
 		MSG_WriteByte(to->pmove.pm_aq2_leghits);
 #endif
 
+    //
+    // write the rest of the player_state_t
+    //
+    if (pflags & PS_VIEWOFFSET)
+        MSG_WriteData(to->viewoffset, sizeof(to->viewoffset));
 
-	//
-	// write the rest of the player_state_t
-	//
-	if (pflags & PS_VIEWOFFSET) {
-		MSG_WriteChar(to->viewoffset[0]);
-		MSG_WriteChar(to->viewoffset[1]);
-		MSG_WriteChar(to->viewoffset[2]);
-	}
+    if (pflags & PS_VIEWANGLES) {
+        MSG_WriteShort(to->viewangles[0]);
+        MSG_WriteShort(to->viewangles[1]);
+    }
 
-	if (pflags & PS_VIEWANGLES) {
-		MSG_WriteShort(to->viewangles[0]);
-		MSG_WriteShort(to->viewangles[1]);
-	}
+    if (eflags & EPS_VIEWANGLE2)
+        MSG_WriteShort(to->viewangles[2]);
 
-	if (eflags & EPS_VIEWANGLE2)
-		MSG_WriteShort(to->viewangles[2]);
+    if (pflags & PS_KICKANGLES)
+        MSG_WriteData(to->kick_angles, sizeof(to->kick_angles));
 
-	if (pflags & PS_KICKANGLES) {
-		MSG_WriteChar(to->kick_angles[0]);
-		MSG_WriteChar(to->kick_angles[1]);
-		MSG_WriteChar(to->kick_angles[2]);
-	}
-
-	if (pflags & PS_WEAPONINDEX) {
+    if (pflags & PS_WEAPONINDEX) {
         if (flags & MSG_PS_EXTENSIONS)
             MSG_WriteShort(to->gunindex);
         else
             MSG_WriteByte(to->gunindex);
     }
 
-	if (pflags & PS_WEAPONFRAME)
-		MSG_WriteByte(to->gunframe);
+    if (pflags & PS_WEAPONFRAME)
+        MSG_WriteByte(to->gunframe);
 
-	if (eflags & EPS_GUNOFFSET) {
-		MSG_WriteChar(to->gunoffset[0]);
-		MSG_WriteChar(to->gunoffset[1]);
-		MSG_WriteChar(to->gunoffset[2]);
-	}
+    if (eflags & EPS_GUNOFFSET)
+        MSG_WriteData(to->gunoffset, sizeof(to->gunoffset));
 
-	if (eflags & EPS_GUNANGLES) {
-		MSG_WriteChar(to->gunangles[0]);
-		MSG_WriteChar(to->gunangles[1]);
-		MSG_WriteChar(to->gunangles[2]);
-	}
+    if (eflags & EPS_GUNANGLES)
+        MSG_WriteData(to->gunangles, sizeof(to->gunangles));
 
-	if (pflags & PS_BLEND) {
-		MSG_WriteByte(to->blend[0]);
-		MSG_WriteByte(to->blend[1]);
-		MSG_WriteByte(to->blend[2]);
-		MSG_WriteByte(to->blend[3]);
-	}
+    if (pflags & PS_BLEND) {
+        if (flags & MSG_PS_EXTENSIONS_2)
+            MSG_WriteDeltaBlend(from, to);
+        else
+            MSG_WriteData(to->blend, sizeof(to->blend));
+    }
 
-	if (pflags & PS_FOV)
-		MSG_WriteByte(to->fov);
+    if (pflags & PS_FOV)
+        MSG_WriteByte(to->fov);
 
-	if (pflags & PS_RDFLAGS)
-		MSG_WriteByte(to->rdflags);
+    if (pflags & PS_RDFLAGS)
+        MSG_WriteByte(to->rdflags);
 
-	// send stats
-	if (eflags & EPS_STATS) {
-		MSG_WriteLong(statbits);
-		for (i = 0; i < MAX_STATS; i++)
-			if (statbits & (1U << i))
-				MSG_WriteShort(to->stats[i]);
-	}
+    // send stats
+    if (eflags & EPS_STATS)
+        MSG_WriteStats(to, statbits, flags);
 
-	return eflags;
+    return eflags;
 }
-
 
 #if USE_MVD_SERVER || USE_MVD_CLIENT || USE_CLIENT_GTV
 

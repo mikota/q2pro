@@ -522,7 +522,7 @@ bool SV_WriteFrameToClient_Aqtion(client_t *client, unsigned maxsize)
 	MSG_WriteData(frame->areabits, frame->areabytes);
 
 	// ignore some parts of playerstate if not recording demo
-	psFlags = 0;
+	psFlags = client->psFlags;
 	if (!client->settings[CLS_RECORDING]) {
 		if (client->settings[CLS_NOGUN]) {
 			psFlags |= MSG_PS_IGNORE_GUNFRAMES;
@@ -537,8 +537,7 @@ bool SV_WriteFrameToClient_Aqtion(client_t *client, unsigned maxsize)
 			if (!(frame->ps.pmove.pm_flags & PMF_NO_PREDICTION)) {
 				psFlags |= MSG_PS_IGNORE_VIEWANGLES;
 			}
-		}
-		else {
+		} else {
 			// lying dead on a rotating platform?
 			psFlags |= MSG_PS_IGNORE_DELTAANGLES;
 		}
@@ -585,7 +584,6 @@ bool SV_WriteFrameToClient_Aqtion(client_t *client, unsigned maxsize)
 
 	// delta encode the entities
     MSG_WriteByte(svc_packetentities);
-
 	return SV_EmitPacketEntities(client, oldframe, frame, clientEntityNum, maxsize);
 }
 
