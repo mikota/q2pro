@@ -99,7 +99,7 @@ typedef struct gclient_old_s gclient_old_t;
 typedef struct gclient_new_s gclient_new_t;
 
 // AQtion compatible
-typedef gclient_new_t gclient_t;
+typedef gclient_old_t gclient_t;
 
 struct gclient_old_s {
     player_state_old_t  ps;     // communicated by server to clients

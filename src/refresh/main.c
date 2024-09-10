@@ -1414,7 +1414,7 @@ static void GL_DrawSelection(void)
     }
 }
 
-void GL_InitDebugDraw(void)
+void GL_InitDebugDrawRK(void)
 {
     // Malloc nav
     if (sv.cm.draw == NULL)
@@ -2124,6 +2124,18 @@ void GL_DeleteQueries(void)
     gl_static.queries = NULL;
 }
 
+static void GL_ClearQueries(void)
+{
+    if (!gl_static.queries)
+        return;
+
+    uint32_t map_size = HashMap_Size(gl_static.queries);
+    for (int i = 0; i < map_size; i++) {
+        glquery_t *q = HashMap_GetValue(glquery_t, gl_static.queries, i);
+        q->pending = q->visible = false;
+    }
+}
+
 // ==============================================================================
 
 /*
@@ -2164,7 +2176,7 @@ bool R_Init(bool total)
 
     GL_InitTables();
 
-    GL_InitDebugDraw();
+    GL_InitDebugDrawRK();
 
     GL_PostInit();
 
@@ -2287,7 +2299,7 @@ void R_BeginRegistration(const char *name)
     glr.viewcluster1 = glr.viewcluster2 = -2;
     //rekkie -- surface data -- s
 #if DEBUG_DRAWING
-    GL_InitDebugDraw(); // Init debug drawing functions
+    GL_InitDebugDrawRK(); // Init debug drawing functions
 #endif
     //rekkie -- surface data -- e
     GL_ClearQueries();
