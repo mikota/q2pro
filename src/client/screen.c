@@ -82,9 +82,6 @@ static cvar_t   *scr_lag_max;
 static cvar_t   *scr_lag_draw_scale;
 static cvar_t   *scr_alpha;
 
-static cvar_t   *scr_hudborder_x;
-static cvar_t   *scr_hudborder_y;
-
 static cvar_t   *scr_demobar;
 static cvar_t   *scr_font;
 static cvar_t   *scr_scale;
@@ -1427,8 +1424,6 @@ void SCR_Init(void)
     scr_lag_max = Cvar_Get("scr_lag_max", "200", 0);
     scr_alpha = Cvar_Get("scr_alpha", "1", 0);
 
-	scr_hudborder_x = Cvar_Get("scr_hudborder_x", "0", 0);
-	scr_hudborder_y = Cvar_Get("scr_hudborder_y", "0", 0);
 #if USE_DEBUG
     scr_showstats = Cvar_Get("scr_showstats", "0", 0);
     scr_showpmove = Cvar_Get("scr_showpmove", "0", 0);
@@ -2233,6 +2228,8 @@ static xhair_state_t XHAIR_ApplyFiringInaccuracy(xhair_state_t xh, int wep_index
     //Con_Printf("%d\n",cl.frame.ps.gunframe);
     return xh;
 }
+
+// mikota's xhair
 static void SCR_DrawXhair(void) {
     //Con_Printf("deltatime_factor: %g\n",deltatime_factor);
     R_SetColor(scr.crosshair_color.u32);
@@ -2324,6 +2321,8 @@ static void SCR_DrawXhair(void) {
         }
     } 
 }
+
+// mikota's xhair
 static void SCR_DrawClassicCrosshair(void) {
     R_SetColor(scr.crosshair_color.u32);
 }
@@ -2362,9 +2361,11 @@ static void SCR_DrawCrosshair(void)
     if (cl.frame.ps.stats[STAT_LAYOUTS] & (LAYOUTS_HIDE_HUD | LAYOUTS_HIDE_CROSSHAIR))
         return;
 
-    x = scr.hud_x + (scr.hud_width - scr.crosshair_width) / 2;
-    y = scr.hud_y + (scr.hud_height - scr.crosshair_height) / 2;
-    
+    x = (scr.hud_width - scr.crosshair_width) / 2;
+    y = (scr.hud_height - scr.crosshair_height) / 2;
+
+    R_SetColor(scr.crosshair_color.u32);
+
     R_DrawStretchPic(x + ch_x->integer,
                      y + ch_y->integer,
                      scr.crosshair_width,
@@ -2373,6 +2374,8 @@ static void SCR_DrawCrosshair(void)
 
     SCR_DrawHitMarker();
 }
+
+
 #if AQTION_EXTENSION
 void CL_Clear3DGhudQueue(void)
 {
@@ -2615,6 +2618,7 @@ draw:
     SCR_ExecuteLayoutString(cl.layout);
 }
 
+
 static void SCR_Draw2D(void)
 {
     if (scr_draw2d->integer <= 0)
@@ -2623,23 +2627,19 @@ static void SCR_Draw2D(void)
     if (cls.key_dest & KEY_MENU)
         return;
 
-    if (xhair_enabled->integer)
-        SCR_DrawXhair();
-
     R_SetScale(scr.hud_scale);
 
+    scr.hud_height = Q_rint(scr.hud_height * scr.hud_scale);
+    scr.hud_width = Q_rint(scr.hud_width * scr.hud_scale);
 
-	scr.hud_x = Q_rint(scr_hudborder_x->integer);
-	scr.hud_y = Q_rint(scr_hudborder_y->integer);
-    scr.hud_width = Q_rint((scr.hud_width - scr.hud_x) * scr.hud_scale);
-	scr.hud_height = Q_rint((scr.hud_height - scr.hud_y) * scr.hud_scale);
-	scr.hud_x *= scr.hud_scale / 2;
-	scr.hud_y *= scr.hud_scale / 2;
+// mikota's xhair
+//     if (!xhair_enabled->integer) {
+//         SCR_DrawClassicCrosshair();
+//     }    
 
-    if (!xhair_enabled->integer) {
-        SCR_DrawClassicCrosshair();
-    }    
-    
+    // crosshair has its own color and alpha
+    SCR_DrawCrosshair();
+
     // the rest of 2D elements share common alpha
     R_ClearColor();
     R_SetAlpha(Cvar_ClampValue(scr_alpha, 0, 1));
@@ -2647,7 +2647,6 @@ static void SCR_Draw2D(void)
     SCR_DrawStats();
 
     SCR_DrawLayout();
-
 #if AQTION_EXTENSION
 	// Draw game defined hud elements
 	SCR_DrawGhud();
@@ -2656,7 +2655,6 @@ static void SCR_Draw2D(void)
 	R_ClearColor();
 	R_SetAlpha(Cvar_ClampValue(scr_alpha, 0, 1));
 #endif
-
     SCR_DrawInventory();
 
     SCR_DrawCenterString();
@@ -2669,7 +2667,7 @@ static void SCR_Draw2D(void)
 
     SCR_DrawTurtle();
 
-	SCR_DrawPause();
+    SCR_DrawPause();
 
     // debug stats have no alpha
     R_ClearColor();
@@ -2678,7 +2676,6 @@ static void SCR_Draw2D(void)
     SCR_DrawDebugStats();
     SCR_DrawDebugPmove();
 #endif
-    R_ClearColor();
 
     R_SetScale(1.0f);
 }
