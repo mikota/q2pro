@@ -1414,7 +1414,7 @@ static void GL_DrawSelection(void)
     }
 }
 
-void GL_InitDebugDrawRK(void)
+void GL_BOTLIBInitDebugDraw(void)
 {
     // Malloc nav
     if (sv.cm.draw == NULL)
@@ -2176,7 +2176,7 @@ bool R_Init(bool total)
 
     GL_InitTables();
 
-    GL_InitDebugDrawRK();
+    GL_BOTLIBInitDebugDraw();
 
     GL_PostInit();
 
@@ -2299,7 +2299,7 @@ void R_BeginRegistration(const char *name)
     glr.viewcluster1 = glr.viewcluster2 = -2;
     //rekkie -- surface data -- s
 #if DEBUG_DRAWING
-    GL_InitDebugDrawRK(); // Init debug drawing functions
+    GL_BOTLIBInitDebugDraw(); // Init debug drawing functions
 #endif
     //rekkie -- surface data -- e
     GL_ClearQueries();

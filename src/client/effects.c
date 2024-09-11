@@ -163,7 +163,7 @@ void CL_MuzzleFlash(void)
     cdlight_t   *dl;
     centity_t   *pl;
     float       volume;
-    char        soundname[MAX_QPATH];
+    char        soundname[MAX_QPATH] = "";  // Should fix any \x01 issues?
 
 #if USE_DEBUG
     if (developer->integer)
@@ -295,10 +295,12 @@ void CL_MuzzleFlash(void)
 
     // Play the sound defined in the case statement above
     // Normal attenuation for all guns except handcannon
-    if (mz.weapon != MZ_SSHOTGUN) {
-        S_StartSound(NULL, mz.entity, CHAN_WEAPON, S_RegisterSound(soundname), volume, ATTN_NORM, 0);
-    } else {
-        S_StartSound(NULL, mz.entity, CHAN_WEAPON, S_RegisterSound(soundname), volume, ATTN_LOUD, 0);
+    if (soundname != NULL && strcmp(soundname, "\x01") != 0) {
+        if (mz.weapon != MZ_SSHOTGUN) {
+            S_StartSound(NULL, mz.entity, CHAN_WEAPON, S_RegisterSound(soundname), volume, ATTN_NORM, 0);
+        } else {
+            S_StartSound(NULL, mz.entity, CHAN_WEAPON, S_RegisterSound(soundname), volume, ATTN_LOUD, 0);
+        }
     }
 
     if (cl_dlight_hacks->integer & DLHACK_NO_MUZZLEFLASH) {
