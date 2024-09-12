@@ -422,8 +422,10 @@ static void GL_DrawNullModel(void)
     GL_StateBits(GLS_DEFAULT);
     GL_ArrayBits(GLA_VERTEX | GLA_COLOR);
 
-    GL_ColorBytePointer(4, 0, (GLubyte *)colors);
-    GL_VertexPointer(3, 0, &points[0][0]);
+    // GL_ColorBytePointer(4, 0, (GLubyte *)colors);
+    // GL_VertexPointer(3, 0, &points[0][0]);
+
+    GL_LockArrays(6);
 
     //rekkie -- allow NullModels to be seen behind walls -- s
     //if (gl_showtris->integer && gl_showtris->integer < 0)
@@ -436,6 +438,8 @@ static void GL_DrawNullModel(void)
     //if (gl_showtris->integer && gl_showtris->integer < 0)
         GL_DepthRange(0, 1); // Set the depth buffer back to normal (NullModels are now obscured)
     //rekkie -- allow NullModels to be seen behind walls -- e
+
+    GL_UnlockArrays();
 }
 
 //rekkie -- gl_showedges -- e
@@ -461,9 +465,9 @@ void GL_DrawLine(vec3_t verts, const int num_points, const uint32_t* colors, con
     //GL_StateBits(GLS_BLEND_BLEND | GLS_DEPTHMASK_FALSE);
     GL_ArrayBits(GLA_VERTEX | GLA_COLOR);
     //GL_VertexPointer(3, 0, &verts[0][0]);
-    GL_VertexPointer(3, 0, &v[0][0]);
+    //GL_VertexPointer(3, 0, &v[0][0]);
     glLineWidth(line_width); // Set the line width
-    GL_ColorBytePointer(4, 0, (GLubyte*)colors); // Set the color of the line
+    //GL_ColorBytePointer(4, 0, (GLubyte*)colors); // Set the color of the line
     if (occluded)
         GL_DepthRange(0, 1); // Set the far clipping plane to 1 (obscured behind walls)
     else
@@ -502,8 +506,8 @@ void GL_DrawCross(vec3_t origin, qboolean occluded)
     GL_BindTexture(0, TEXNUM_WHITE);
     GL_StateBits(GLS_DEFAULT);
     GL_ArrayBits(GLA_VERTEX | GLA_COLOR);
-    GL_ColorBytePointer(4, 0, (GLubyte*)colors);
-    GL_VertexPointer(3, 0, &points[0][0]);
+    //GL_ColorBytePointer(4, 0, (GLubyte*)colors);
+    //GL_VertexPointer(3, 0, &points[0][0]);
     glLineWidth(1); // Set the line width
 
     if (occluded)
@@ -775,8 +779,8 @@ void GL_DrawBox(vec3_t origin, uint32_t color, vec3_t mins, vec3_t maxs, qboolea
     GL_BindTexture(0, TEXNUM_WHITE);
     GL_StateBits(GLS_DEFAULT);
     GL_ArrayBits(GLA_VERTEX | GLA_COLOR);
-    GL_ColorBytePointer(4, 0, (GLubyte*)colors);
-    GL_VertexPointer(3, 0, &points[0][0]);
+    //GL_ColorBytePointer(4, 0, (GLubyte*)colors);
+    //GL_VertexPointer(3, 0, &points[0][0]);
     glLineWidth(2); // Set the line width
 
     if (occluded)
@@ -862,8 +866,8 @@ void GL_BatchDrawBoxes(int num_boxes, qboolean occluded)
         GL_BindTexture(0, TEXNUM_WHITE);
         GL_StateBits(GLS_DEFAULT);
         GL_ArrayBits(GLA_VERTEX | GLA_COLOR);
-        GL_ColorBytePointer(4, 0, (GLubyte*)box_colors);
-        GL_VertexPointer(3, 0, &box_points[0][0]);
+        //GL_ColorBytePointer(4, 0, (GLubyte*)box_colors);
+        //GL_VertexPointer(3, 0, &box_points[0][0]);
         glLineWidth(2); // Set the line width
 
         if (occluded)
@@ -1189,8 +1193,8 @@ void GL_BatchDrawArrows(qboolean occluded)
         GL_BindTexture(0, TEXNUM_WHITE);
         GL_StateBits(GLS_DEFAULT);
         GL_ArrayBits(GLA_VERTEX | GLA_COLOR);
-        GL_VertexPointer(3, 0, &arrow_points[0][0]);
-        GL_ColorBytePointer(4, 0, (GLubyte*)arrow_colors); // Set the color of the line
+        //GL_VertexPointer(3, 0, &arrow_points[0][0]);
+        //GL_ColorBytePointer(4, 0, (GLubyte*)arrow_colors); // Set the color of the line
         //glLineWidth(line_width); // Set the line width
 
         if (occluded)

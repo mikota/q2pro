@@ -558,6 +558,8 @@ cvar_t *warmup_unready; // Toggles warmup if captains unready
 cvar_t *training_mode; // Sets training mode vars
 cvar_t *g_highscores_dir; // Sets the highscores directory
 cvar_t *lca_grenade; // Allows grenade pin pulling during LCA
+cvar_t *breakableglass; // Moved from cgf_sfx_glass, enables breakable glass (0,1,2)
+cvar_t *glassfragmentlimit; // Moved from cgf_sfx_glass, sets glass fragment limit
 
 #if AQTION_EXTENSION
 cvar_t *use_newirvision;

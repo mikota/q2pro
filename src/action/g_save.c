@@ -536,7 +536,10 @@ void InitGame( void )
 	use_classic = gi.cvar( "use_classic", "0", 0 ); // Reset Grenade Strength to 1.52
 	use_gren_bonk = gi.cvar( "use_gren_bonk", "0", 0 ); // Grenade Bonk
 
-	CGF_SFX_InstallGlassSupport();	// william for CGF (glass fx)
+	//CGF_SFX_InstallGlassSupport();	// william for CGF (glass fx)
+	breakableglass = gi.cvar("breakableglass", "0", 0);
+  	glassfragmentlimit = gi.cvar("glassfragmentlimit", "30", 0);
+	//CGF_SFX_InstallGlassSupport();	// william for CGF (glass fx)
 
 	g_select_empty = gi.cvar( "g_select_empty", "0", CVAR_ARCHIVE );
 	g_protocol_extensions = gi.cvar("g_protocol_extensions", "0", CVAR_LATCH);

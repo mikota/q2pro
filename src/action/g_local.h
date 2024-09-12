@@ -1316,6 +1316,8 @@ extern cvar_t *warmup_unready;
 extern cvar_t *training_mode; // Sets training mode vars
 extern cvar_t *g_highscores_dir; // Sets the highscores directory
 extern cvar_t *lca_grenade; // Allows grenade pin pulling during LCA
+extern cvar_t *breakableglass; // Moved from cgf_sfx_glass, enables breakable glass (0,1,2)
+extern cvar_t *glassfragmentlimit; // Moved from cgf_sfx_glass, sets glass fragment limit
 
 #if AQTION_EXTENSION
 extern int (*engine_Client_GetVersion)(edict_t *ent);
