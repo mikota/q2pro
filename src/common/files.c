@@ -3573,7 +3573,7 @@ static void setup_game_paths(void)
             return;
         }
         // if SteamID, steamcloudappenabled and steamclouduserenabled is not 0, add steamcloud dir as new game_dir
-        add_game_dir(FS_PATH_GAME, "./SteamCloud/%s/%s", steamid->string, fs_game->string);
+        add_game_dir(FS_PATH_GAME | FS_DIR_HOME, "./SteamCloud/%s/%s", steamid->string, fs_game->string);
     #endif
     }
     // this var is set for compatibility with server browsers, etc
