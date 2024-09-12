@@ -2045,36 +2045,38 @@ void BOTLIB_CheckBotRules(void)
 
 	// Manage bot counts in DM mode
 	int bots_to_spawn = 0;
-	if (bot_playercount->value > 0 && (gameSettings & GS_DEATHMATCH)) {
-		// Calculate the desired number of bots based on bot_playercount and total_humans
-		bot_connections.desire_bots = (int)bot_playercount->value - bot_connections.total_humans;
+	if ((gameSettings & GS_DEATHMATCH)) {
+		if (bot_playercount->value > 0) {
+			// Calculate the desired number of bots based on bot_playercount and total_humans
+			bot_connections.desire_bots = (int)bot_playercount->value - bot_connections.total_humans;
 
-		// Ensure desire_bots does not exceed maxclients - total_humans
-		if (bot_connections.desire_bots + bot_connections.total_humans > maxclients->value) {
-			bot_connections.desire_bots = (int)(maxclients->value - bot_connections.total_humans);
-		}
+			// Ensure desire_bots does not exceed maxclients - total_humans
+			if (bot_connections.desire_bots + bot_connections.total_humans > maxclients->value) {
+				bot_connections.desire_bots = (int)(maxclients->value - bot_connections.total_humans);
+			}
 
-		// Sanity check - safety limits
-		if (bot_connections.desire_bots < 0) bot_connections.desire_bots = 0;
-		int bots_adj = 0;
-		int total_players = bot_connections.total_bots + bot_connections.total_humans;
+			// Sanity check - safety limits
+			if (bot_connections.desire_bots < 0) bot_connections.desire_bots = 0;
+			int bots_adj = 0;
+			int total_players = bot_connections.total_bots + bot_connections.total_humans;
 
-		if (total_players > bot_playercount->value) {
-			//gi.dprintf("I should remove a bot\n");
-			bots_adj = -1;
-		} else if (total_players < bot_playercount->value) {
-			// gi.dprintf("I should add a bot\n");
-			// gi.dprintf("total_players: %d, bot_playercount->value: %d\n", total_players, bot_playercount->value);
-			bots_adj = 1;
+			if (total_players > bot_playercount->value) {
+				//gi.dprintf("I should remove a bot\n");
+				bots_adj = -1;
+			} else if (total_players < bot_playercount->value) {
+				// gi.dprintf("I should add a bot\n");
+				// gi.dprintf("total_players: %d, bot_playercount->value: %d\n", total_players, bot_playercount->value);
+				bots_adj = 1;
+			} else {
+				bots_to_spawn = (int)bot_playercount->value;
+				bot_connections.desire_bots = bots_to_spawn;
+			}
+
+			bots_to_spawn = bots_adj; // Set bots_to_spawn to +1 or -1 based on the adjustment needed
+			//gi.dprintf("bots_adj: %d\n", bots_to_spawn);
 		} else {
-			bots_to_spawn = (int)bot_playercount->value;
-			bot_connections.desire_bots = bots_to_spawn;
+			bots_to_spawn = bot_connections.desire_bots - bot_connections.total_bots;
 		}
-
-		bots_to_spawn = bots_adj; // Set bots_to_spawn to +1 or -1 based on the adjustment needed
-		//gi.dprintf("bots_adj: %d\n", bots_to_spawn);
-	} else {
-		bots_to_spawn = bot_connections.desire_bots - bot_connections.total_bots;
 	}
 
 	// // Auto balance bots
