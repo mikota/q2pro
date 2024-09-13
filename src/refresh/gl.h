@@ -581,21 +581,19 @@ typedef struct {
 
     void (*array_pointers)(const glVaDesc_t *desc, const GLfloat *ptr);
     void (*tex_coord_pointer)(const GLfloat *ptr);
-
+// Re-added to support Rektek bot navmesh rendering
     void (*vertex_pointer)(GLint size, GLsizei stride, const GLfloat *pointer);
-    void (*light_coord_pointer)(GLint size, GLsizei stride, const GLfloat *pointer);
     void (*color_byte_pointer)(GLint size, GLsizei stride, const GLubyte *pointer);
-    void (*color_float_pointer)(GLint size, GLsizei stride, const GLfloat *pointer);
-
+// End
     void (*color)(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
 } glbackend_t;
 
 extern const glbackend_t *gl_backend;
 
-#define GL_ColorBytePointer(size, stride, ptr) \
-    gl_backend->color_byte_pointer((size), (stride) * sizeof(GLfloat), (ptr))
-#define GL_VertexPointer(size, stride, ptr) \
-    gl_backend->vertex_pointer((size), (stride) * sizeof(GLfloat), (ptr))
+// Re-added to support Rektek bot navmesh rendering
+#define GL_VertexPointer        gl_backend->vertex_pointer
+#define GL_ColorBytePointer     gl_backend->color_byte_pointer
+// End
 
 static inline void GL_ActiveTexture(glTmu_t tmu)
 {
