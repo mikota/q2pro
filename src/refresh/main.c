@@ -793,7 +793,7 @@ void GL_DrawBox(vec3_t origin, uint32_t color, vec3_t mins, vec3_t maxs, qboolea
 }
 
 // Batch draw call: render min/max box
-void GL_AddDrawBox(vec3_t origin, uint32_t color, vec3_t mins, vec3_t maxs, qboolean occluded)
+static void GL_AddDrawBox(vec3_t origin, uint32_t color, vec3_t mins, vec3_t maxs, qboolean occluded)
 {
     const vec3_t axis[3] = { {1,0,0}, {0,1,0}, {0,0,1} };
 
@@ -859,7 +859,8 @@ void GL_AddDrawBox(vec3_t origin, uint32_t color, vec3_t mins, vec3_t maxs, qboo
 
     }
 }
-void GL_BatchDrawBoxes(int num_boxes, qboolean occluded)
+
+static void GL_BatchDrawBoxes(int num_boxes, qboolean occluded)
 {
     if (drawbox_total)
     {
@@ -1010,7 +1011,7 @@ int drawarrow_total = 0; // Draw arrows total
 int drawarrow_count = 0; // Draw arrows counter
 vec3_t* arrow_points = NULL;
 uint32_t* arrow_colors = NULL;
-qboolean ALLOC_Arrows(int num_arrows)
+static qboolean ALLOC_Arrows(int num_arrows)
 {
     void* if_null_1 = NULL;
     void* if_null_2 = NULL;
@@ -1058,7 +1059,7 @@ qboolean ALLOC_Arrows(int num_arrows)
 
     return true;
 }
-void FREE_Arrows(void)
+static void FREE_Arrows(void)
 {
     if (arrow_points != NULL)
     {
@@ -1077,7 +1078,7 @@ void FREE_Arrows(void)
 //===========================================================================
 // 
 //===========================================================================
-void GL_DrawArrow(vec3_t start, vec3_t end, uint32_t color, float line_width, qboolean occluded)
+static void GL_DrawArrow(vec3_t start, vec3_t end, uint32_t color, float line_width, qboolean occluded)
 {
     const uint32_t colors[2] = { color, color };
     vec3_t points[2];
@@ -1186,7 +1187,7 @@ void GL_AddDrawArrow(vec3_t start, vec3_t end, uint32_t color, float line_width,
         }
     }
 } //end of the function GL_DrawArrow
-void GL_BatchDrawArrows(qboolean occluded)
+static void GL_BatchDrawArrows(qboolean occluded)
 {
     if (drawarrow_total)
     {
@@ -1231,24 +1232,26 @@ void DrawCross(int number, vec3_t origin, int time, qboolean occluded)
         draw_crosses[number].occluded = occluded;
     }
 }
-static void GL_DrawCrosses(void)
-{
-    qboolean crosses_in_use = false; // Crosses in use
-    if (sv.cm.draw && sv.cm.draw->boxes_inuse == true) // Only run when there's at least one or more in use
-    {
-        for (int i = 0; i < MAX_DRAW_CROSSES; i++)
-        {
-            if (draw_crosses[i].time > 0)
-            {
-                crosses_in_use = true;
-                draw_crosses[i].time--;
-                GL_DrawCross(draw_crosses[i].origin, draw_crosses[i].occluded);
-            }
-        }
-    }
-    if (sv.cm.draw && sv.cm.draw->crosses_inuse && crosses_in_use == false) // Check if it's possible to reduce debug drawing calls when not in use
-        sv.cm.draw->crosses_inuse = false;
-}
+
+// Unused
+// static void GL_DrawCrosses(void)
+// {
+//     qboolean crosses_in_use = false; // Crosses in use
+//     if (sv.cm.draw && sv.cm.draw->boxes_inuse == true) // Only run when there's at least one or more in use
+//     {
+//         for (int i = 0; i < MAX_DRAW_CROSSES; i++)
+//         {
+//             if (draw_crosses[i].time > 0)
+//             {
+//                 crosses_in_use = true;
+//                 draw_crosses[i].time--;
+//                 GL_DrawCross(draw_crosses[i].origin, draw_crosses[i].occluded);
+//             }
+//         }
+//     }
+//     if (sv.cm.draw && sv.cm.draw->crosses_inuse && crosses_in_use == false) // Check if it's possible to reduce debug drawing calls when not in use
+//         sv.cm.draw->crosses_inuse = false;
+// }
 
 // GL_DrawBoxes() is called to render the array
 void DrawBox(int number, vec3_t origin, uint32_t color, vec3_t mins, vec3_t maxs, int time, qboolean occluded)
@@ -1419,7 +1422,7 @@ static void GL_DrawSelection(void)
     }
 }
 
-void GL_BOTLIBInitDebugDraw(void)
+static void GL_BOTLIBInitDebugDraw(void)
 {
     // Malloc nav
     if (sv.cm.draw == NULL)
