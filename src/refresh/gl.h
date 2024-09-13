@@ -582,10 +582,20 @@ typedef struct {
     void (*array_pointers)(const glVaDesc_t *desc, const GLfloat *ptr);
     void (*tex_coord_pointer)(const GLfloat *ptr);
 
+    void (*vertex_pointer)(GLint size, GLsizei stride, const GLfloat *pointer);
+    void (*light_coord_pointer)(GLint size, GLsizei stride, const GLfloat *pointer);
+    void (*color_byte_pointer)(GLint size, GLsizei stride, const GLubyte *pointer);
+    void (*color_float_pointer)(GLint size, GLsizei stride, const GLfloat *pointer);
+
     void (*color)(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
 } glbackend_t;
 
 extern const glbackend_t *gl_backend;
+
+#define GL_ColorBytePointer(size, stride, ptr) \
+    gl_backend->color_byte_pointer((size), (stride) * sizeof(GLfloat), (ptr))
+#define GL_VertexPointer(size, stride, ptr) \
+    gl_backend->vertex_pointer((size), (stride) * sizeof(GLfloat), (ptr))
 
 static inline void GL_ActiveTexture(glTmu_t tmu)
 {
