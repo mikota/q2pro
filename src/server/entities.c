@@ -560,7 +560,8 @@ bool SV_WriteFrameToClient_Aqtion(client_t *client, unsigned maxsize)
     MSG_WriteByte(svc_playerinfo);
 	extraflags = MSG_WriteDeltaPlayerstate_Aqtion(oldstate, &frame->ps, psFlags);
 
-	if (client->protocol == PROTOCOL_VERSION_AQTION) {
+    #if AQTION_EXTENSION
+    if (client->protocol == PROTOCOL_VERSION_AQTION) {
         // delta encode the clientNum
         if ((oldframe ? oldframe->clientNum : 0) != frame->clientNum) {
             extraflags |= EPS_CLIENTNUM;
@@ -571,6 +572,7 @@ bool SV_WriteFrameToClient_Aqtion(client_t *client, unsigned maxsize)
             }
         }
     }
+    #endif
 
 	// save 3 high bits of extraflags
 	*b1 = svc_frame | (((extraflags & 0x70) << 1));

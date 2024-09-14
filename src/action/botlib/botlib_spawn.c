@@ -2191,5 +2191,11 @@ void BOTLIB_CheckBotRules(void)
 		bot_connections.total_team2 = 0;
 		bot_connections.total_team3 = 0;
 	}
+
+	// Update 'am' cvar to reflect in Server UI list if server has bots or not
+	if (bot_connections.total_bots > 0)
+		gi.cvar_forceset(am->string, "1");
+	else
+		gi.cvar_forceset(am->string, "0");
 }
 //rekkie -- DEV_1 -- e

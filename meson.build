@@ -552,8 +552,6 @@ endif
 
 if get_option('aqtion-build')
   config.set10('USE_AQTION', true)
-  config.set10('AQTION_EXTENSION', true)
-  config.set10('AQTION_HUD', true)
   action_src += ltk_src
   action_src += botlib_src
 
@@ -561,6 +559,11 @@ if get_option('aqtion-build')
   if win32
     dll_link_args += '-lws2_32'
   endif
+endif
+
+if get_option('aqtion-extensions')
+  config.set10('AQTION_EXTENSION', true)
+  config.set10('AQTION_HUD', true)
 endif
 
 if get_option('discord-sdk')

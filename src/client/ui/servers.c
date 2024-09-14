@@ -269,7 +269,9 @@ void UI_StatusEvent(const serverStatus_t *status)
 
     if (hasBotsCheck == NULL || COM_IsWhite(hasBotsCheck) || *hasBotsCheck == '0') {
         am = "No";
-        slot->hasBots = false;
+        if (slot) {
+            slot->hasBots = false;
+        }
     } else {
         if (slot) {
             ambci = atoi(botsCountCheck);
@@ -284,8 +286,6 @@ void UI_StatusEvent(const serverStatus_t *status)
             } else {
                 playerCount = status->numPlayers + slot->numBots;
             }
-            slot->hasBots = true;
-            am = "Yes";
         }
     }
     #endif

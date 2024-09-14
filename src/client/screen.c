@@ -61,6 +61,7 @@ static struct {
     int         hud_width, hud_height;
     float       hud_scale;
     int         lag_draw_scale;
+    qboolean    currently_scoped_in;
 } scr;
 
 static cvar_t   *scr_viewsize;
@@ -120,6 +121,8 @@ static cvar_t   *ch_x;
 static cvar_t   *ch_y;
 
 static cvar_t   *scr_hit_marker_time;
+
+static cvar_t   *ch_hide_while_zoomed;
 
 vrect_t     scr_vrect;      // position of render window on screen
 
@@ -1415,6 +1418,8 @@ void SCR_Init(void)
     ch_x = Cvar_Get("ch_x", "0", 0);
     ch_y = Cvar_Get("ch_y", "0", 0);
 
+    ch_hide_while_zoomed = Cvar_Get("ch_hide_while_zoomed", "0", 0);
+
     scr_draw2d = Cvar_Get("scr_draw2d", "2", 0);
     scr_showturtle = Cvar_Get("scr_showturtle", "1", 0);
     scr_lag_x = Cvar_Get("scr_lag_x", "-1", 0);
@@ -1807,6 +1812,7 @@ static void SCR_ExecuteLayoutString(const char *s)
                 qhandle_t pic = cl.image_precache[value];
                 // hack for action mod scope scaling
                 if (Com_WildCmp("scope?x", token) || Com_WildCmp("scopes/*/scope?x", token)) {
+                    scr.currently_scoped_in = true;
                     int x = scr.hud_x + (scr.hud_width - scr.scope_width) / 2;
                     int y = scr.hud_y + (scr.hud_height - scr.scope_height) / 2;
 
@@ -1816,6 +1822,7 @@ static void SCR_ExecuteLayoutString(const char *s)
                                      y + ch_y->integer,
                                      w, h, pic);
                 } else {
+                    scr.currently_scoped_in = false;
                     R_DrawPic(x, y, pic);
                 }
             }
@@ -2359,6 +2366,8 @@ static void SCR_DrawCrosshair(void)
     if (!scr_crosshair->integer)
         return;
     if (cl.frame.ps.stats[STAT_LAYOUTS] & (LAYOUTS_HIDE_HUD | LAYOUTS_HIDE_CROSSHAIR))
+        return;
+    if (scr.currently_scoped_in && ch_hide_while_zoomed->integer)
         return;
 
     x = (scr.hud_width - scr.crosshair_width) / 2;

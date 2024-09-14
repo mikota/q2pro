@@ -353,19 +353,23 @@ static void CL_ParseFrame(int extrabits)
 #endif
         // parse clientNum
         if (extraflags & EPS_CLIENTNUM) {
+        #if AQTION_EXTENSION
             if (cls.protocolVersion < PROTOCOL_VERSION_AQTION_CLIENTNUM_SHORT) {
                 frame.clientNum = MSG_ReadByte();
             } else {
                 frame.clientNum = MSG_ReadShort();
             }
+        #else
+            frame.clientNum = MSG_ReadByte(); // Default behavior if AQTION_EXTENSION is not defined
+        #endif
             if (!VALIDATE_CLIENTNUM(&cl.csr, frame.clientNum)) {
                 Com_Error(ERR_DROP, "%s: bad clientNum", __func__);
             }
         } else if (oldframe) {
             frame.clientNum = oldframe->clientNum;
+        } else if (cls.serverProtocol > PROTOCOL_VERSION_DEFAULT) {
+            MSG_ParseDeltaPlayerstate_Enhanced(from, &frame.ps, bits, extraflags, cl.psFlags);
         }
-	} else if (cls.serverProtocol > PROTOCOL_VERSION_DEFAULT) {
-        MSG_ParseDeltaPlayerstate_Enhanced(from, &frame.ps, bits, extraflags, cl.psFlags);
 #if USE_DEBUG
         if (cl_shownet->integer > 2 && (bits || extraflags)) {
             Com_LPrintf(PRINT_DEVELOPER, "   ");
@@ -669,6 +673,7 @@ static void CL_ParseServerData(void)
             cl.serverstate = i;
             cinematic = i == ss_pic || i == ss_cinematic;
         }
+        #if AQTION_EXTENSION
         if (cls.protocolVersion >= PROTOCOL_VERSION_AQTION_EXTENDED_LIMITS) {
             i = MSG_ReadWord();
             if (i & Q2PRO_PF_STRAFEJUMP_HACK) {
@@ -688,6 +693,7 @@ static void CL_ParseServerData(void)
                 cl.csr = cs_remap_new;
             }
         } else {
+        #endif
             if (MSG_ReadByte()) {
                 Com_DPrintf("Q2PRO strafejump hack enabled\n");
                 cl.pmp.strafehack = true;
@@ -700,8 +706,9 @@ static void CL_ParseServerData(void)
                 Com_DPrintf("Q2PRO waterjump hack enabled\n");
                 cl.pmp.waterhack = true;
             }
+        #if AQTION_EXTENSION
         }
-
+        #endif
 		cl.esFlags |= MSG_ES_UMASK | MSG_ES_LONGSOLID;
         if (cls.protocolVersion >= PROTOCOL_VERSION_Q2PRO_BEAM_ORIGIN) {
             cl.esFlags |= MSG_ES_BEAMORIGIN;
