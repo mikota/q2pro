@@ -2184,8 +2184,7 @@ void BOTLIB_CheckBotRules(void)
 	}
 
 	// Remove ALL bots
-	if (bot_connections.total_bots > 0 && bot_connections.desire_bots == 0)
-	{
+	if (bot_connections.total_bots > 0 && bot_connections.desire_bots == 0) {
 		BOTLIB_RemoveBot("ALL");
 		bot_connections.total_team1 = 0;
 		bot_connections.total_team2 = 0;
@@ -2193,9 +2192,10 @@ void BOTLIB_CheckBotRules(void)
 	}
 
 	// Update 'am' cvar to reflect in Server UI list if server has bots or not
-	if (bot_connections.total_bots > 0)
-		gi.cvar_forceset(am->string, "1");
-	else
-		gi.cvar_forceset(am->string, "0");
+	if (bot_connections.total_bots > 0) {
+		gi.cvar_forceset(am->name, "1");
+	} else {
+		gi.cvar_forceset(am->name, "0");
+	}
 }
 //rekkie -- DEV_1 -- e
