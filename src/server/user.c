@@ -430,18 +430,11 @@ void SV_New_f(void)
         }
         break;
 	case PROTOCOL_VERSION_AQTION:
-        MSG_WriteShort(sv_client->version);
-        
-    #if AQTION_EXTENSION
+		MSG_WriteShort(sv_client->version);
         if (sv.state == ss_cinematic && sv_client->version < PROTOCOL_VERSION_AQTION_CINEMATICS)
             MSG_WriteByte(ss_pic);
         else
             MSG_WriteByte(sv.state);
-    #else
-        MSG_WriteByte(sv.state); // Default behavior if AQTION_EXTENSION is not defined
-    #endif
-
-    #if AQTION_EXTENSION
         if (sv_client->version >= PROTOCOL_VERSION_AQTION_EXTENDED_LIMITS) {
             MSG_WriteShort(q2pro_protocol_flags());
         } else {
@@ -449,13 +442,7 @@ void SV_New_f(void)
             MSG_WriteByte(sv_client->pmp.qwmode);
             MSG_WriteByte(sv_client->pmp.waterhack);
         }
-    #else
-        MSG_WriteByte(sv_client->pmp.strafehack); // Default behavior if AQTION_EXTENSION is not defined
-        MSG_WriteByte(sv_client->pmp.qwmode);
-        MSG_WriteByte(sv_client->pmp.waterhack);
-    #endif
-
-        break;
+		break;
     }
 
     SV_ClientAddMessage(sv_client, MSG_RELIABLE | MSG_CLEAR);
@@ -506,11 +493,8 @@ void SV_New_f(void)
     if (sv_client->netchan.type == NETCHAN_OLD) {
         write_configstrings();
         write_baselines();
-    } else if ((sv_client->protocol == PROTOCOL_VERSION_Q2PRO && sv_client->version >= PROTOCOL_VERSION_Q2PRO_EXTENDED_LIMITS) 
-    #if AQTION_EXTENSION
-                || (sv_client->protocol == PROTOCOL_VERSION_AQTION && sv_client->version >= PROTOCOL_VERSION_AQTION_EXTENDED_LIMITS)
-    #endif
-                ) {
+    } else if ((sv_client->protocol == PROTOCOL_VERSION_Q2PRO && sv_client->version >= PROTOCOL_VERSION_Q2PRO_EXTENDED_LIMITS) ||
+                (sv_client->protocol == PROTOCOL_VERSION_AQTION && sv_client->version >= PROTOCOL_VERSION_AQTION_EXTENDED_LIMITS)) {
         write_configstring_stream();
         write_baseline_stream();
     } else {
@@ -956,7 +940,6 @@ static void SV_PacketdupHack_f(void)
 #endif
 
 #if USE_AQTION
-#if AQTION_EXTENSION
 static void SV_CvarSync_f(void)
 {
 	if (!sv_client->edict->client)
@@ -1008,7 +991,6 @@ static void SV_CvarSync_f(void)
             }
         }
 }
-#endif
 #endif
 
 static bool match_cvar_val(const char *s, const char *v)

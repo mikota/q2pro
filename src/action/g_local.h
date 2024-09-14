@@ -1298,7 +1298,7 @@ extern cvar_t *esp_debug; // Enable or disable debug mode (very spammy)
 
 // 2023
 extern cvar_t *use_killcounts;  // Adjust how kill streaks are counted
-extern cvar_t *am; // Enable or disable Attract Mode (ltk bots) (do not set this manually)
+extern cvar_t *am; // Enable or disable Attract Mode (ltk bots)
 extern cvar_t *zoom_comp;  // Enable or disable zoom compensation
 extern cvar_t *item_kit_mode;  // Enable or disable item kit mode
 extern cvar_t *gun_dualmk23_enhance; // Enable or disable enhanced dual mk23s (laser + silencer)
@@ -1701,12 +1701,14 @@ void StatBotCheck(void);
 void G_RegisterScore(void);
 int G_CalcRanks(gclient_t **ranks);
 void G_LoadScores(void);
+#if USE_AQTION
 void LogKill(edict_t *self, edict_t *inflictor, edict_t *attacker);
 void LogWorldKill(edict_t *self);
 void LogCapture(edict_t *capturer);
 void LogMatch(void);
 void LogAward(edict_t *ent, int award);
 void LogEndMatchStats(void);
+#endif
 
 //============================================================================
 

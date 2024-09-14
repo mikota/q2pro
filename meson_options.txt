@@ -3,11 +3,6 @@ option('aqtion-build',
   value: true, 
   description: 'Build-specific for AQtion enhancements')
 
-option('aqtion-extensions', 
-  type: 'boolean', 
-  value: true, 
-  description: 'Build-specific for AQtion extensions')
-
 option('anticheat-server',
   type: 'boolean',
   value: false,
