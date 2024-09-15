@@ -1201,8 +1201,8 @@ static void ch_scale_changed(cvar_t *self)
     float scale;
     qhandle_t scope_pic;
 
-    // Cut the scale in half to match the original AQ2 behavior
-    scale = Cvar_ClampValue(self, 0.1f, 9.0f) / 2.0f;
+    // Cut the scale by 1/4 to match the original AQ2 behavior?
+    scale = Cvar_ClampValue(self, 0.1f, 9.0f) / 4.0f;
 
     // action mod scope scaling
     scope_pic = R_RegisterPic("scope2x");
