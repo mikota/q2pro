@@ -355,6 +355,8 @@ typedef struct gclient_s gclient_t;
 #define FL_TEAMSLAVE            BIT(10)     // not the first on the team
 #define FL_NO_KNOCKBACK         BIT(11)
 #define FL_POWER_ARMOR          BIT(12)     // power armor (if any) is active
+
+#define FL_NO_DAMAGE_EFFECTS	BIT(20)	// no damage effects
 #define FL_ACCELERATE			BIT(29)  // accelerative movement
 #define FL_RESPAWN              BIT(31)     // used for item respawning
 
@@ -1984,6 +1986,7 @@ struct gclient_s
 	int			damage_blood;		// damage taken out of health
 	int			damage_knockback;	// impact damage
 	vec3_t		damage_from;		// origin for vector calculation
+	int			damage_dealt;		// total damage dealt to other players (used for hit markers)
 
 	float		killer_yaw;			// when dead, look at killer
 

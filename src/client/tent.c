@@ -1664,14 +1664,18 @@ void CL_ParseTEnt(void)
         if (te.count > 0 && cl_hit_markers->integer > 0) {
             cl.hit_marker_time = cls.realtime;
             cl.hit_marker_count = te.count;
-            if (cl_hit_markers->integer > 1)
+            if (cl_hit_markers->integer > 1) {
                 S_StartSound(NULL, listener_entnum, 257, cl_sfx_hit_marker, 1, ATTN_NONE, 0);
+                Com_Printf("Hit marker\n");
+            }
         }
         break;
 
     default:
         Com_Error(ERR_DROP, "%s: bad type", __func__);
     }
+    Com_Printf("Te count: %d\n", te.count);
+    Com_Printf("cl_hit_markers: %d\n", cl_hit_markers);
 }
 
 /*
