@@ -38,6 +38,10 @@ qhandle_t   cl_sfx_lightning;
 qhandle_t   cl_sfx_disrexp;
 
 qhandle_t   cl_sfx_hit_marker;
+qhandle_t   cl_sfx_headshot;
+qhandle_t   cl_sfx_chestshot;
+qhandle_t   cl_sfx_stomshot;
+qhandle_t   cl_sfx_legshot;
 
 //qhandle_t   cl_mod_explode;
 qhandle_t   cl_mod_smoke;
@@ -320,7 +324,11 @@ void CL_RegisterTEntSounds(void)
     cl_sfx_lightning = S_RegisterSound("weapons/tesla.wav");
     cl_sfx_disrexp = S_RegisterSound("weapons/disrupthit.wav");
 
-    cl_sfx_hit_marker = S_RegisterSound("weapons/marker.wav");
+    cl_sfx_hit_marker = S_RegisterSound("hitsounds/aphelmet.wav");
+    cl_sfx_headshot = S_RegisterSound("hitsounds/headshot.wav");
+    cl_sfx_chestshot = S_RegisterSound("hitsounds/chest.wav");
+    cl_sfx_stomshot = S_RegisterSound("hitsounds/stomach.wav");
+    cl_sfx_legshot = S_RegisterSound("hitsounds/leg.wav");
 }
 
 static const char *const muzzlenames[MFLASH_TOTAL] = {
@@ -1661,11 +1669,28 @@ void CL_ParseTEnt(void)
         break;
 
     case TE_DAMAGE_DEALT:
+    case TE_AQ2_HEADSHOT:
+    case TE_AQ2_CHESTSHOT:
+    case TE_AQ2_STOMSHOT:
+    case TE_AQ2_LEGSHOT:
+        qhandle_t hit_sfx;
         if (te.count > 0 && cl_hit_markers->integer > 0) {
             cl.hit_marker_time = cls.realtime;
             cl.hit_marker_count = te.count;
             if (cl_hit_markers->integer > 1) {
-                S_StartSound(NULL, listener_entnum, 257, cl_sfx_hit_marker, 1, ATTN_NONE, 0);
+                if (te.type == TE_AQ2_HEADSHOT)
+                    hit_sfx = cl_sfx_headshot;
+                else if (te.type == TE_AQ2_CHESTSHOT)
+                    hit_sfx = cl_sfx_chestshot;
+                else if (te.type == TE_AQ2_STOMSHOT)
+                    hit_sfx = cl_sfx_stomshot;
+                else if (te.type == TE_AQ2_LEGSHOT)
+                    hit_sfx = cl_sfx_legshot;
+                else if (te.type == TE_DAMAGE_DEALT)
+                    hit_sfx = cl_sfx_hit_marker;
+                else
+                    hit_sfx = cl_sfx_hit_marker;
+                S_StartSound(NULL, listener_entnum, 257, hit_sfx, 1, ATTN_NONE, 0);
             }
         }
         break;
