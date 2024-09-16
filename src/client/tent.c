@@ -324,7 +324,7 @@ void CL_RegisterTEntSounds(void)
     cl_sfx_lightning = S_RegisterSound("weapons/tesla.wav");
     cl_sfx_disrexp = S_RegisterSound("weapons/disrupthit.wav");
 
-    cl_sfx_hit_marker = S_RegisterSound("hitsounds/aphelmet.wav");
+    cl_sfx_hit_marker = S_RegisterSound("hitsounds/damage.wav");
     cl_sfx_headshot = S_RegisterSound("hitsounds/headshot.wav");
     cl_sfx_chestshot = S_RegisterSound("hitsounds/chest.wav");
     cl_sfx_stomshot = S_RegisterSound("hitsounds/stomach.wav");
