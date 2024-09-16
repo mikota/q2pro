@@ -859,12 +859,35 @@ static const filesystem_api_v1_t filesystem_api_v1 = {
     .ErrorString = Q_ErrorString,
 };
 
+#if USE_REF && USE_DEBUG
+static const debug_draw_api_v1_t debug_draw_api_v1 = {
+    .ClearDebugLines = R_ClearDebugLines,
+    .AddDebugLine = R_AddDebugLine,
+    .AddDebugPoint = R_AddDebugPoint,
+    .AddDebugAxis = R_AddDebugAxis,
+    .AddDebugBounds = R_AddDebugBounds,
+    .AddDebugSphere = R_AddDebugSphere,
+    .AddDebugCircle = R_AddDebugCircle,
+    .AddDebugCylinder = R_AddDebugCylinder,
+    .AddDebugArrow = R_AddDebugArrow,
+    .AddDebugCurveArrow = R_AddDebugCurveArrow,
+    .AddDebugText = R_AddDebugText,
+};
+#endif
+
 static void *PF_GetExtension(const char *name)
 {
     if (!name)
         return NULL;
-    if (!strcmp(name, "FILESYSTEM_API_V1"))
+
+    if (!strcmp(name, FILESYSTEM_API_V1))
         return (void *)&filesystem_api_v1;
+
+#if USE_REF && USE_DEBUG
+    if (!strcmp(name, DEBUG_DRAW_API_V1) && !dedicated->integer)
+        return (void *)&debug_draw_api_v1;
+#endif
+
     return NULL;
 }
 
@@ -1158,10 +1181,10 @@ void SV_InitGameProgs(void)
     game_entry_ex_t entry_ex = Sys_GetProcAddress(game_library, "GetGameAPIEx");
     if (entry_ex) {
         gex = entry_ex(&game_import_ex);
-        if (gex->apiversion < GAME_API_VERSION_EX_MINIMUM)
-            gex = NULL;
-        else
+        if (gex && gex->apiversion >= GAME_API_VERSION_EX_MINIMUM)
             Com_DPrintf("Game supports Q2PRO extended API version %d.\n", gex->apiversion);
+        else
+            gex = NULL;
     }
 
     // initialize

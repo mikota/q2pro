@@ -749,6 +749,7 @@ static void CL_PlayDemo_f(void)
     CL_Disconnect(ERR_RECONNECT);
 
     cls.demo.playback = f;
+    cls.demo.compat = !strcmp(Cmd_Argv(2), "compat");
     cls.state = ca_connected;
     Q_strlcpy(cls.servername, COM_SkipPath(name), sizeof(cls.servername));
     cls.serverAddress.type = NA_LOOPBACK;
@@ -761,7 +762,7 @@ static void CL_PlayDemo_f(void)
     CL_ParseServerMessage();
 
     // read and parse messages util `precache' command
-    while (cls.state == ca_connected) {
+    for (int i = 0; cls.state == ca_connected && i < 1000; i++) {
         Cbuf_Execute(&cl_cmdbuf);
         parse_next_message(0);
     }
@@ -1262,6 +1263,10 @@ void CL_CleanupDemos(void)
                            cls.demo.time_frames, sec, fps);
             }
         }
+
+        // clear whatever stufftext remains
+        if (!cls.demo.compat)
+            Cbuf_Clear(&cl_cmdbuf);
     }
 
     CL_FreeDemoSnapshots();

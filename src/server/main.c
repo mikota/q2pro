@@ -874,10 +874,19 @@ static bool parse_enhanced_params(conn_params_t *p)
         if (p->protocol == PROTOCOL_VERSION_Q2PRO && p->version >= minimal)
             return true;
 
+    // verify protocol extensions compatibility
+    if (svs.csr.extended) {
+        int minimal = IS_NEW_GAME_API ?
+            PROTOCOL_VERSION_Q2PRO_EXTENDED_LIMITS_2 :
+            PROTOCOL_VERSION_Q2PRO_EXTENDED_LIMITS;
+
+        if (p->protocol == PROTOCOL_VERSION_Q2PRO && p->version >= minimal)
+            return true;
+
         return reject("This is a protocol limit removing enhanced server.\n"
                       "Your client version is not compatible. Make sure you are "
-                      "running latest Q2PRO client version.\nYour major protocol version: %d\n "
-                      "Your minor protocol version: %d\n", p->protocol, p->version);
+                      "running the latest Q2PRO client version.\n");
+        }
     }
 
     return true;
@@ -1051,7 +1060,7 @@ static void init_pmove_and_es_flags(client_t *newcl)
     }
     newcl->pmp.strafehack = sv_strafejump_hack->integer >= force;
 
-    // r1q2 extensions
+    // R1Q2 extensions
     if (newcl->protocol == PROTOCOL_VERSION_R1Q2) {
         newcl->esFlags |= MSG_ES_BEAMORIGIN;
         if (newcl->version >= PROTOCOL_VERSION_R1Q2_LONG_SOLID) {
@@ -1059,7 +1068,7 @@ static void init_pmove_and_es_flags(client_t *newcl)
         }
     }
 
-    // q2pro extensions
+    // Q2PRO extensions
     force = 2;
     if (newcl->protocol == PROTOCOL_VERSION_Q2PRO) {
         if (sv_qwmod->integer) {
@@ -2410,7 +2419,7 @@ void SV_Init(void)
     sv_packetdup_hack = Cvar_Get("sv_packetdup_hack", "0", 0);
 #endif
 
-    sv_allow_map = Cvar_Get("sv_allow_map", "0", 0);
+    sv_allow_map = Cvar_Get("sv_allow_map", COM_DEDICATED ? "0" : "1", 0);
     sv_cinematics = Cvar_Get("sv_cinematics", "1", 0);
 
 #if USE_SERVER
@@ -2534,6 +2543,8 @@ void SV_Shutdown(const char *finalmsg, error_type_t type)
 {
     if (!sv_registered)
         return;
+
+    R_ClearDebugLines();    // for local system
 
 #if USE_MVD_CLIENT
     if (ge != &mvd_ge && !(type & MVD_SPAWN_INTERNAL)) {

@@ -562,7 +562,7 @@ size_t Com_FormatSizeLong(char *dest, size_t destsize, int64_t bytes)
     return Q_scnprintf(dest, destsize, "unknown size");
 }
 
-static int get_escape_char(int c)
+static int escape_char(int c)
 {
     switch (c) {
         case '\a': return 'a';
@@ -578,24 +578,88 @@ static int get_escape_char(int c)
     return 0;
 }
 
+const char com_hexchars[16] = "0123456789ABCDEF";
+
+size_t Com_EscapeString(char *dst, const char *src, size_t size)
+{
+    char *p, *end;
+
+    if (!size)
+        return 0;
+
+    p = dst;
+    end = dst + size;
+    while (*src) {
+        byte c = *src++;
+        int e = escape_char(c);
+
+        if (e) {
+            if (end - p <= 2)
+                break;
+            *p++ = '\\';
+            *p++ = e;
+        } else if (Q_isprint(c)) {
+            if (end - p <= 1)
+                break;
+            *p++ = c;
+        } else {
+            if (end - p <= 4)
+                break;
+            *p++ = '\\';
+            *p++ = 'x';
+            *p++ = com_hexchars[c >> 4];
+            *p++ = com_hexchars[c & 15];
+        }
+    }
+
+    *p = 0;
+    return p - dst;
+}
+
 char *Com_MakePrintable(const char *s)
 {
     static char buffer[4096];
-    char *o = buffer;
-    char *end = buffer + sizeof(buffer);
-
-    while (*s && o < end - 1) {
-        byte c = *s++;
-        int e = get_escape_char(c);
-
-        if (e)
-            o += Q_scnprintf(o, end - o, "\\%c", e);
-        else if (!Q_isprint(c))
-            o += Q_scnprintf(o, end - o, "\\x%02X", c);
-        else
-            *o++ = c;
-    }
-
-    *o = 0;
+    Com_EscapeString(buffer, s, sizeof(buffer));
     return buffer;
 }
+
+#if USE_CLIENT
+
+/*
+===============
+Com_SlowRand
+
+`Slow' PRNG that begins consecutive frames with the same seed. Reseeded each 16
+ms. Used for random effects that shouldn't cause too much tearing without vsync.
+===============
+*/
+uint32_t Com_SlowRand(void)
+{
+    static uint32_t com_rand_ts;
+    static uint32_t com_rand_base;
+    static uint32_t com_rand_seed;
+    static uint32_t com_rand_frame;
+
+    // see if it's time to reseed
+    if (com_rand_ts != com_localTime2 / 16) {
+        com_rand_ts = com_localTime2 / 16;
+        com_rand_base = Q_rand();
+    }
+
+    // reset if started new frame
+    if (com_rand_frame != com_framenum) {
+        com_rand_frame = com_framenum;
+        com_rand_seed = com_rand_base;
+    }
+
+    // xorshift RNG
+    uint32_t x = com_rand_seed;
+
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+
+    return com_rand_seed = x;
+}
+
+#endif

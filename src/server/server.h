@@ -23,6 +23,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "shared/shared.h"
 #include "shared/list.h"
 #include "shared/game.h"
+#include "shared/gameext.h"
 
 #include "common/bsp.h"
 #include "common/cmd.h"
@@ -613,6 +614,7 @@ void sv_min_timeout_changed(cvar_t *self);
 //
 // sv_init.c
 //
+
 void SV_ClientReset(client_t *client);
 void SV_SetState(server_state_t state);
 void SV_SpawnServer(const mapcmd_t *cmd);

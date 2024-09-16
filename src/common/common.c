@@ -136,6 +136,7 @@ const char  com_version_string[] =
 unsigned    com_framenum;
 unsigned    com_eventTime;
 unsigned    com_localTime;
+unsigned    com_localTime2;
 bool        com_initialized;
 time_t      com_startTime;
 
@@ -1129,6 +1130,7 @@ void Qcommon_Frame(void)
 
     // run local time
     com_localTime += msec;
+    com_localTime2 += msec & (sv_paused->integer - 1);
     com_framenum++;
 
 #if USE_CLIENT
