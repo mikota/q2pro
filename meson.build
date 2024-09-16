@@ -24,7 +24,9 @@ common_src = [
   'src/common/msg.c',
   'src/common/net/chan.c',
   'src/common/net/net.c',
-  'src/common/pmove.c',
+  'src/common/pmove/common.c',
+  'src/common/pmove/new.c',
+  'src/common/pmove/old.c',
   'src/common/prompt.c',
   'src/common/sizebuf.c',
   'src/common/utils.c',
@@ -294,9 +296,14 @@ else
   common_args += '-D_GNU_SOURCE'
 endif
 
-engine_args = []
+engine_args = ['-DUSE_NEW_GAME_API=1']
 if win32
   engine_args += '-D_WIN32_WINNT=0x0601'
+endif
+
+game_args = []
+if get_option('game-new-api')
+  game_args += '-DUSE_NEW_GAME_API=1'
 endif
 
 common_link_args = []
@@ -586,6 +593,10 @@ if get_option('tests')
   config.set10('USE_TESTS', true)
 endif
 
+if get_option('debug')
+  refresh_src += 'src/refresh/debug.c'
+endif
+
 if get_option('game-abi-hack').require(x86 and cc.get_id() == 'gcc' and cc.has_argument('-mstackrealign')).allowed()
   config.set10('USE_GAME_ABI_HACK', true)
   engine_args += '-mstackrealign'
@@ -617,6 +628,7 @@ shared_library('game' + cpu, action_src,
   include_directories:   inc_dirs,
   gnu_symbol_visibility: 'hidden',
   link_args:             dll_link_args,
+  c_args:                game_args,
   install:               system_wide,
   install_dir:           libdir / get_option('base-game'),
   override_options:      get_option('game-build-options'),
@@ -640,13 +652,30 @@ config.set_quoted('VID_MODELIST', get_option('vid-modelist'))
 config.set10('USE_AUTOREPLY',     get_option('auto-reply'))
 config.set10('USE_DEBUG',         get_option('debug'))
 config.set10('USE_FPS',           get_option('variable-fps'))
+config.set10('USE_GLES',          get_option('opengl-es1'))
 config.set10('USE_ICMP',          get_option('icmp-errors').require(win32 or cc.has_header('linux/errqueue.h')).allowed())
 config.set10('USE_MD3',           get_option('md3'))
 config.set10('USE_MD5',           get_option('md5'))
 config.set10('USE_PACKETDUP',     get_option('packetdup-hack'))
 config.set10('USE_TGA',           get_option('tga'))
 config.set10('USE_' + host_machine.endian().to_upper() + '_ENDIAN', true)
+
+if host_machine.system() == 'darwin'
+  config.set_quoted('DEFGLPROFILE', 'gl3.2')
+elif get_option('opengl-es1')
+  config.set_quoted('DEFGLPROFILE', 'es1')
+else
+  config.set_quoted('DEFGLPROFILE', '')
+endif
+
+# protocol extensions are always on
 config.set10('USE_PROTOCOL_EXTENSIONS', true)
+
+# new game API flag is *always on* for engine,
+# and can be enabled here for game as well
+if get_option('game-new-api')
+  config.set10('USE_NEW_GAME_API', true)
+endif
 
 configure_file(output: 'config.h', configuration: config)
 
@@ -662,6 +691,7 @@ summary({
   'client-ui'          : config.get('USE_UI', 0) != 0,
   'debug'              : config.get('USE_DEBUG', 0) != 0,
   'game-abi-hack'      : config.get('USE_GAME_ABI_HACK', 0) != 0,
+  'game-new-api'       : config.get('USE_NEW_GAME_API', 0) != 0,
   'icmp-errors'        : config.get('USE_ICMP', 0) != 0,
   'libcurl'            : config.get('USE_CURL', 0) != 0,
   'libjpeg'            : config.get('USE_JPG', 0) != 0,

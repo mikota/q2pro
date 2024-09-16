@@ -25,10 +25,16 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // game.h -- game dll information visible to server
 //
 
-#if AQTION_EXTENSION
-#define GAME_API_VERSION        4
+#define GAME_API_VERSION_OLD    3       // game uses gclient_old_t
+#define GAME_API_VERSION_AQTION 4       // game uses gclient_t with AQtion extension (aliased to gclient_old_t)
+#define GAME_API_VERSION_NEW    3300    // game uses gclient_new_t
+
+#if USE_NEW_GAME_API
+#define GAME_API_VERSION    GAME_API_VERSION_NEW
+#elif AQTION_EXTENSION
+#define GAME_API_VERSION    GAME_API_VERSION_AQTION
 #else
-#define GAME_API_VERSION        3
+#define GAME_API_VERSION    GAME_API_VERSION_OLD
 #endif
 
 // edict->svflags
@@ -86,13 +92,18 @@ typedef struct link_s
 link_t;
 
 typedef struct edict_s edict_t;
-typedef struct gclient_s gclient_t;
 
 #ifndef GAME_INCLUDE
 
-struct gclient_s {
-    player_state_t  ps;     // communicated by server to clients
-    int             ping;
+typedef struct gclient_old_s gclient_old_t;
+typedef struct gclient_new_s gclient_new_t;
+
+// AQtion compatible
+typedef gclient_old_t gclient_t;
+
+struct gclient_old_s {
+    player_state_old_t  ps;     // communicated by server to clients
+    int                 ping;
 
     // set to (client POV entity number) - 1 by game,
     // only valid if g_features has GMF_CLIENTNUM bit
@@ -100,7 +111,21 @@ struct gclient_s {
 
     // the game dll can add anything it wants after
     // this point in the structure
+#if AQTION_EXTENSION
+	cvarsyncvalue_t cl_cvar[CVARSYNC_MAX];
+#endif
+};
 
+struct gclient_new_s {
+    player_state_new_t  ps;     // communicated by server to clients
+    int                 ping;
+
+    // set to (client POV entity number) - 1 by game,
+    // only valid if g_features has GMF_CLIENTNUM bit
+    int             clientNum;
+
+    // the game dll can add anything it wants after
+    // this point in the structure
 #if AQTION_EXTENSION
 	cvarsyncvalue_t cl_cvar[CVARSYNC_MAX];
 #endif
@@ -108,7 +133,7 @@ struct gclient_s {
 
 struct edict_s {
     entity_state_t  s;
-    struct gclient_s    *client;
+    void        *client;
     qboolean    inuse;
     int         linkcount;
 
@@ -191,7 +216,11 @@ typedef struct {
     void (*linkentity)(edict_t *ent);
     void (*unlinkentity)(edict_t *ent);     // call before removing an interactive edict
     int (*BoxEdicts)(const vec3_t mins, const vec3_t maxs, edict_t **list, int maxcount, int areatype);
+#ifdef GAME_INCLUDE
     void (*Pmove)(pmove_t *pmove);          // player movement code common with client prediction
+#else
+    void (*Pmove)(void *pmove);
+#endif
 
     // network messaging
     void (*multicast)(const vec3_t origin, multicast_t to);
@@ -304,69 +333,3 @@ typedef struct {
 } game_export_t;
 
 typedef game_export_t *(*game_entry_t)(game_import_t *);
-
-//===============================================================
-
-/*
- * GetGameAPIEx() is guaranteed to be called after GetGameAPI() and before
- * ge->Init().
- *
- * Unlike GetGameAPI(), passed game_import_ex_t * is valid as long as game
- * library is loaded. Pointed to structure can be used directly without making
- * a copy of it. If copying is neccessary, no more than structsize bytes must
- * be copied.
- *
- * New fields can be safely added at the end of game_import_ex_t and
- * game_export_ex_t structures, provided GAME_API_VERSION_EX is also bumped.
- *
- * API version history:
- * 1 - Initial release.
- * 2 - Added CustomizeEntity().
- * 3 - Added EntityVisibleToClient(), renamed CustomizeEntity() to
- * CustomizeEntityToClient() and changed the meaning of return value.
- */
-
-#define GAME_API_VERSION_EX_MINIMUM             1
-#define GAME_API_VERSION_EX_CUSTOMIZE_ENTITY    2
-#define GAME_API_VERSION_EX_ENTITY_VISIBLE      3
-#define GAME_API_VERSION_EX                     3
-
-typedef enum {
-    VIS_PVS     = 0,
-    VIS_PHS     = 1,
-    VIS_NOAREAS = 2     // can be OR'ed with one of above
-} vis_t;
-
-typedef struct {
-    entity_state_t s;
-#if USE_PROTOCOL_EXTENSIONS
-    entity_state_extension_t x;
-#endif
-} customize_entity_t;
-
-typedef struct {
-    uint32_t    apiversion;
-    uint32_t    structsize;
-
-    void        (*local_sound)(edict_t *target, const vec3_t origin, edict_t *ent, int channel, int soundindex, float volume, float attenuation, float timeofs);
-    const char  *(*get_configstring)(int index);
-    trace_t     (*q_gameabi clip)(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, edict_t *clip, int contentmask);
-    qboolean    (*inVIS)(const vec3_t p1, const vec3_t p2, vis_t vis);
-
-    void        *(*GetExtension)(const char *name);
-    void        *(*TagRealloc)(void *ptr, size_t size);
-} game_import_ex_t;
-
-typedef struct {
-    uint32_t    apiversion;
-    uint32_t    structsize;
-
-    void        *(*GetExtension)(const char *name);
-    qboolean    (*CanSave)(void);
-    void        (*PrepFrame)(void);
-    void        (*RestartFilesystem)(void); // called when fs_restart is issued
-    qboolean    (*CustomizeEntityToClient)(edict_t *client, edict_t *ent, customize_entity_t *temp); // if true is returned, `temp' must be initialized
-    qboolean    (*EntityVisibleToClient)(edict_t *client, edict_t *ent);
-} game_export_ex_t;
-
-typedef const game_export_ex_t *(*game_entry_ex_t)(const game_import_ex_t *);
