@@ -571,6 +571,8 @@ cvar_t *msgflags;						// Message flags (like dmflags) see Discord_Notifications
 cvar_t *training_mode; // Sets training mode vars
 cvar_t *g_highscores_dir; // Sets the highscores directory
 cvar_t *lca_grenade; // Allows grenade pin pulling during LCA
+cvar_t *breakableglass; // Moved from cgf_sfx_glass, enables breakable glass (0,1,2)
+cvar_t *glassfragmentlimit; // Moved from cgf_sfx_glass, sets glass fragment limit
 
 #if AQTION_EXTENSION
 cvar_t *use_newirvision;

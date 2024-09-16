@@ -2348,7 +2348,7 @@ void RunWarmup (void)
 	}
 	#if USE_AQTION
 	if (warmup_bots->value){
-		bot_connections.desire_bots = warmup_bots->value;
+		gi.cvar_forceset("am", "1");
 	}
 	#endif
 }
@@ -2888,7 +2888,7 @@ int CheckTeamRules (void)
 				if (warmup_bots->value){
 					gi.cvar_forceset("am", "0");
 					bot_connections.desire_bots = 0;
-					//ACESP_RemoveBot("all");
+					ACESP_RemoveBot("all");
 					CenterPrintAll("All bots removed, good luck and have fun!");
 
 					//Re-enable stats now that the bots are gone

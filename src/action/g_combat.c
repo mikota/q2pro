@@ -870,6 +870,12 @@ void T_Damage (edict_t * targ, edict_t * inflictor, edict_t * attacker, const ve
 						attacker->client->resp.gunstats[mod].damage += damage;
 					}
 				}
+
+				if (targ != attacker && attacker->client && targ->health > 0 &&
+					!(targ->svflags % SVF_DEADMONSTER) && !(targ->flags & FL_NO_DAMAGE_EFFECTS) &&
+					mod != MOD_TARGET_LASER) {
+						attacker->client->damage_dealt += take + psave + asave;
+					}
 			
 				client->attacker = attacker;
 				client->attacker_mod = mod;

@@ -300,6 +300,9 @@
 #include	"botlib/botlib.h"
 #endif
 
+// 9b15 commit from upstream -- using player_state_old_t instead of player_state_new_t
+typedef struct gclient_s gclient_t;
+
 #define		getEnt(entnum)	(edict_t *)((char *)globals.edicts + (globals.edict_size * entnum))	//AQ:TNG Slicer - This was missing
 #define		GAMEVERSION			"action"	// the "gameversion" client command will print this plus compile date
 
@@ -355,6 +358,8 @@
 #define FL_TEAMSLAVE            BIT(10)     // not the first on the team
 #define FL_NO_KNOCKBACK         BIT(11)
 #define FL_POWER_ARMOR          BIT(12)     // power armor (if any) is active
+
+#define FL_NO_DAMAGE_EFFECTS	BIT(20)	// no damage effects
 #define FL_ACCELERATE			BIT(29)  // accelerative movement
 #define FL_RESPAWN              BIT(31)     // used for item respawning
 
@@ -1360,6 +1365,8 @@ extern cvar_t *msgflags;
 extern cvar_t *training_mode; // Sets training mode vars
 extern cvar_t *g_highscores_dir; // Sets the highscores directory
 extern cvar_t *lca_grenade; // Allows grenade pin pulling during LCA
+extern cvar_t *breakableglass; // Moved from cgf_sfx_glass, enables breakable glass (0,1,2)
+extern cvar_t *glassfragmentlimit; // Moved from cgf_sfx_glass, sets glass fragment limit
 
 #if AQTION_EXTENSION
 extern int (*engine_Client_GetVersion)(edict_t *ent);
@@ -1998,14 +2005,15 @@ client_respawn_t;
 
 // this structure is cleared on each PutClientInServer(),
 // except for 'client->pers'
+// 9b15 commit from upstream -- using player_state_old_t instead of player_state_new_t
 struct gclient_s
 {
 	// known to server
-	player_state_t	ps;		// communicated by server to clients
-	int				ping;
+	player_state_old_t	ps;		// communicated by server to clients
+	int					ping;
 
 	// known to compatible server
-	int				clientNum;
+	int					clientNum;
 
 	// Reki: cvar sync
 #if AQTION_EXTENSION
@@ -2039,6 +2047,7 @@ struct gclient_s
 	int			damage_blood;		// damage taken out of health
 	int			damage_knockback;	// impact damage
 	vec3_t		damage_from;		// origin for vector calculation
+	int			damage_dealt;		// total damage dealt to other players (used for hit markers)
 
 	float		killer_yaw;			// when dead, look at killer
 
@@ -2277,6 +2286,30 @@ typedef struct bot_personality_s
 
 } bot_personality_t;
 
+typedef enum bot_skill_types
+{
+	BOT_SKILL_OVERALL,
+	BOT_SKILL_AIM,
+	BOT_SKILL_REACTION,
+	BOT_SKILL_MOVEMENT,
+	BOT_SKILL_TEAMWORK,
+	BOT_SKILL_COMMUNICATION,
+	BOT_SKILL_WEAPON,
+	BOT_SKILL_MAP,
+} bot_skill_types_t;
+
+typedef struct bot_skill_s
+{
+	float overall;	// Overall skill
+	float aim;		// Aim skill
+	float reaction;	// Reaction skill
+	float movement;	// Movement skill
+	float teamwork;	// Teamwork skill
+	float communication;	// Communication skill
+	float weapon_skill[WEAPON_COUNT];	// Weapon skill
+	float map_skill;	// Map skill
+} bot_skill_t;
+
 typedef struct bot_s
 {
 	int bot_type;
@@ -2352,7 +2385,7 @@ typedef struct bot_s
 	int last_weapon_reload_time; // Delay time between reloading weapons
 
 	// Skill
-	float skill; // Variable bot skill. Allow the bot to increase or decrease its own skill based on its score (kills) and bot_skill
+	bot_skill_t skill; // Variable bot skill levels
 
 	// Items
 	edict_t *get_item; // The current item the bot wants and is located next or or inside of a node

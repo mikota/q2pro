@@ -12,7 +12,7 @@ void BOTLIB_SmartWeaponSelection(edict_t *self)
 	if (bot_skill_threshold->value > 0)
 		weapon_skill_choice = BOTLIB_AutoAdjustSkill(self);
 	else
-		self->bot.skill = bot_skill->value;
+		self->bot.skill.overall = bot_skill->value;
 
 	// Allowed weapons: ALL
 	// Allowed items: ALL 

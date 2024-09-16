@@ -21,7 +21,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 static float    skyrotate;
 static bool     skyautorotate;
 static vec3_t   skyaxis;
-static int      sky_images[6];
+static GLuint   sky_images[6];
 
 static const vec3_t skyclip[6] = {
     { 1, 1, 0 },
@@ -62,19 +62,19 @@ static int          skyfaces;
 static const float  sky_min = 1.0f / 512.0f;
 static const float  sky_max = 511.0f / 512.0f;
 
-static void DrawSkyPolygon(int nump, vec3_t vecs)
+static void DrawSkyPolygon(int nump, const vec3_t vecs)
 {
-    int     i, j;
-    vec3_t  v, av;
-    float   s, t, dv;
-    int     axis;
-    float   *vp;
+    int         i, j;
+    vec3_t      v, av;
+    float       s, t, dv;
+    int         axis;
+    const float *vp;
 
     // decide which face it maps to
     VectorClear(v);
-    for (i = 0, vp = vecs; i < nump; i++, vp += 3) {
+    for (i = 0, vp = vecs; i < nump; i++, vp += 3)
         VectorAdd(vp, v, v);
-    }
+
     av[0] = fabsf(v[0]);
     av[1] = fabsf(v[1]);
     av[2] = fabsf(v[2]);
@@ -135,15 +135,14 @@ static void DrawSkyPolygon(int nump, vec3_t vecs)
 
 static void ClipSkyPolygon(int nump, vec3_t vecs, int stage)
 {
-    const float     *norm;
-    float   *v;
-    bool    front, back;
-    float   d, e;
-    float   dists[MAX_CLIP_VERTS];
-    int     sides[MAX_CLIP_VERTS];
-    vec3_t  newv[2][MAX_CLIP_VERTS];
-    int     newc[2];
-    int     i, j;
+    const float *v, *norm;
+    bool        front, back;
+    float       d, e;
+    float       dists[MAX_CLIP_VERTS];
+    int         sides[MAX_CLIP_VERTS];
+    vec3_t      newv[2][MAX_CLIP_VERTS];
+    int         newc[2];
+    int         i, j;
 
     if (nump > MAX_CLIP_VERTS - 2) {
         Com_DPrintf("%s: too many verts\n", __func__);
@@ -234,13 +233,13 @@ R_AddSkySurface
 */
 void R_AddSkySurface(const mface_t *fa)
 {
-    int         i;
-    vec3_t      verts[MAX_CLIP_VERTS];
-    vec3_t      temp;
-    msurfedge_t *surfedge;
-    mvertex_t   *vert;
-    medge_t     *edge;
-    bsp_t       *bsp = gl_static.world.cache;
+    int                 i;
+    vec3_t              verts[MAX_CLIP_VERTS];
+    vec3_t              temp;
+    const msurfedge_t   *surfedge;
+    const mvertex_t     *vert;
+    const medge_t       *edge;
+    const bsp_t         *bsp = gl_static.world.cache;
 
     if (fa->numsurfedges > MAX_CLIP_VERTS) {
         Com_DPrintf("%s: too many verts\n", __func__);
@@ -328,30 +327,40 @@ R_DrawSkyBox
 */
 void R_DrawSkyBox(void)
 {
-    vec5_t verts[4];
     int i;
 
     // check for no sky at all
     if (!skyfaces)
         return; // nothing visible
 
-    GL_StateBits(GLS_TEXTURE_REPLACE);
-    GL_ArrayBits(GLA_VERTEX | GLA_TC);
-    GL_VertexPointer(3, 5, &verts[0][0]);
-    GL_TexCoordPointer(2, 5, &verts[0][3]);
+    GL_BindArrays(VA_SPRITE);
+
+    if (gl_static.classic_sky && gl_drawsky->integer == 1) {
+        GL_StateBits(GLS_TEXTURE_REPLACE | GLS_CLASSIC_SKY);
+        GL_ArrayBits(GLA_VERTEX);
+        GL_BindTexture(TMU_TEXTURE,  gl_static.classic_sky->texnum);
+        GL_BindTexture(TMU_LIGHTMAP, gl_static.classic_sky->texnum2);
+    } else {
+        GL_StateBits(GLS_TEXTURE_REPLACE);
+        GL_ArrayBits(GLA_VERTEX | GLA_TC);
+    }
 
     for (i = 0; i < 6; i++) {
         if (skymins[0][i] >= skymaxs[0][i] ||
             skymins[1][i] >= skymaxs[1][i])
             continue;
 
-        GL_BindTexture(0, sky_images[i]);
+        if (!gl_static.classic_sky || gl_drawsky->integer != 1)
+            GL_BindTexture(TMU_TEXTURE, sky_images[i]);
 
-        MakeSkyVec(skymaxs[0][i], skymins[1][i], i, verts[0]);
-        MakeSkyVec(skymins[0][i], skymins[1][i], i, verts[1]);
-        MakeSkyVec(skymaxs[0][i], skymaxs[1][i], i, verts[2]);
-        MakeSkyVec(skymins[0][i], skymaxs[1][i], i, verts[3]);
+        MakeSkyVec(skymaxs[0][i], skymins[1][i], i, tess.vertices);
+        MakeSkyVec(skymins[0][i], skymins[1][i], i, tess.vertices +  5);
+        MakeSkyVec(skymaxs[0][i], skymaxs[1][i], i, tess.vertices + 10);
+        MakeSkyVec(skymins[0][i], skymaxs[1][i], i, tess.vertices + 15);
+
+        GL_LockArrays(4);
         qglDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        GL_UnlockArrays();
     }
 }
 
@@ -360,9 +369,8 @@ static void R_UnsetSky(void)
     int i;
 
     skyrotate = 0;
-    for (i = 0; i < 6; i++) {
+    for (i = 0; i < 6; i++)
         sky_images[i] = TEXNUM_BLACK;
-    }
 }
 
 /*
@@ -372,11 +380,11 @@ R_SetSky
 */
 void R_SetSky(const char *name, float rotate, bool autorotate, const vec3_t axis)
 {
-    int     i;
-    char    pathname[MAX_QPATH];
-    image_t *image;
+    int             i;
+    char            pathname[MAX_QPATH];
+    const image_t   *image;
 
-    if (!gl_drawsky->integer) {
+    if (!gl_drawsky->integer || (gl_static.classic_sky && gl_drawsky->integer == 1)) {
         R_UnsetSky();
         return;
     }

@@ -27,7 +27,7 @@ float VectorDistanceXY(vec3_t start, vec3_t end)
 // Returns: false if node type was not found
 qboolean NodeTypeToString(edict_t* self, int type, char *string, const int max_string_size)
 {
-	int len;
+	//int len;
 	switch (type)
 	{
 	case NODE_MOVE:
@@ -4761,10 +4761,13 @@ void BOTLIB_PredictEnemyOrigin(edict_t *self, vec3_t out, float multiplier)
 		// I want to find the aiming pitch requires to reach a target location with a throwing knife that drops with gravity.
 		// Quake2 uses x,y,z coordinates stored in a vec3_t[3] which is a float array [0] [1] [2]
 		// I have a first-person 3D game. A player origin, a target, gravity (on the Z axis only), and a throwing knife that is affected by gravity. By default the player looks forward at a pitch of 0. Looking directly up is -90 and down is 90.
-		float g = sv_gravity->value; // Gravity
-		float distance = VectorDistanceXY(self->s.origin, self->enemy->s.origin); // XY Distance to enemy
-		float height_diff = self->enemy->s.origin[2] - self->s.origin[2]; // Height difference
-		float knife_speed = 1200;
+		
+		// Commenting unused?
+		//float g = sv_gravity->value; // Gravity
+		//float distance = VectorDistanceXY(self->s.origin, self->enemy->s.origin); // XY Distance to enemy
+		//float height_diff = self->enemy->s.origin[2] - self->s.origin[2]; // Height difference
+		//float knife_speed = 1200;
+		
 		// Using the distance to my enemy and the gravity of the knife what pitch would I need to set to reach my enemy?
 
 		// Calculate total flight time
@@ -5237,7 +5240,7 @@ void BOTLIB_CrouchFire(edict_t* self)
 	gitem_t* clweapon = self->client->weapon;
 
 	// More skillful bots will crouch when firing
-	if (self->bot.skill >= 5) {
+	if (self->bot.skill.aim >= 0) {
 		if ((self->bot.bi.actionflags & ACTION_MOVELEFT) == 0 && 
 			(self->bot.bi.actionflags & ACTION_MOVERIGHT) == 0)
 		{
@@ -5903,14 +5906,14 @@ void BOTLIB_Wander(edict_t* self, usercmd_t* ucmd)
 					self->just_spawned_timeout = 0;										// No wait
 			} else { // bot_personality is enabled, let's make it more realistic
 				int rnd_rng = rand() % 4;
-				float skill_factor = 1.0f - (self->bot.skill / 10.0f); // Scale factor based on skill (0 to 1)
+				float skill_factor = (self->bot.skill.movement / 10.0f); // Scale factor based on skill (0 to 1)
 
 				if (rnd_rng == 0)
-					self->just_spawned_timeout = level.framenum + (random() * 10 * skill_factor) * HZ; // Long wait
+					self->just_spawned_timeout = level.framenum + (random() * 10 * (1.0f - skill_factor)) * HZ; // Long wait
 				else if (rnd_rng == 1)
-					self->just_spawned_timeout = level.framenum + (random() * 5 * skill_factor) * HZ;  // Medium wait
+					self->just_spawned_timeout = level.framenum + (random() * 5 * (1.0f - skill_factor)) * HZ;  // Medium wait
 				else if (rnd_rng == 2)
-					self->just_spawned_timeout = level.framenum + (random() * 2 * skill_factor) * HZ;  // Short wait
+					self->just_spawned_timeout = level.framenum + (random() * 2 * (1.0f - skill_factor)) * HZ;  // Short wait
 				else
 					self->just_spawned_timeout = 0; // No wait
 			}

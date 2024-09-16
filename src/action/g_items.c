@@ -1387,7 +1387,7 @@ world_model_flags int               copied to 'ent->s.effects' (see s.effects fo
    IT_WEAPON,
    NULL,
    0,
-   "weapons/m4a1fire.wav weapons/m4a1in.wav weapons/m4a1out.wav weapons/m4a1slide.wav weapons/rocklf1a.wav weapons/rocklr1b.wav",
+   "weapons/m4a1fire.wav weapons/m4a1in.wav weapons/m4a1out.wav weapons/m4a1slide.wav weapons/rocklf1a.wav",
   M4_NUM}
   ,
   {
@@ -1409,7 +1409,7 @@ world_model_flags int               copied to 'ent->s.effects' (see s.effects fo
    IT_WEAPON,
    NULL,
    0,
-   "weapons/m3in.wav weapons/shotgr1b.wav weapons/shotgf1b.wav",
+   "weapons/m3in.wav weapons/shotgf1b.wav",
   M3_NUM}
   ,
   {

@@ -440,6 +440,11 @@ static void PF_WriteFloat(float f)
     Com_Error(ERR_DROP, "PF_WriteFloat not implemented");
 }
 
+static void PF_WritePos(const vec3_t pos)
+{
+    MSG_WritePos(pos, svs.csr.extended && IS_NEW_GAME_API);
+}
+
 static qboolean PF_inVIS(const vec3_t p1, const vec3_t p2, vis_t vis)
 {
     const mleaf_t *leaf1, *leaf2;
@@ -586,7 +591,7 @@ static void SV_StartSound(const vec3_t origin, edict_t *edict,
         MSG_WriteByte(ofs);
 
     MSG_WriteShort(sendchan);
-    MSG_WritePos(origin);
+    PF_WritePos(origin);
 
     // if the sound doesn't attenuate, send it to everyone
     // (global radio chatter, voiceovers, etc)
@@ -704,13 +709,14 @@ static void PF_LocalSound(edict_t *target, const vec3_t origin,
     PF_Unicast(target, !!(channel & CHAN_RELIABLE));
 }
 
-void PF_Pmove(pmove_t *pm)
+void PF_Pmove(void *pm)
 {
-    if (sv_client) {
-        Pmove(pm, &sv_client->pmp);
-    } else {
-        Pmove(pm, &sv_pmp);
-    }
+    const pmoveParams_t *pmp = sv_client ? &sv_client->pmp : &svs.pmp;
+
+    if (IS_NEW_GAME_API)
+        PmoveNew(pm, pmp);
+    else
+        PmoveOld(pm, pmp);
 }
 
 static cvar_t *PF_cvar(const char *name, const char *value, int flags)
@@ -813,7 +819,7 @@ static const game_import_t game_import = {
     .WriteLong = MSG_WriteLong,
     .WriteFloat = PF_WriteFloat,
     .WriteString = MSG_WriteString,
-    .WritePosition = MSG_WritePos,
+    .WritePosition = PF_WritePos,
     .WriteDir = MSG_WriteDir,
     .WriteAngle = MSG_WriteAngle,
 
@@ -853,12 +859,35 @@ static const filesystem_api_v1_t filesystem_api_v1 = {
     .ErrorString = Q_ErrorString,
 };
 
+#if USE_REF && USE_DEBUG
+static const debug_draw_api_v1_t debug_draw_api_v1 = {
+    .ClearDebugLines = R_ClearDebugLines,
+    .AddDebugLine = R_AddDebugLine,
+    .AddDebugPoint = R_AddDebugPoint,
+    .AddDebugAxis = R_AddDebugAxis,
+    .AddDebugBounds = R_AddDebugBounds,
+    .AddDebugSphere = R_AddDebugSphere,
+    .AddDebugCircle = R_AddDebugCircle,
+    .AddDebugCylinder = R_AddDebugCylinder,
+    .AddDebugArrow = R_AddDebugArrow,
+    .AddDebugCurveArrow = R_AddDebugCurveArrow,
+    .AddDebugText = R_AddDebugText,
+};
+#endif
+
 static void *PF_GetExtension(const char *name)
 {
     if (!name)
         return NULL;
-    if (!strcmp(name, "FILESYSTEM_API_V1"))
+
+    if (!strcmp(name, FILESYSTEM_API_V1))
         return (void *)&filesystem_api_v1;
+
+#if USE_REF && USE_DEBUG
+    if (!strcmp(name, DEBUG_DRAW_API_V1) && !dedicated->integer)
+        return (void *)&debug_draw_api_v1;
+#endif
+
     return NULL;
 }
 
@@ -1141,19 +1170,21 @@ void SV_InitGameProgs(void)
         Com_Error(ERR_DROP, "Game library returned NULL exports");
     }
 
-    if (ge->apiversion != GAME_API_VERSION) {
+    Com_DPrintf("Game API version: %d\n", ge->apiversion);
+
+    if (ge->apiversion != GAME_API_VERSION_OLD && ge->apiversion != GAME_API_VERSION_AQTION && ge->apiversion != GAME_API_VERSION_NEW) {
         Com_Error(ERR_DROP, "Game library is version %d, expected %d",
-                  ge->apiversion, GAME_API_VERSION);
+                  ge->apiversion, GAME_API_VERSION_OLD);
     }
 
     // get extended api if present
     game_entry_ex_t entry_ex = Sys_GetProcAddress(game_library, "GetGameAPIEx");
     if (entry_ex) {
         gex = entry_ex(&game_import_ex);
-        if (gex->apiversion < GAME_API_VERSION_EX_MINIMUM)
-            gex = NULL;
-        else
+        if (gex && gex->apiversion >= GAME_API_VERSION_EX_MINIMUM)
             Com_DPrintf("Game supports Q2PRO extended API version %d.\n", gex->apiversion);
+        else
+            gex = NULL;
     }
 
     // initialize

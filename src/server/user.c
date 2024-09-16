@@ -97,7 +97,7 @@ static void SV_CreateBaselines(void)
                 base->solid = 0;
         } else
 #endif
-        if (sv_client->esFlags & MSG_ES_LONGSOLID) {
+        if (sv_client->esFlags & MSG_ES_LONGSOLID && !sv_client->csr->extended) {
             base->solid = sv.entities[i].solid32;
         }
     }
@@ -345,6 +345,9 @@ static int q2pro_protocol_flags(void)
     if (sv_client->csr->extended)
         flags |= Q2PRO_PF_EXTENSIONS;
 
+    if (sv_client->esFlags & MSG_ES_EXTENSIONS_2)
+        flags |= Q2PRO_PF_EXTENSIONS_2;
+
     return flags;
 }
 
@@ -528,27 +531,29 @@ void SV_New_f(void)
 			MSG_WriteString(var->value);
 
 			if (sv_client->edict)
-			{
-				strcpy(sv_client->edict->client->cl_cvar[i], var->value);
+                {
+                    gclient_t *client = (gclient_t *)sv_client->edict->client;
+                    strcpy(client->cl_cvar[i], var->value);
 
-				if (GE_CvarSync_Updated) // poke game dll to tell it a cvar was updated
-					GE_CvarSync_Updated(i, sv_client->edict);
-			}
+                    if (GE_CvarSync_Updated) // poke game dll to tell it a cvar was updated
+                        GE_CvarSync_Updated(i, sv_client->edict);
+                }
 		}
 
 		SV_ClientAddMessage(sv_client, MSG_RELIABLE | MSG_CLEAR);
 	}
-	else if (sv_client->edict)
-	{
-		for (int i = 0; i < svs.cvarsync_length; i++)
-		{
-			cvarsync_t *var = &svs.cvarsync_list[i];
-			strcpy(sv_client->edict->client->cl_cvar[i], var->value);
+    else if (sv_client->edict)
+    {
+        gclient_t *client = (gclient_t *)sv_client->edict->client; // Cast to the correct type
+        for (int i = 0; i < svs.cvarsync_length; i++)
+        {
+            cvarsync_t *var = &svs.cvarsync_list[i];
+            strcpy(client->cl_cvar[i], var->value);
 
-			if (GE_CvarSync_Updated) // poke game dll to tell it a cvar was updated
-				GE_CvarSync_Updated(i, sv_client->edict);
-		}
-	}
+            if (GE_CvarSync_Updated) // poke game dll to tell it a cvar was updated
+                GE_CvarSync_Updated(i, sv_client->edict);
+        }
+    }
 #endif
 }
 
@@ -941,47 +946,50 @@ static void SV_CvarSync_f(void)
 		return;
 
 	if (Cmd_Argc() > 2) {
-		char varname[CVARSYNC_MAX];
-		Q_strlcpy(varname, Cmd_Argv(1), CVARSYNC_MAX);
-		varname[CVARSYNC_MAX - 1] = 0;
+    char varname[CVARSYNC_MAX];
+    Q_strlcpy(varname, Cmd_Argv(1), CVARSYNC_MAX);
+    varname[CVARSYNC_MAX - 1] = 0;
 
-		for (int i = 0; i < svs.cvarsync_length; i++)
-		{
-			cvarsync_t *var = &svs.cvarsync_list[i];
-			if (strcmp(var->name, varname))
-				continue;
+    for (int i = 0; i < svs.cvarsync_length; i++)
+    {
+        cvarsync_t *var = &svs.cvarsync_list[i];
+        if (strcmp(var->name, varname))
+            continue;
 
-			strcpy(sv_client->edict->client->cl_cvar[i], Cmd_Argv(2));
+        gclient_t *client = (gclient_t *)sv_client->edict->client; // Cast to the correct type
+        strcpy(client->cl_cvar[i], Cmd_Argv(2));
 
-			if (GE_CvarSync_Updated) // poke game dll to tell it a cvar was updated
-				GE_CvarSync_Updated(i, sv_client->edict);
+        if (GE_CvarSync_Updated) // poke game dll to tell it a cvar was updated
+            GE_CvarSync_Updated(i, sv_client->edict);
 
-			SV_ClientPrintf(sv_client, PRINT_HIGH, "cvarsync: set %s to %s\n", varname, sv_client->edict->client->cl_cvar[i]);
-		}
-	}
-	else if (Cmd_Argc() == 2)
-	{
-		char varname[CVARSYNC_MAX];
-		Q_strlcpy(varname, Cmd_Argv(1), CVARSYNC_MAX);
-		varname[CVARSYNC_MAX - 1] = 0;
+        SV_ClientPrintf(sv_client, PRINT_HIGH, "cvarsync: set %s to %s\n", varname, client->cl_cvar[i]);
+    }
+        }
+        else if (Cmd_Argc() == 2)
+        {
+            char varname[CVARSYNC_MAX];
+            Q_strlcpy(varname, Cmd_Argv(1), CVARSYNC_MAX);
+            varname[CVARSYNC_MAX - 1] = 0;
 
-		for (int i = 0; i < svs.cvarsync_length; i++)
-		{
-			cvarsync_t *var = &svs.cvarsync_list[i];
-			if (strcmp(var->name, varname))
-				continue;
+            for (int i = 0; i < svs.cvarsync_length; i++)
+            {
+                cvarsync_t *var = &svs.cvarsync_list[i];
+                if (strcmp(var->name, varname))
+                    continue;
 
-			SV_ClientPrintf(sv_client, PRINT_HIGH, "cvarsync: %s is currently set to %s\n", varname, sv_client->edict->client->cl_cvar[i]);
-		}
-	}
-	else
-	{
-		for (int i = 0; i < svs.cvarsync_length; i++)
-		{
-			cvarsync_t *var = &svs.cvarsync_list[i];
-			SV_ClientPrintf(sv_client, PRINT_HIGH, "cvarsync: %s = %s\n", var->name, sv_client->edict->client->cl_cvar[i]);
-		}
-	}
+                gclient_t *client = (gclient_t *)sv_client->edict->client; // Cast to the correct type
+                SV_ClientPrintf(sv_client, PRINT_HIGH, "cvarsync: %s is currently set to %s\n", varname, client->cl_cvar[i]);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < svs.cvarsync_length; i++)
+            {
+                cvarsync_t *var = &svs.cvarsync_list[i];
+                gclient_t *client = (gclient_t *)sv_client->edict->client; // Cast to the correct type
+                SV_ClientPrintf(sv_client, PRINT_HIGH, "cvarsync: %s = %s\n", var->name, client->cl_cvar[i]);
+            }
+        }
 }
 #endif
 
@@ -1783,11 +1791,12 @@ badbyte:
 			if (client->protocol != PROTOCOL_VERSION_AQTION)
 				goto badbyte;
 #if AQTION_EXTENSION
-			index = MSG_ReadByte();
-			MSG_ReadString(sv_player->client->cl_cvar[index], CVARSYNC_MAXSIZE);
+        index = MSG_ReadByte();
+        gclient_t *client = (gclient_t *)sv_player->client; // Cast to the correct type
+        MSG_ReadString(client->cl_cvar[index], CVARSYNC_MAXSIZE);
 
-			if (GE_CvarSync_Updated) // poke game dll to tell it a cvar was updated
-				GE_CvarSync_Updated(index, sv_player);
+        if (GE_CvarSync_Updated) // poke game dll to tell it a cvar was updated
+            GE_CvarSync_Updated(index, sv_player);
 #else
 			goto badbyte;
 #endif

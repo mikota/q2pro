@@ -423,7 +423,7 @@ bool SV_WriteFrameToClient_Enhanced(client_t *client, unsigned maxsize)
     MSG_WriteData(frame->areabits, frame->areabytes);
 
     // ignore some parts of playerstate if not recording demo
-    psFlags = 0;
+    psFlags = client->psFlags;
     if (!client->settings[CLS_RECORDING]) {
         if (client->settings[CLS_NOGUN]) {
             psFlags |= MSG_PS_IGNORE_GUNFRAMES;
@@ -455,9 +455,6 @@ bool SV_WriteFrameToClient_Enhanced(client_t *client, unsigned maxsize)
         suppressed = client->frameflags;
     } else {
         suppressed = client->suppress_count;
-    }
-    if (client->csr->extended) {
-        psFlags |= MSG_PS_EXTENSIONS;
     }
 
     // delta encode the playerstate
@@ -525,7 +522,7 @@ bool SV_WriteFrameToClient_Aqtion(client_t *client, unsigned maxsize)
 	MSG_WriteData(frame->areabits, frame->areabytes);
 
 	// ignore some parts of playerstate if not recording demo
-	psFlags = 0;
+	psFlags = client->psFlags;
 	if (!client->settings[CLS_RECORDING]) {
 		if (client->settings[CLS_NOGUN]) {
 			psFlags |= MSG_PS_IGNORE_GUNFRAMES;
@@ -540,8 +537,7 @@ bool SV_WriteFrameToClient_Aqtion(client_t *client, unsigned maxsize)
 			if (!(frame->ps.pmove.pm_flags & PMF_NO_PREDICTION)) {
 				psFlags |= MSG_PS_IGNORE_VIEWANGLES;
 			}
-		}
-		else {
+		} else {
 			// lying dead on a rotating platform?
 			psFlags |= MSG_PS_IGNORE_DELTAANGLES;
 		}
@@ -588,7 +584,6 @@ bool SV_WriteFrameToClient_Aqtion(client_t *client, unsigned maxsize)
 
 	// delta encode the entities
     MSG_WriteByte(svc_packetentities);
-
 	return SV_EmitPacketEntities(client, oldframe, frame, clientEntityNum, maxsize);
 }
 
@@ -730,7 +725,6 @@ void SV_BuildClientFrame(client_t *client)
     edict_t     *clent;
     client_frame_t  *frame;
     entity_packed_t *state;
-    player_state_t  *ps;
     const mleaf_t   *leaf;
     int         clientarea, clientcluster;
     byte        clientphs[VIS_MAX_BYTES];
@@ -758,8 +752,7 @@ void SV_BuildClientFrame(client_t *client)
     client->frames_sent++;
 
     // find the client's PVS
-    ps = &clent->client->ps;
-    VectorMA(ps->viewoffset, 0.125f, ps->pmove.origin, org);
+    SV_GetClient_ViewOrg(client, org);
 
     leaf = CM_PointLeaf(client->cm, org);
     clientarea = leaf->area;
@@ -773,11 +766,14 @@ void SV_BuildClientFrame(client_t *client)
     }
 
     // grab the current player_state_t
-    MSG_PackPlayer(&frame->ps, ps);
+    if (IS_NEW_GAME_API)
+        MSG_PackPlayerNew(&frame->ps, clent->client);
+    else
+        MSG_PackPlayerOld(&frame->ps, clent->client);
 
     // grab the current clientNum
     if (g_features->integer & GMF_CLIENTNUM) {
-        frame->clientNum = clent->client->clientNum;
+        frame->clientNum = SV_GetClient_ClientNum(client);
         if (!VALIDATE_CLIENTNUM(client->csr, frame->clientNum)) {
             Com_WPrintf("%s: bad clientNum %d for client %d\n",
                         __func__, frame->clientNum, client->number);
@@ -825,9 +821,15 @@ void SV_BuildClientFrame(client_t *client)
         if (!HAS_EFFECTS(ent))
             continue;
 
-        if (ent->s.effects & (EF_GIB | EF_GREENGIB) && client->settings[CLS_NOGIBS])
-            continue;
+        // ignore gibs if client says so
+        if (client->settings[CLS_NOGIBS]) {
+            if (ent->s.effects & EF_GIB && !(client->csr->extended && ent->s.effects & EF_ROCKET))
+                continue;
+            if (ent->s.effects & EF_GREENGIB)
+                continue;
+        }
 
+        // ignore flares if client says so
         if (client->csr->extended && ent->s.renderfx & RF_FLARE && client->settings[CLS_NOFLARES])
             continue;
 
@@ -941,7 +943,7 @@ void SV_BuildClientFrame(client_t *client)
         if (ent->owner == clent) {
             // don't mark players missiles as solid
             state->solid = 0;
-        } else if (client->esFlags & MSG_ES_LONGSOLID) {
+        } else if (client->esFlags & MSG_ES_LONGSOLID && !client->csr->extended) {
             state->solid = sv.entities[e].solid32;
         }
 

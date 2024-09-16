@@ -64,7 +64,7 @@ typedef struct image_s {
     uint16_t        width, height; // source image
     uint16_t        upload_width, upload_height; // after power of two and picmip
     unsigned        registration_sequence;
-    unsigned        texnum, glow_texnum; // gl texture binding
+    unsigned        texnum, texnum2; // gl texture binding
     float           sl, sh, tl, th;
     float           aspect;
 } image_t;
@@ -105,4 +105,4 @@ struct screenshot_s {
     bool async;
 };
 
-void IMG_ReadPixels(screenshot_t *s);
+int IMG_ReadPixels(screenshot_t *s);

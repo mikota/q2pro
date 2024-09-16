@@ -266,10 +266,8 @@ void UI_StatusEvent(const serverStatus_t *status)
 
     if (hasBotsCheck == NULL || COM_IsWhite(hasBotsCheck) || *hasBotsCheck == '0') {
         am = "No";
-        slot->hasBots = false;
     } else {
         am = "Yes";
-        slot->hasBots = true;
     }
     #endif
 
@@ -429,8 +427,8 @@ static menuSound_t CopyAddress(void)
 
     slot = m_servers.list.items[m_servers.list.curvalue];
 
-    if (vid.set_clipboard_data)
-        vid.set_clipboard_data(slot->hostname);
+    if (vid && vid->set_clipboard_data)
+        vid->set_clipboard_data(slot->hostname);
     return QMS_OUT;
 }
 
@@ -634,7 +632,7 @@ static void ParseMasterArgs(netadr_t *broadcast)
             if (len < 0)
                 continue;
             (*parse)(data, len, chunk);
-            free(data);
+            HTTP_FreeFile(data);
 #else
             Com_Printf("Can't fetch '%s', no HTTP support compiled in.\n", s);
 #endif
