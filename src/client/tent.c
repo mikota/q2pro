@@ -1673,8 +1673,8 @@ void CL_ParseTEnt(void)
     case TE_AQ2_CHESTSHOT:
     case TE_AQ2_STOMSHOT:
     case TE_AQ2_LEGSHOT:
-        qhandle_t hit_sfx;
         if (te.count > 0 && cl_hit_markers->integer > 0) {
+            qhandle_t hit_sfx;
             cl.hit_marker_time = cls.realtime;
             cl.hit_marker_count = te.count;
             if (cl_hit_markers->integer > 1) {
