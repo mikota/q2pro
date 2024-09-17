@@ -1698,25 +1698,7 @@ void ClientEndServerFrame (edict_t * ent)
 	if (ent->client->damage_dealt > 0 && !ent->is_bot)
 	{
 		gi.WriteByte(svc_temp_entity);
-
-		switch (ent->client->attacker_loc)
-		{
-			case LOC_HDAM:
-				gi.WriteByte(TE_AQ2_HEADSHOT);
-				break;
-			case LOC_CDAM:
-				gi.WriteByte(TE_AQ2_CHESTSHOT);
-				break;
-			case LOC_SDAM:
-				gi.WriteByte(TE_AQ2_STOMSHOT);
-				break;
-			case LOC_LDAM:
-				gi.WriteByte(TE_AQ2_LEGSHOT);
-				break;
-			default:
-				gi.WriteByte(TE_DAMAGE_DEALT);
-				break;
-		}
+		gi.WriteByte(TE_DAMAGE_DEALT);
 		gi.WriteShort(min(ent->client->damage_dealt, INT16_MAX));
 		gi.unicast(ent, false);
 		ent->client->damage_dealt = 0;

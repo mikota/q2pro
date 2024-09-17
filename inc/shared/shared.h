@@ -1436,11 +1436,6 @@ typedef enum {
 
     TE_DAMAGE_DEALT = 128,
 
-    TE_AQ2_HEADSHOT,
-    TE_AQ2_CHESTSHOT,
-    TE_AQ2_STOMSHOT,
-    TE_AQ2_LEGSHOT,
-
     TE_NUM_ENTITIES
 } temp_event_t;
 

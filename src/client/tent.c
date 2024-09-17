@@ -325,11 +325,6 @@ void CL_RegisterTEntSounds(void)
     cl_sfx_disrexp = S_RegisterSound("weapons/disrupthit.wav");
 
     cl_sfx_hit_marker = S_RegisterSound("hitsounds/damage.wav");
-    cl_sfx_headshot = S_RegisterSound("hitsounds/headshot.wav");
-    cl_sfx_chestshot = S_RegisterSound("hitsounds/chest.wav");
-    cl_sfx_stomshot = S_RegisterSound("hitsounds/stomach.wav");
-    cl_sfx_legshot = S_RegisterSound("hitsounds/leg.wav");
-}
 
 static const char *const muzzlenames[MFLASH_TOTAL] = {
     [MFLASH_MACHN]     = "v_machn",
@@ -1669,28 +1664,11 @@ void CL_ParseTEnt(void)
         break;
 
     case TE_DAMAGE_DEALT:
-    case TE_AQ2_HEADSHOT:
-    case TE_AQ2_CHESTSHOT:
-    case TE_AQ2_STOMSHOT:
-    case TE_AQ2_LEGSHOT:
         if (te.count > 0 && cl_hit_markers->integer > 0) {
-            qhandle_t hit_sfx;
             cl.hit_marker_time = cls.realtime;
             cl.hit_marker_count = te.count;
             if (cl_hit_markers->integer > 1) {
-                if (te.type == TE_AQ2_HEADSHOT)
-                    hit_sfx = cl_sfx_headshot;
-                else if (te.type == TE_AQ2_CHESTSHOT)
-                    hit_sfx = cl_sfx_chestshot;
-                else if (te.type == TE_AQ2_STOMSHOT)
-                    hit_sfx = cl_sfx_stomshot;
-                else if (te.type == TE_AQ2_LEGSHOT)
-                    hit_sfx = cl_sfx_legshot;
-                else if (te.type == TE_DAMAGE_DEALT)
-                    hit_sfx = cl_sfx_hit_marker;
-                else
-                    hit_sfx = cl_sfx_hit_marker;
-                S_StartSound(NULL, listener_entnum, 257, hit_sfx, 1, ATTN_NONE, 0);
+                S_StartSound(NULL, listener_entnum, 257, cl_sfx_hit_marker, 1, ATTN_NONE, 0);
             }
         }
         break;

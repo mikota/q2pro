@@ -969,10 +969,6 @@ static void CL_ParseTEntPacket(void)
         break;
 
     case TE_DAMAGE_DEALT:
-    case TE_AQ2_HEADSHOT:
-    case TE_AQ2_CHESTSHOT:
-    case TE_AQ2_STOMSHOT:
-    case TE_AQ2_LEGSHOT:
         te.count = MSG_ReadShort();
         break;
 
