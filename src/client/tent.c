@@ -320,8 +320,8 @@ void CL_RegisterTEntSounds(void)
     cl_sfx_lightning = S_RegisterSound("weapons/tesla.wav");
     cl_sfx_disrexp = S_RegisterSound("weapons/disrupthit.wav");
 
-    cl_sfx_hit_marker = S_RegisterSound("weapons/marker.wav");
-}
+    cl_sfx_hit_marker = S_RegisterSound("hitsounds/damage.wav");
+};
 
 static const char *const muzzlenames[MFLASH_TOTAL] = {
     [MFLASH_MACHN]     = "v_machn",
