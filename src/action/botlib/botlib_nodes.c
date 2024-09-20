@@ -3031,7 +3031,7 @@ void BOTLIB_LoadNavCompressed(void)
 		Com_Printf("%s WARNING: Failed to read or missing NAV file for %s, bots will not navigate the map properly\n", __func__, level.mapname);
 		navfilefound = false;
 		if (!bot_navautogen->value) {
-			gi.dprintf("%s: No NAV file found and bot_navautogen is disabled\n", __func__);
+			gi.dprintf("%s INFO: No NAV file found and bot_navautogen is disabled\n", __func__);
 			return; // No file and do not auto generate
 		}
 	}
@@ -3055,7 +3055,7 @@ void BOTLIB_LoadNavCompressed(void)
 	if (!navfilefound && bot_navautogen->value){
 		BOTLIB_SelfExpandNodesFromSpawnpoints(NULL);
 		BOTLIB_LinkAllNodesTogether(NULL);
-		Com_Printf("%s INFO: No NAV file found, generating nodes from spawnpoints\n", __func__);
+		Com_Printf("%s INFO: No NAV file found, bot_navautogen is enabled; generating nodes from spawnpoints\n", __func__);
 	}
 	// Remove doors
 	Remove_All_Doors();
