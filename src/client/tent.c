@@ -38,10 +38,6 @@ qhandle_t   cl_sfx_lightning;
 qhandle_t   cl_sfx_disrexp;
 
 qhandle_t   cl_sfx_hit_marker;
-qhandle_t   cl_sfx_headshot;
-qhandle_t   cl_sfx_chestshot;
-qhandle_t   cl_sfx_stomshot;
-qhandle_t   cl_sfx_legshot;
 
 //qhandle_t   cl_mod_explode;
 qhandle_t   cl_mod_smoke;
@@ -325,6 +321,7 @@ void CL_RegisterTEntSounds(void)
     cl_sfx_disrexp = S_RegisterSound("weapons/disrupthit.wav");
 
     cl_sfx_hit_marker = S_RegisterSound("hitsounds/damage.wav");
+};
 
 static const char *const muzzlenames[MFLASH_TOTAL] = {
     [MFLASH_MACHN]     = "v_machn",
