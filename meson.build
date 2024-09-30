@@ -567,7 +567,6 @@ endif
 if get_option('aqtion-curl')
   config.set10('AQTION_CURL', true)
   action_src += 'src/action/tng_net.c'
-  dll_link_args += '-lcurl'
   game_deps += curl
 endif
 

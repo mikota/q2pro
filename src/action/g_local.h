@@ -1754,13 +1754,14 @@ void InitTookDamage(void);
 void ProduceShotgunDamageReport(edict_t*);
 
 //tng_stats.c
-void StatBotCheck(void);
 void G_RegisterScore(void);
 int G_CalcRanks(gclient_t **ranks);
 void G_LoadScores(void);
 
 // Compiler macros for stat logging
 #if USE_AQTION
+#define STAT_BOT_CHECK() StatBotCheck()
+void StatBotCheck(void);
 #define LOG_KILL(ent, inflictor, attacker) LogKill(ent, inflictor, attacker)
 void LogKill(edict_t *ent, edict_t *inflictor, edict_t *attacker);
 #define LOG_WORLD_KILL(ent) LogWorldKill(ent)
@@ -1774,6 +1775,7 @@ void LogAward(edict_t *ent, int award);
 #define LOG_END_MATCH_STATS() LogEndMatchStats()
 void LogEndMatchStats(void);
 #else
+#define STAT_BOT_CHECK()
 #define LOG_KILL(ent, inflictor, attacker)
 #define LOG_WORLD_KILL(ent)
 #define LOG_CAPTURE(capturer)

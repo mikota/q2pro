@@ -3311,13 +3311,12 @@ void ClientBeginDeathmatch(edict_t * ent)
 	vInitClient(ent);
 
 #ifndef NO_BOTS
-    	ACEIT_RebuildPlayerList();
-		if (ent->is_bot)
-			BOTLIB_SKILL_Init(ent); // Initialize the skill levels
+	ACEIT_RebuildPlayerList();
+	if (ent->is_bot)
+		BOTLIB_SKILL_Init(ent); // Initialize the skill levels
 
-#if USE_AQTION
-		StatBotCheck();
-#endif
+// Check if bots are in the game, if so, disable stat collection
+STAT_BOT_CHECK();
 #endif
 
 	// locate ent at a spawn point
@@ -3735,9 +3734,9 @@ void ClientDisconnect(edict_t * ent)
 	ent->is_bot = false;
 	ent->think = NULL;
 	ACEIT_RebuildPlayerList();
-#if USE_AQTION
-	StatBotCheck();
-#endif
+
+// Check if bots are in the game, if so, disable stat collection
+STAT_BOT_CHECK();
 #endif
 }
 
