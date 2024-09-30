@@ -1360,6 +1360,7 @@ extern cvar_t *server_port;
 extern cvar_t *sv_last_announce_interval;
 extern cvar_t *sv_last_announce_time;
 extern cvar_t *msgflags;
+extern cvar_t *use_pickup;
 //end cUrl integration
 
 extern cvar_t *training_mode; // Sets training mode vars

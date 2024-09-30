@@ -1457,6 +1457,13 @@ void GetNearbyTeammates( edict_t *self, char *buf )
 
 void Cmd_Pickup_f(edict_t* ent)
 {
+	// Check if pickup messaging is enabled first
+
+	if (!use_pickup->value) {
+		gi.cprintf(ent, PRINT_HIGH, MSG_PICKUP_UNSUPPORTED);
+		return;
+	}
+
 	#if AQTION_CURL
 		char msg[256];
 		// Check if msgflags supports this
@@ -1478,7 +1485,7 @@ void Cmd_Pickup_f(edict_t* ent)
 		// Check if we're within the 5 minute timer (spam prevention)
 		if(message_timer_check(300)) {
 			CALL_DISCORD_WEBHOOK(msg, PICKUP_REQ_MSG, AWARD_NONE);
-			gi.cprintf(ent, PRINT_HIGH, MSG_PICKUP_SERVER_SUCCESS);
+			gi.bprintf(PRINT_HIGH, MSG_PICKUP_SERVER_SUCCESS);
 			gi.dprintf("** Pickup request sent by %s **\n", ent->client->pers.netname);
 		} else {
 			gi.cprintf(ent, PRINT_HIGH, MSG_PICKUP_TOO_EARLY);
