@@ -691,7 +691,7 @@ void lc_discord_webhook(char* message, Discord_Notifications msgtype, Awards awa
     // Default url is to the #info-feed channel
     char* url = sv_curl_discord_info_url->string;
     // Change webhook URL based on message type.  If pickup url is disabled, use info url
-    if (msgtype == SERVER_MSG && msgtype == PICKUP_REQ_MSG) {
+    if (msgtype == SERVER_MSG || msgtype == PICKUP_REQ_MSG) {
         if (strcmp(sv_curl_discord_pickup_url->string, "disabled") == 0)
             url = sv_curl_discord_info_url->string;
         else
