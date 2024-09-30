@@ -1459,16 +1459,18 @@ void GetNearbyTeammates( edict_t *self, char *buf )
 void Cmd_Pickup_f(edict_t* ent)
 {
     char msg[256];
-	if (ent->client->pers.netname != NULL && hostname->string != NULL && server_ip->string != NULL && net_port->string != NULL) {
-		snprintf(msg, sizeof(msg), "%s is requesting a pickup at %s (%s:%s)", ent->client->pers.netname, hostname->string, server_ip->string, net_port->string);
+	if (hostname->string != NULL && strcmp(server_ip->string, "") != 0 && net_port->string != NULL) {
+		snprintf(msg, sizeof(msg), "%s is requesting a pickup match at %s (%s:%s)", ent->client->pers.netname, hostname->string, server_ip->string, net_port->string);
 	} else {
-		gi.cprintf(ent, PRINT_HIGH, "Error: Unable to send pickup request; missing hostname, server_ip or net_port\n");
+		gi.cprintf(ent, PRINT_HIGH, "Error: Unable to send pickup request; contact the server admin\n");
+		gi.dprintf("%s: %s attempted to send a pickup request but the server is missing hostname, server_ip or net_port\n", __func__, ent->client->pers.netname);
 		return;
 	}
 	// 5 minute timer
 	if(message_timer_check(300)) {
-		CALL_DISCORD_WEBHOOK(msg, SERVER_MSG, AWARD_NONE);
+		CALL_DISCORD_WEBHOOK(msg, PICKUP_REQ_MSG, AWARD_NONE);
 		gi.cprintf(ent, PRINT_HIGH, "Pickup request sent.\n");
+		gi.dprintf("** Pickup request sent by %s **\n", ent->client->pers.netname);
 	} else {
 		gi.cprintf(ent, PRINT_HIGH, "It is too early to send another request, please wait.\n");
 	}
