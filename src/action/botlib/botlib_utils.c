@@ -4,17 +4,27 @@
 
 #ifndef _WIN32
 #include <sys/time.h>
+#else
+#define WIN32_LEAN_AND_MEAN
+#include <time.h>
+#endif
 
 /*
 This file is for common utilities that are used by the botlib functions
 */
 
+#ifndef _WIN32
 void seed_random_number_generator(void) {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     srand(tv.tv_usec * tv.tv_sec);
 }
+#else
+void seed_random_number_generator(void) {
+    srand((unsigned int)time(NULL));
+}
 #endif
+
 
 void BOTLIB_SKILL_Init(edict_t* bot)
 {

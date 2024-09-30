@@ -561,7 +561,6 @@ if get_option('aqtion-build')
     dll_link_args += '-lws2_32'
     dll_link_args += '-lcrypt32'
     dll_link_args += '-lwsock32'
-    botlib_src += 'src/action/botlib/botlib_win.c'
   endif
 endif
 
