@@ -1185,8 +1185,8 @@ static void Cmd_Players_f (edict_t * ent)
 {
 	int i;
 	int count = 0;
-	char _small[64];
-	char _large[1024];
+	char small[64];
+	char large[1024];
 	gclient_t *sortedClients[MAX_CLIENTS], *cl;
 
 	if (!teamplay->value || !noscore->value)
@@ -1195,28 +1195,28 @@ static void Cmd_Players_f (edict_t * ent)
 		count = G_NotSortedClients( sortedClients );
 
 	// print information
-	_large[0] = 0;
+	large[0] = 0;
 
 	for (i = 0; i < count; i++)
 	{
 		cl = sortedClients[i];
 		if (!teamplay->value || !noscore->value)
-			Q_snprintf (_small, sizeof (_small), "%3i %s\n",
+			Q_snprintf (small, sizeof (small), "%3i %s\n",
 				cl->ps.stats[STAT_FRAGS],
 				cl->pers.netname );
 		else
-			Q_snprintf (_small, sizeof (_small), "%s\n",
+			Q_snprintf (small, sizeof (small), "%s\n",
 				cl->pers.netname);
 
-		if (strlen(_small) + strlen(_large) > sizeof (_large) - 20)
+		if (strlen(small) + strlen(large) > sizeof (large) - 20)
 		{			// can't print all of them in one packet
-			strcat (_large, "...\n");
+			strcat (large, "...\n");
 			break;
 		}
-		strcat (_large, _small);
+		strcat (large, small);
 	}
 
-	gi.cprintf(ent, PRINT_HIGH, "%s\n%i players\n", _large, count);
+	gi.cprintf(ent, PRINT_HIGH, "%s\n%i players\n", large, count);
 }
 
 /*
