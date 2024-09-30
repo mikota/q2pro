@@ -2003,6 +2003,7 @@ static cmdList_t commandList[] =
 	{ "leader", Cmd_Volunteer_f, 0},
 	{ "highscores", Cmd_HighScores_f, 0},
 	{ "pickup", Cmd_Pickup_f, 0},
+
 };
 
 #define MAX_COMMAND_HASH 64
