@@ -766,15 +766,15 @@ void lc_discord_webhook(char* message, Discord_Notifications msgtype, Awards awa
     lc_start_request_function(request);
 }
 
-void lc_aqtion_stat_send(char *stats)
+qboolean lc_aqtion_stat_send(const char* stats)
 {
     if (!sv_curl_stat_enable->value)
-        return;
+        return false;
 
     if (!sv_curl_enable->value) {
         gi.dprintf("%s: sv_curl_enable is disabled, disabling stat reporting to API\n", __func__);
         gi.cvar_forceset("sv_curl_stat_enable", "0");
-        return;
+        return false;
     }
 
     request_t *request;
@@ -786,7 +786,7 @@ void lc_aqtion_stat_send(char *stats)
     request = new_request();
     if (request == NULL) {
         gi.dprintf("%s: Ran out of request slots\n", __func__);
-        return;
+        return false;
     }
     //gi.dprintf("%s: Sending stats to %s\n", __func__, url);
     // Use webhook.site to test curl, it's very handy!
@@ -796,6 +796,9 @@ void lc_aqtion_stat_send(char *stats)
     request->url = full_url;
     request->payload = strdup(stats);
     lc_start_request_function(request);
+
+    // Returning true here just means we sent the request to lc_start_request_function, it doesn't mean it worked
+    return true;
 }
 
 void lc_server_announce(char *path, char *message)

@@ -881,38 +881,56 @@ void StatBotCheck(void)
 }
 #endif
 
+qboolean Write_Stats_to_API(const char* stats)
+{
+	if (!CALL_STATS_API(stats)) {
+		gi.dprintf("Error sending stats to API\n");
+		return false;
+	}
+	return true;
+}
+
 cvar_t* logfile_name;
+qboolean Write_Stats_to_Local(const char* stats)
+{
+    char logpath[MAX_QPATH];
+    FILE* f;
+
+    logfile_name = gi.cvar("logfile_name", "", CVAR_NOSET);
+    snprintf(logpath, sizeof(logpath), "action/logs/%s.stats", logfile_name->string); // Use snprintf for safety
+
+    // Open log file in append mode
+    f = fopen(logpath, "a");
+    if (f != NULL) {
+        // Write stats to file
+        fprintf(f, "%s", stats);
+        fclose(f);
+        return true;
+    } else {
+        // Log error if file cannot be opened
+        gi.dprintf("Error writing to %s.stats\n", logfile_name->string);
+        return false;
+    }
+}
+
 void Write_Stats(const char* msg, ...)
 {
-	va_list	argptr;
-	char	stat_cpy[1024];
-	char	logpath[MAX_QPATH];
-	FILE* 	f;
+    va_list argptr;
+    char stat_cpy[1024];
 
-	va_start(argptr, msg);
-	vsprintf(stat_cpy, msg, argptr);
-	va_end(argptr);
+    // Initialize variable argument list
+    va_start(argptr, msg);
+    vsnprintf(stat_cpy, sizeof(stat_cpy), msg, argptr); // Use vsnprintf for safety
+    va_end(argptr);
 
-	// Send stats to API, else write to local file
-	if (sv_curl_enable->value && sv_curl_stat_enable->value) {
-		#if AQTION_CURL
-		lc_aqtion_stat_send(stat_cpy);
-		#else
-		return;
-		#endif
-	} else {
-		logfile_name = gi.cvar("logfile_name", "", CVAR_NOSET);
-		sprintf(logpath, "action/logs/%s.stats", logfile_name->string);
+    // Send stats to API, else write to local file
+    if (sv_curl_enable->value && sv_curl_stat_enable->value) {
+        if (Write_Stats_to_API(stat_cpy))
+            return;
+    }
 
-		if ((f = fopen(logpath, "a")) != NULL)
-		{
-			fprintf(f, "%s", stat_cpy);
-			fclose(f);
-		}
-		else
-			gi.dprintf("Error writing to %s.stats\n", logfile_name->string);
-	}
-
+    // Fallback to writing stats to local file
+    Write_Stats_to_Local(stat_cpy);
 }
 
 /*

@@ -2992,7 +2992,10 @@ qboolean lc_init_function(void);
 void lc_once_per_gameframe(void);
 #define CALL_DISCORD_WEBHOOK(msg, type, award) lc_discord_webhook(msg, type, award)
 void lc_discord_webhook(char* message, Discord_Notifications msgtype, Awards awardtype);
+#define CALL_STATS_API(stats) lc_aqtion_stat_send(stats)
+qboolean lc_aqtion_stat_send(const char *stats);
 void lc_start_request_function(request_t* request);
 #else
 #define CALL_DISCORD_WEBHOOK(msg, type, award) // Do nothing if AQTION_CURL is disabled
+#define CALL_STATS_API(stats) // Do nothing if AQTION_CURL is disabled
 #endif
