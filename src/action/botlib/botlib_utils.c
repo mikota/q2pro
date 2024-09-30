@@ -2,28 +2,19 @@
 #include "../acesrc/acebot.h"
 #include "botlib.h"
 
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#else
+#ifndef _WIN32
 #include <sys/time.h>
-#endif
 
 /*
-This file is for common utilties that are used by the botlib functions
+This file is for common utilities that are used by the botlib functions
 */
 
 void seed_random_number_generator(void) {
-#if _MSC_VER >= 1920 && !__INTEL_COMPILER
-    LARGE_INTEGER li;
-    QueryPerformanceCounter(&li);
-    srand((unsigned int)(li.QuadPart));
-#else
     struct timeval tv;
     gettimeofday(&tv, NULL);
     srand(tv.tv_usec * tv.tv_sec);
-#endif
 }
+#endif
 
 void BOTLIB_SKILL_Init(edict_t* bot)
 {

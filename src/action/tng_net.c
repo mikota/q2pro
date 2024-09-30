@@ -329,7 +329,7 @@ char* TeamConstructPlayerList(int team) {
 
 static char* ConstructGameSettingsString(void) {
     // Calculate the required buffer size
-    int buffer_size;
+    int buffer_size = 0;
 
     if (matchmode->value){
         int buffer_size = snprintf(NULL, 0, "tgren %s\ntimelimit %s\nroundtimelimit %s\nuse_xerp %s\ndmflags %s\n",
