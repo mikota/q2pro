@@ -2556,7 +2556,7 @@ qboolean CheckTimelimit( void )
 				timewarning = 1;
 				#if AQTION_CURL
 				if (!game.time_warning_sent && matchmode->value) {
-					lc_discord_webhook(MM_3_MIN_WARN, SERVER_MSG, AWARD_NONE);
+					CALL_DISCORD_WEBHOOK(MM_3_MIN_WARN, SERVER_MSG, AWARD_NONE);
 					game.time_warning_sent = true;
 				}
 				#endif
@@ -2583,7 +2583,7 @@ qboolean CheckTimelimit( void )
 				timewarning = 1;
 				#if AQTION_CURL
 				if (!game.time_warning_sent && matchmode->value) {
-					lc_discord_webhook(MM_3_MIN_WARN, SERVER_MSG, AWARD_NONE);
+					CALL_DISCORD_WEBHOOK(MM_3_MIN_WARN, SERVER_MSG, AWARD_NONE);
 					game.time_warning_sent = true;
 				}
 				#endif
@@ -3002,7 +3002,7 @@ int CheckTeamRules (void)
 					}
 					#if AQTION_CURL
 					if (game.roundNum == 0)  // Only announce on game start, so match pauses don't send the msg
-						lc_discord_webhook(buf, MATCH_START_MSG, AWARD_NONE);
+						CALL_DISCORD_WEBHOOK(buf, MATCH_START_MSG, AWARD_NONE);
 					#endif
 
 					CenterPrintAll( buf );
@@ -3909,15 +3909,11 @@ void TallyEndOfLevelTeamScores (void)
 	}
 
 	// Stats begin
-	#if USE_AQTION
-		if (stat_logs->value && !matchmode->value) {
-			LogMatch(); // Generates end of game stats
-			LogEndMatchStats(); // Generates end of match logs
-		}
-		#if AQTION_CURL
-		lc_discord_webhook(TP_MATCH_END_MSG, MATCH_END_MSG, AWARD_NONE);
-		#endif
-	#endif
+	if (!matchmode->value) {
+		LOG_MATCH(); // Generates end of game stats
+		LOG_END_MATCH_STATS(); // Generates end of match stats
+	}
+	CALL_DISCORD_WEBHOOK(TP_MATCH_END_MSG, MATCH_END_MSG, AWARD_NONE);
 	// Stats: Reset roundNum
 	game.roundNum = 0;
 	// Stats end

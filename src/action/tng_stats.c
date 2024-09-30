@@ -951,6 +951,10 @@ void LogKill(edict_t *self, edict_t *inflictor, edict_t *attacker)
 	if (game.ai_ent_found) {
 		return;
 	}
+	// If stats aren't enabled, do nothing
+	if (!stat_logs->value) {
+		return;
+	}
 
 	// Only record stats if there's more than one opponent
     if (gameSettings & GS_DEATHMATCH) // Only check if in DM
@@ -1096,6 +1100,10 @@ void LogWorldKill(edict_t *self)
 	if (game.ai_ent_found) {
 		return;
 	}
+	// If stats aren't enabled, do nothing
+	if (!stat_logs->value) {
+		return;
+	}
 
 	// Only record stats if there's more than one opponent
     if (gameSettings & GS_DEATHMATCH) // Only check if in DM
@@ -1198,6 +1206,10 @@ void LogCapture(edict_t *capturer)
 	if (game.ai_ent_found) {
 		return;
 	}
+	// If stats aren't enabled, do nothing
+	if (!stat_logs->value) {
+		return;
+	}
 
 	int mode = Gamemode();
 	switch (mode) {
@@ -1258,6 +1270,10 @@ void LogMatch(void)
 	if (game.ai_ent_found) {
 		return;
 	}
+	// If stats aren't enabled, do nothing
+	if (!stat_logs->value) {
+		return;
+	}
 
 	// Check for scoreless teamplay, don't log
 	if (teamplay->value && t1 == 0 && t2 == 0 && t3 == 0) {
@@ -1298,6 +1314,10 @@ void LogAward(edict_t *ent, int award)
 
 	// Check if there's an AI bot in the game, if so, do nothing
 	if (game.ai_ent_found) {
+		return;
+	}
+	// If stats aren't enabled, do nothing
+	if (!stat_logs->value) {
 		return;
 	}
 
@@ -1459,6 +1479,10 @@ void LogEndMatchStats(void)
 
 	// Check if there's an AI bot in the game, if so, do nothing
 	if (game.ai_ent_found) {
+		return;
+	}
+	// If stats aren't enabled, do nothing
+	if (!stat_logs->value) {
 		return;
 	}
 

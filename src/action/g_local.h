@@ -1721,7 +1721,10 @@ void G_UpdatePlayerStatusbar( edict_t *ent, int force );
 int Gamemodeflag(void);
 int Gamemode(void);
 #if USE_AQTION
+#define GENERATE_UUID() generate_uuid()
 void generate_uuid(void);
+#else
+#define GENERATE_UUID()
 #endif
 //
 // p_client.c
@@ -1755,13 +1758,28 @@ void StatBotCheck(void);
 void G_RegisterScore(void);
 int G_CalcRanks(gclient_t **ranks);
 void G_LoadScores(void);
+
+// Compiler macros for stat logging
 #if USE_AQTION
-void LogKill(edict_t *self, edict_t *inflictor, edict_t *attacker);
-void LogWorldKill(edict_t *self);
+#define LOG_KILL(ent, inflictor, attacker) LogKill(ent, inflictor, attacker)
+void LogKill(edict_t *ent, edict_t *inflictor, edict_t *attacker);
+#define LOG_WORLD_KILL(ent) LogWorldKill(ent)
+void LogWorldKill(edict_t *ent);
+#define LOG_CAPTURE(capturer) LogCapture(capturer)
 void LogCapture(edict_t *capturer);
+#define LOG_MATCH() LogMatch()
 void LogMatch(void);
+#define LOG_AWARD(ent, award) LogAward(ent, award)
 void LogAward(edict_t *ent, int award);
+#define LOG_END_MATCH_STATS() LogEndMatchStats()
 void LogEndMatchStats(void);
+#else
+#define LOG_KILL(ent, inflictor, attacker)
+#define LOG_WORLD_KILL(ent)
+#define LOG_CAPTURE(capturer)
+#define LOG_MATCH()
+#define LOG_AWARD(ent, award)
+#define LOG_END_MATCH_STATS()
 #endif
 
 //============================================================================
@@ -2970,6 +2988,9 @@ void FireTimedMessages(void);
 void lc_shutdown_function(void);
 qboolean lc_init_function(void);
 void lc_once_per_gameframe(void);
+#define CALL_DISCORD_WEBHOOK(msg, type, award) lc_discord_webhook(msg, type, award)
 void lc_discord_webhook(char* message, Discord_Notifications msgtype, Awards awardtype);
 void lc_start_request_function(request_t* request);
+#else
+#define CALL_DISCORD_WEBHOOK(msg, type, award) // Do nothing if AQTION_CURL is disabled
 #endif

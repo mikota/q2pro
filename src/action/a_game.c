@@ -1458,13 +1458,16 @@ void GetNearbyTeammates( edict_t *self, char *buf )
 #if AQTION_CURL
 void Cmd_Pickup_f(edict_t* ent)
 {
-    char *playername = ent->client->pers.netname;
     char msg[256];
-    snprintf(msg, sizeof(msg), "%s is requesting a pickup at %s (%s:%s)", playername, hostname->string, server_ip->string, net_port->string);
-
+	if (ent->client->pers.netname != NULL && hostname->string != NULL && server_ip->string != NULL && net_port->string != NULL) {
+		snprintf(msg, sizeof(msg), "%s is requesting a pickup at %s (%s:%s)", ent->client->pers.netname, hostname->string, server_ip->string, net_port->string);
+	} else {
+		gi.cprintf(ent, PRINT_HIGH, "Error: Unable to send pickup request; missing hostname, server_ip or net_port\n");
+		return;
+	}
 	// 5 minute timer
 	if(message_timer_check(300)) {
-		lc_discord_webhook(msg, SERVER_MSG, AWARD_NONE);
+		CALL_DISCORD_WEBHOOK(msg, SERVER_MSG, AWARD_NONE);
 		gi.cprintf(ent, PRINT_HIGH, "Pickup request sent.\n");
 	} else {
 		gi.cprintf(ent, PRINT_HIGH, "It is too early to send another request, please wait.\n");
