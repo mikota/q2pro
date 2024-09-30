@@ -600,45 +600,43 @@ static char *discord_PickupReqMsg(char* msg)
     json_object_set_new(embed, "fields", fields);
 
     // Create field objects and add them to the "fields" array
-    if (teamplay->value) {
-        for (int team = TEAM1; team <= teamCount; team++) {
-            char *team_name = TeamName(team);
-            char field_content[64];
-            snprintf(field_content, sizeof(field_content), "%s", team_name);
-            char *team_players = TeamConstructPlayerList(team);
+    // if (teamplay->value) {
+    //     for (int team = TEAM1; team <= teamCount; team++) {
+    //         char *team_name = TeamName(team);
+    //         char field_content[64];
+    //         snprintf(field_content, sizeof(field_content), "%s", team_name);
+    //         char *team_players = TeamConstructPlayerList(team);
 
-            // Add triple backticks for Discord formatting
-            char discord_formatted_players[1280];
-            snprintf(discord_formatted_players, sizeof(discord_formatted_players), "```\n%s```", team_players);
+    //         // Add triple backticks for Discord formatting
+    //         char discord_formatted_players[1280];
+    //         snprintf(discord_formatted_players, sizeof(discord_formatted_players), "```\n%s```", team_players);
+
+    //         json_t *field = json_object();
+    //         json_object_set_new(field, "name", json_string(field_content));
+    //         json_object_set_new(field, "value", json_string(discord_formatted_players));
+    //         json_object_set_new(field, "inline", json_true());
+    //         json_array_append_new(fields, field);
+
+    //         free(team_players); // Free the allocated memory for team_players
+    //     }
+    // } else {
+    char *team_name = "Players";
+    char field_content[64];
+    snprintf(field_content, sizeof(field_content), "%s", team_name);
+    char *team_players = TeamConstructPlayerList(0);
+
+    // Add triple backticks for Discord formatting
+    char discord_formatted_players[1280];
+    snprintf(discord_formatted_players, sizeof(discord_formatted_players), "```\n%s```", team_players);
 
 
-            json_t *field = json_object();
-            json_object_set_new(field, "name", json_string(field_content));
-            json_object_set_new(field, "value", json_string(discord_formatted_players));
-            json_object_set_new(field, "inline", json_true());
-            json_array_append_new(fields, field);
+    json_t *field = json_object();
+    json_object_set_new(field, "name", json_string(field_content));
+    json_object_set_new(field, "value", json_string(discord_formatted_players));
+    json_object_set_new(field, "inline", json_true());
+    json_array_append_new(fields, field);
 
-            free(team_players); // Free the allocated memory for team_players
-        }
-    } else {
-        char *team_name = "Players";
-        char field_content[64];
-        snprintf(field_content, sizeof(field_content), "%s", team_name);
-        char *team_players = TeamConstructPlayerList(0);
-
-        // Add triple backticks for Discord formatting
-        char discord_formatted_players[1280];
-        snprintf(discord_formatted_players, sizeof(discord_formatted_players), "```\n%s```", team_players);
-
-
-        json_t *field = json_object();
-        json_object_set_new(field, "name", json_string(field_content));
-        json_object_set_new(field, "value", json_string(discord_formatted_players));
-        json_object_set_new(field, "inline", json_true());
-        json_array_append_new(fields, field);
-
-        free(team_players); // Free the allocated memory for team_players
-    }
+    free(team_players); // Free the allocated memory for team_players
 
     // Game Settings
     json_t *gamesettings = json_object();
