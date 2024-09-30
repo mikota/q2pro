@@ -329,37 +329,16 @@ char* TeamConstructPlayerList(int team) {
 
 static char* ConstructGameSettingsString(void) {
     // Calculate the required buffer size
-    int buffer_size = 0;
-
-    if (matchmode->value){
-        int buffer_size = snprintf(NULL, 0, "tgren %s\ntimelimit %s\nroundtimelimit %s\nuse_xerp %s\ndmflags %s\n",
-            tgren->string,
-            timelimit->string,
-            roundtimelimit->string,
-            use_xerp->string,
-            dmflags->string
-        );
-    } else {
-        int buffer_size = snprintf(NULL, 0, "gamemode %s\ntgren %s\nfraglimit %s\ntimelimit %s\nroundtimelimit %s\nuse_xerp %s\ndmflags %s\n",
-            gm->string,
-            tgren->string,
-            fraglimit->string,
-            timelimit->string,
-            roundtimelimit->string,
-            use_xerp->string,
-            dmflags->string
-        );
-    }
+    int buffer_size = 256;
 
     // Allocate the buffer
-    char *result = (char *)malloc(buffer_size + 1);
+    char *result = (char *)malloc(buffer_size);
     if (!result) {
         return NULL; // Handle memory allocation failure
     }
 
-    // Construct the string
     if (matchmode->value) {
-        sprintf(result, "```tgren %s\ntimelimit %s\nroundtimelimit %s\nuse_xerp %s\ndmflags %s\n```",
+        snprintf(result, buffer_size, "```tgren %s\ntimelimit %s\nroundtimelimit %s\nuse_xerp %s\ndmflags %s\n```",
             tgren->string,
             timelimit->string,
             roundtimelimit->string,
@@ -367,7 +346,7 @@ static char* ConstructGameSettingsString(void) {
             dmflags->string
         );
     } else {
-        sprintf(result, "```gamemode %s\ntgren %s\nfraglimit %s\ntimelimit %s\nroundtimelimit %s\nuse_xerp %s\ndmflags %s\n```",
+        snprintf(result, buffer_size, "```gamemode %s\ntgren %s\nfraglimit %s\ntimelimit %s\nroundtimelimit %s\nuse_xerp %s\ndmflags %s\n```",
             gm->string,
             tgren->string,
             fraglimit->string,
