@@ -449,6 +449,7 @@ typedef enum {
 #define MM_MATCH_END_MSG "Matchmode Results"
 #define DM_MATCH_END_MSG "Deathmatch Results"
 #define MM_3_MIN_WARN "3 minutes remaining in the map"
+#define PICKUP_GAME_REQUEST "A pickup game has been started"
 #define TP_MATCH_START_MSG "Match is about to begin!"
 #define TP_MATCH_END_MSG "Match has ended!"
 

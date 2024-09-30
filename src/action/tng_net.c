@@ -329,12 +329,27 @@ char* TeamConstructPlayerList(int team) {
 
 static char* ConstructGameSettingsString(void) {
     // Calculate the required buffer size
-    int buffer_size = snprintf(NULL, 0, "tgren %s\ntimelimit %s\nuse_xerp %s\ndmflags %s\n",
-        tgren->string,
-        timelimit->string,
-        use_xerp->string,
-        dmflags->string
-    );
+    int buffer_size;
+
+    if (matchmode->value){
+        int buffer_size = snprintf(NULL, 0, "tgren %s\ntimelimit %s\nroundtimelimit %s\nuse_xerp %s\ndmflags %s\n",
+            tgren->string,
+            timelimit->string,
+            roundtimelimit->string,
+            use_xerp->string,
+            dmflags->string
+        );
+    } else {
+        int buffer_size = snprintf(NULL, 0, "gamemode %s\ntgren %s\nfraglimit %s\ntimelimit %s\nroundtimelimit %s\nuse_xerp %s\ndmflags %s\n",
+            gm->string,
+            tgren->string,
+            fraglimit->string,
+            timelimit->string,
+            roundtimelimit->string,
+            use_xerp->string,
+            dmflags->string
+        );
+    }
 
     // Allocate the buffer
     char *result = (char *)malloc(buffer_size + 1);
@@ -343,12 +358,25 @@ static char* ConstructGameSettingsString(void) {
     }
 
     // Construct the string
-    sprintf(result, "```tgren %s\ntimelimit %s\nuse_xerp %s\ndmflags %s\n```",
-        tgren->string,
-        timelimit->string,
-        use_xerp->string,
-        dmflags->string
-    );
+    if (matchmode->value) {
+        sprintf(result, "```tgren %s\ntimelimit %s\nroundtimelimit %s\nuse_xerp %s\ndmflags %s\n```",
+            tgren->string,
+            timelimit->string,
+            roundtimelimit->string,
+            use_xerp->string,
+            dmflags->string
+        );
+    } else {
+        sprintf(result, "```gamemode %s\ntgren %s\nfraglimit %s\ntimelimit %s\nroundtimelimit %s\nuse_xerp %s\ndmflags %s\n```",
+            gm->string,
+            tgren->string,
+            fraglimit->string,
+            timelimit->string,
+            roundtimelimit->string,
+            use_xerp->string,
+            dmflags->string
+        );
+    }
 
     return result;
 }
@@ -513,6 +541,131 @@ static char *discord_MatchEndMsg(char* msg)
     // json_object_set_new(gamesettings, "value", json_string(discord_formatted_scores));
     // json_object_set_new(gamesettings, "inline", json_true());
     // json_array_append_new(fields, gamesettings);
+
+    // Convert the JSON object to a string
+    char *json_payload = json_dumps(root, JSON_INDENT(4));
+
+    // Decrement the reference count of the root object to free memory
+    json_decref(root);
+
+    return json_payload;
+}
+
+static char *discord_PickupReqMsg(char* msg)
+{
+    // Create the root object
+    json_t *root = json_object();
+
+    json_object_set_new(root, "content", json_string(""));
+
+    // Create the "embeds" array
+    json_t *embeds = json_array();
+    json_object_set_new(root, "embeds", embeds);
+
+    // Create the embed object
+    json_t *embed = json_object();
+    json_array_append_new(embeds, embed);
+
+    // Adjust description and color based on mode
+    if (esp->value) {
+        json_object_set_new(embed, "description", json_string(msg));
+        json_object_set_new(embed, "color", json_integer(65280)); // Green
+    } else if (teamdm->value) { //
+        json_object_set_new(embed, "description", json_string(msg));
+        json_object_set_new(embed, "color", json_integer(65535)); // Light blue
+    } else if (ctf->value) {
+        json_object_set_new(embed, "description", json_string(msg));
+        json_object_set_new(embed, "color", json_integer(16776960)); // Yellow
+    } else if (teamplay->value) { 
+        json_object_set_new(embed, "description", json_string(msg));
+        json_object_set_new(embed, "color", json_integer(8388736)); // Purple
+    } else if (use_tourney->value) { 
+        json_object_set_new(embed, "description", json_string(msg));
+        json_object_set_new(embed, "color", json_integer(16744192)); // Orange
+    } else { //Deathmatch
+        json_object_set_new(embed, "description", json_string(msg));
+        json_object_set_new(embed, "color", json_integer(16711680)); // Red
+    }
+
+    // Add fields to the embed object
+    json_object_set_new(embed, "title", json_string(level.mapname));
+
+    // Create the "thumbnail" object
+    json_t *thumbnail = json_object();
+    json_object_set_new(embed, "thumbnail", thumbnail);
+
+    char mapimgurl[512];
+    snprintf(mapimgurl, sizeof(mapimgurl), "https://raw.githubusercontent.com/vrolse/AQ2-pickup-bot/main/thumbnails/%s.jpg", level.mapname);
+    json_object_set_new(thumbnail, "url", json_string(mapimgurl));
+
+    // Add "username" field to the root object
+    json_object_set_new(root, "username", json_string(PICKUP_GAME_REQUEST));
+
+    // Create the "author" object (hostname)
+    json_t *author = json_object();
+    json_object_set_new(author, "name", json_string(hostname->string));
+    json_object_set_new(embed, "author", author);
+
+    // Create the "footer" object (server ip and port) if server_ip is valid
+    if (is_valid_ipv4(server_ip->string)) {
+        json_t *footer = json_object();
+        char footerinfo[64];
+        snprintf(footerinfo, sizeof(footerinfo), "%s: %s:%s", hostname->string, server_ip->string, net_port->string);
+        json_object_set_new(footer, "text", json_string(footerinfo));
+        json_object_set_new(embed, "footer", footer);
+    }
+
+    // Create the "fields" array
+    json_t *fields = json_array();
+    json_object_set_new(embed, "fields", fields);
+
+    // Create field objects and add them to the "fields" array
+    if (teamplay->value) {
+        for (int team = TEAM1; team <= teamCount; team++) {
+            char *team_name = TeamName(team);
+            char field_content[64];
+            snprintf(field_content, sizeof(field_content), "%s", team_name);
+            char *team_players = TeamConstructPlayerList(team);
+
+            // Add triple backticks for Discord formatting
+            char discord_formatted_players[1280];
+            snprintf(discord_formatted_players, sizeof(discord_formatted_players), "```\n%s```", team_players);
+
+
+            json_t *field = json_object();
+            json_object_set_new(field, "name", json_string(field_content));
+            json_object_set_new(field, "value", json_string(discord_formatted_players));
+            json_object_set_new(field, "inline", json_true());
+            json_array_append_new(fields, field);
+
+            free(team_players); // Free the allocated memory for team_players
+        }
+    } else {
+        char *team_name = "Players";
+        char field_content[64];
+        snprintf(field_content, sizeof(field_content), "%s", team_name);
+        char *team_players = TeamConstructPlayerList(0);
+
+        // Add triple backticks for Discord formatting
+        char discord_formatted_players[1280];
+        snprintf(discord_formatted_players, sizeof(discord_formatted_players), "```\n%s```", team_players);
+
+
+        json_t *field = json_object();
+        json_object_set_new(field, "name", json_string(field_content));
+        json_object_set_new(field, "value", json_string(discord_formatted_players));
+        json_object_set_new(field, "inline", json_true());
+        json_array_append_new(fields, field);
+
+        free(team_players); // Free the allocated memory for team_players
+    }
+
+    // Game Settings
+    json_t *gamesettings = json_object();
+    json_object_set_new(gamesettings, "name", json_string("Game Settings"));
+    json_object_set_new(gamesettings, "value", json_string(ConstructGameSettingsString()));
+    json_object_set_new(gamesettings, "inline", json_true());
+    json_array_append_new(fields, gamesettings);
 
     // Convert the JSON object to a string
     char *json_payload = json_dumps(root, JSON_INDENT(4));
@@ -724,12 +877,20 @@ void lc_discord_webhook(char* message, Discord_Notifications msgtype, Awards awa
             break;
 
         case AWARD_MSG:
-        case PICKUP_REQ_MSG:
         case SERVER_MSG: {
             char *srvmsg = discord_ServerMsg(message, msgtype, awardtype);
             if (srvmsg) {
                 snprintf(json_payload, sizeof(json_payload), "%s", srvmsg);
                 free(srvmsg);
+            }
+            break;
+        }
+
+        case PICKUP_REQ_MSG: {
+            char *pickupreqmsg = discord_PickupReqMsg(message);
+            if (pickupreqmsg) {
+                snprintf(json_payload, sizeof(json_payload), "%s", pickupreqmsg);
+                free(pickupreqmsg);
             }
             break;
         }
