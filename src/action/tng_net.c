@@ -561,6 +561,7 @@ static char *discord_PickupReqMsg(char* msg)
     // Create the "embeds" array
     json_t *embeds = json_array();
     json_object_set_new(root, "embeds", embeds);
+    json_object_set_new(root, "avatar_url", json_string("https://raw.githubusercontent.com/darkshade9/aq2world/master/docs/assets/img/common/aq2world_discord_circle.png"));
 
     // Create the embed object
     json_t *embed = json_object();
