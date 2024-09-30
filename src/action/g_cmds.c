@@ -1185,10 +1185,8 @@ static void Cmd_Players_f (edict_t * ent)
 {
 	int i;
 	int count = 0;
-	char small[64];
-	char large[1024];
+	char small[64], large[1024];
 	gclient_t *sortedClients[MAX_CLIENTS], *cl;
-
 
 	if (!teamplay->value || !noscore->value)
 		count = G_SortedClients( sortedClients );
