@@ -135,7 +135,6 @@
 #include <time.h>
 #if USE_AQTION
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
 #if _MSC_VER && !__INTEL_COMPILER
 #pragma comment(lib, "rpcrt4.lib")
 #include <rpc.h>

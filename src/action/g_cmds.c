@@ -1183,40 +1183,40 @@ Cmd_Players_f
 */
 static void Cmd_Players_f (edict_t * ent)
 {
-	int i;
-	int count = 0;
-	char small[64];
-	char large[1024];
-	gclient_t *sortedClients[MAX_CLIENTS], *cl;
+    int i;
+    int count = 0;
+    char playerInfo[64];
+    char playerList[1024];
+    gclient_t *sortedClients[MAX_CLIENTS], *cl;
 
-	if (!teamplay->value || !noscore->value)
-		count = G_SortedClients( sortedClients );
-	else
-		count = G_NotSortedClients( sortedClients );
+    if (!teamplay->value || !noscore->value)
+        count = G_SortedClients( sortedClients );
+    else
+        count = G_NotSortedClients( sortedClients );
 
-	// print information
-	large[0] = 0;
+    // print information
+    playerList[0] = 0;
 
-	for (i = 0; i < count; i++)
-	{
-		cl = sortedClients[i];
-		if (!teamplay->value || !noscore->value)
-			Q_snprintf (small, sizeof (small), "%3i %s\n",
-				cl->ps.stats[STAT_FRAGS],
-				cl->pers.netname );
-		else
-			Q_snprintf (small, sizeof (small), "%s\n",
-				cl->pers.netname);
+    for (i = 0; i < count; i++)
+    {
+        cl = sortedClients[i];
+        if (!teamplay->value || !noscore->value)
+            Q_snprintf(playerInfo, sizeof(playerInfo), "%3i %s\n",
+                cl->ps.stats[STAT_FRAGS],
+                cl->pers.netname);
+        else
+            Q_snprintf(playerInfo, sizeof(playerInfo), "%s\n",
+                cl->pers.netname);
 
-		if (strlen(small) + strlen(large) > sizeof (large) - 20)
-		{			// can't print all of them in one packet
-			strcat (large, "...\n");
-			break;
-		}
-		strcat (large, small);
-	}
+        if (strlen(playerInfo) + strlen(playerList) > sizeof(playerList) - 20)
+        {			// can't print all of them in one packet
+            strcat(playerList, "...\n");
+            break;
+        }
+        strcat(playerList, playerInfo);
+    }
 
-	gi.cprintf(ent, PRINT_HIGH, "%s\n%i players\n", large, count);
+    gi.cprintf(ent, PRINT_HIGH, "%s\n%i players\n", playerList, count);
 }
 
 /*
