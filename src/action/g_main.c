@@ -566,6 +566,7 @@ cvar_t *sv_last_announce_interval;		// Interval between announcements
 cvar_t *sv_last_announce_time;			// Last announcement time
 cvar_t *server_announce_url;			// Server announce URL
 cvar_t *msgflags;						// Message flags (like dmflags) see Discord_Notifications enum for more info
+cvar_t *use_pickup;						// Enable pickup notifications from the server
 // end cURL integration cvars
 
 cvar_t *training_mode; // Sets training mode vars

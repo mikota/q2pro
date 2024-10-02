@@ -662,7 +662,7 @@ void InitGame( void )
 	sv_last_announce_interval = gi.cvar("sv_last_announce_interval", "1800", 0);
 	server_announce_url = gi.cvar("server_announce_url", "disabled", 0);
 	msgflags = gi.cvar("msgflags", "0", 0);
-
+	use_pickup = gi.cvar("use_pickup", "0", 0);
 
 	training_mode = gi.cvar("training_mode", "0", CVAR_LATCH);
 	if (training_mode->value){

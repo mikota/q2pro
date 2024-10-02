@@ -881,14 +881,23 @@ void StatBotCheck(void)
 }
 #endif
 
+#if AQTION_CURL
 qboolean Write_Stats_to_API(const char* stats)
 {
-	if (!CALL_STATS_API(stats)) {
-		gi.dprintf("Error sending stats to API\n");
-		return false;
-	}
-	return true;
+    if (!CALL_STATS_API(stats)) {
+        gi.dprintf("Error sending stats to API\n");
+        return false;
+    }
+    return true;
 }
+#else
+qboolean Write_Stats_to_API(const char* stats)
+{
+    // AQTION_CURL is disabled, so this function does nothing
+    gi.dprintf("AQTION_CURL is disabled, stats not sent to API\n");
+    return false;
+}
+#endif
 
 cvar_t* logfile_name;
 qboolean Write_Stats_to_Local(const char* stats)
