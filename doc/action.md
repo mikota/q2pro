@@ -90,6 +90,8 @@ Additions and enhancements by darksaint, Reki, Rektek and the AQ2World team
     - [Ghost](#ghost)
     - [Bandolier behavior](#bandolier-behavior)
     - [Bots](#bots)
+      - [Legacy LTK Bots](#legacy-ltk-bots)
+      - [BOTLIB (Rektek) Bots](#botlib-rektek-bots)
     - [Slap](#slap)
     - [Variable Framerate Support](#variable-framerate-support)
     - [Q2pro MVD server demo support](#q2pro-mvd-server-demo-support)
@@ -570,7 +572,9 @@ TNG updates the way the bandolier behaves when dropping it. It will prevent peop
 `use_buggy_bandolier [0/1]` - if you wish to revert back to the old bandolier behavior, set this to 1
 
 ### Bots
-Now you can fill out your teams with bots, or create an entire team of bots to fight. You can define persistent bots in bots/botdata.cfg, or create and remove them on demand. Bots wander pretty stupidly unless you create a linked network of nodes for them to follow.
+
+#### Legacy LTK Bots
+Now you can fill out your teams with bots, or create an entire team of bots to fight. You can define persistent bots in bots/botdata.cfg, or create and remove them on demand. Bots wander pretty stupidly unless you create a linked network of nodes for them to follow.  This documentation exists for reference only, LTK bots have been replaced by the BOTLIB Bots as described below.
 
 **Commands:**
 - `sv addbot [team] [name]` - add a bot for the duration of the current map
@@ -589,6 +593,30 @@ Now you can fill out your teams with bots, or create an entire team of bots to f
 - `sv initnodes` - clear all nodes
 - `sv loadnodes` - load saved nodes from terrain/<mapname>.ltk
 - `sv savenodes` - save all nodes and links for this map to terrain/<mapname>.ltk
+
+#### BOTLIB (Rektek) Bots
+Taking aspects of the existing bots and greatly enhancing their navigation and behavioral capabilities, the new botlib bots have superceded the legacy LTK bots.  This is a very new system and as such will be in a regular flux of change, enhancements and adjustments.
+
+**Server Commands:**
+- `sv bots <#> [#]` - Server command, if command is issued without arguments, it will print out the existing bot counts, bots on teams and other information.  If provided with a single value (`sv bots 3`) this will add 3 bots to the game.  If this is a team game, it should auto balance the bots across teams.  If provided with two values (`sv bots 3 1`) this will assign 3 bots to team 1.  Please be aware of your maxclients limits as the server console will alert you if you have added too many bots.
+- `bot_remember <#>` - Server cvar, how long (in seconds) the bot remembers an enemy after visibility has been lost.  This is experimental and being reevaluated for usability, and may be replaced in the future
+- `bot_reaction <#>` - Server cvar, how long (in seconds) until the bot reacts to an enemy in sight.  Lower values mean a faster reaction.  This is experimental and being reevaluated for usability, and may be replaced in the future
+- `bot_randvoice <#>` - Server cvar, percentage chance that bots use random user voice wavs [min: 0 max: 100].  Suggest disabling or setting to a very low value because user voice wavs take up limited sound slots on non-extended protocol servers (256 max sounds versus 2048) -- if a server runs out of sound slots and tries to cache another sound, it will crash.  Looking to re-evaluate how to handle this on non-extended protocol servers.
+- `bot_randname [0/1]` - Server cvar, allow bots to pick a random name.  Suggest keeping enabled
+- `bot_chat [0/1]` - Server cvar, enables bot chat.
+- `bot_countashuman [0/1]` - Server cvar, enabling this will allow teamplay-based games to progress without humans being in the server.  Set to 0 to force games to not count bots as clients in terms of teamplay
+- `bot_navautogen [0/1]` - Server cvar, enabling this will auto generate a navmesh for any maps that do not already have one, on map load time.  This automatic navmesh is far from perfect, but it does allow bots to traverse maps rather than stand still.  A far superior option is to have a handcrafted navmesh for the map.
+- `bot_debug [0/1]` - Server cvar, will enable debug messaging for BOTLIB functionality where enabled
+
+**Client Commands:**
+These commands only work on local map loads, not connections to dedicated servers.  They are meant to be used to create navmeshes.
+- `nav_edit` - Enters nav edit mode.  Enter again to toggle out of nav edit mode.
+- `nav_toggle` - Toggles nav visibility: None, nodes, and bot paths
+- `nav_autogen` - If in nav_edit mode, will automatically generate a navmesh that will interconnect nodes that are reachable via info_player_deathmatch entities.  This performs 90% of the work for you, so that most flat surfaces will have a full mesh ready to use.
+- `nav_save` - This saves the current navmesh to `bots/nav/mapname.nav`
+- `nav_load` - This will load a navmesh from `bots/nav/mapname.nav`.  Loading a map that already has a navmesh will perform this automatically, there is no need to run this command except to possibly revert to an earlier navmesh if you make a mistake and want to undo
+**Nav Interface**
+When generating a navmesh, you will use the `reload` key to cycle through different options (add node, remove node, link node, etc.).  Use the `+attack` key to interact with the navmesh.  More documentation around performing this is coming soon.
 
 ### Slap
 Server admins can slap players into the air, and optionally deal damage.
