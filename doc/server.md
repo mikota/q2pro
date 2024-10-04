@@ -828,7 +828,7 @@ also create an alias for the map. How to create such files is out of
 scope of this manual (search the internet for ‘r1q2 map override file
 generator’).
 
-This is togglable with `load_ent` -- default enabled (`1`), a setting of
+This is togglable with `sv_load_ent` -- default enabled (`1`), a setting of
 `0` will disable loading overrides of either type
 
 ### map\_visibility\_patch  
