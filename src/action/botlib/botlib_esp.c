@@ -18,7 +18,7 @@ int BOTLIB_ESPGetTargetNode(edict_t *ent, edict_t* leader)
 	edict_t *target = NULL;
 
 	// Reset escortcap value
-	espsettings.escortcap = false;	
+	//espsettings.escortcap = false;
 
 	// If leader is null, it means we're looking for an ETV target
 	if(leader == NULL) {
