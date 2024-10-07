@@ -1576,12 +1576,14 @@ void SpawnEntities (const char *mapname, const char *entities, const char *spawn
 
 //rekkie -- s
 #ifndef NO_BOTS
-	BOTLIB_InitNavigation(NULL);
-#ifdef USE_ZLIB
-	BOTLIB_LoadNavCompressed();
-#else
-	BOTLIB_LoadNav();
-#endif
+	if (bot_enable->value) {
+		BOTLIB_InitNavigation(NULL);
+	#ifdef USE_ZLIB
+		BOTLIB_LoadNavCompressed();
+	#else
+		BOTLIB_LoadNav();
+
+	#endif
 
 	//ACEND_LoadAAS(false); // This will also generate AAS if it doesn't exist
 	//ACEND_BSP(NULL);
@@ -1593,11 +1595,13 @@ void SpawnEntities (const char *mapname, const char *entities, const char *spawn
 	memset(&botlib_noises, 0, sizeof(botlib_noises));
 
 	//rekkie -- Fake Bot Client -- s
-	gi.SV_BotClearClients(); // So the server can clear all fake bot clients
+	gi.SV_BotClearClients();
+	//gi.SV_BotClearClients(); // So the server can clear all fake bot clients
 	//rekkie -- Fake Bot Client -- e
 
 	if(bot_personality->value)
 		BOTLIB_PersonalityFile();
+	}
 #endif
 //rekkie -- e
 }
