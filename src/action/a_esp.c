@@ -709,6 +709,7 @@ qboolean EspLoadConfig(const char *mapname)
 			Q_strncpyz(espsettings.name, ptr, sizeof(espsettings.name));
 		}
 
+		// This is where we're setting which Espionage mode we want
 		ptr = INI_Find(fh, "esp", "type");
 		char *gametypename = ESPMODE_ATL_NAME;
 		if(!strcmp(ptr, ESPMODE_ATL_SNAME) && !strcmp(ptr, ESPMODE_ETV_SNAME)){
@@ -716,24 +717,20 @@ qboolean EspLoadConfig(const char *mapname)
 		    gi.dprintf("- Game type : %s\n", ESPMODE_ATL_NAME);
 			EspForceEspionage(ESPMODE_ATL);
 			gametypename = ESPMODE_ATL_NAME;
-			espsettings.esp_mode = ESPMODE_ATL;
 		} else {
 			if(ptr) {
 				if((strcmp(ptr, ESPMODE_ETV_SNAME) == 0 && esp_atl->value == 0)){
 					EspForceEspionage(ESPMODE_ETV);
 					gametypename = ESPMODE_ETV_NAME;
-					espsettings.esp_mode = ESPMODE_ETV;
 				} else {
 					EspForceEspionage(ESPMODE_ATL);
 					gametypename = ESPMODE_ATL_NAME;
-					espsettings.esp_mode = ESPMODE_ATL;
 				}
 			}
 			if (use_3teams->value) {
 				// Only ATL available in 3 team mode
 				EspForceEspionage(ESPMODE_ATL);
 				gametypename = ESPMODE_ATL_NAME;
-				espsettings.esp_mode = ESPMODE_ATL;
 			}
 			gi.dprintf("- Game type : %s\n", gametypename);
 		}
@@ -742,6 +739,8 @@ qboolean EspLoadConfig(const char *mapname)
 			gi.dprintf("%s and use_3team are incompatible, defaulting to %s", ESPMODE_ETV_NAME, ESPMODE_ATL_NAME);
 			EspForceEspionage(ESPMODE_ATL);
 		}
+
+		// End of Espionage game mode forced settings
 
 		gi.dprintf("- Respawn times\n");
 		char *r_respawn_time, *b_respawn_time, *g_respawn_time;
