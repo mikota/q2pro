@@ -44,10 +44,6 @@ qboolean ACECM_Commands(edict_t *ent)
 
 	cmd = gi.argv(0);
 
-	if (!bot_enable->value) {
-		return true;
-	}
-
 	//if(Q_stricmp (cmd, "addnode") == 0 && debug_mode)
 	//	ent->last_node = ACEND_AddNode(ent,atoi(gi.argv(1))); 
 	

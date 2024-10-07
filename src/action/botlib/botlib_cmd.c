@@ -11,9 +11,8 @@ qboolean BOTLIB_SV_Cmds(void)
 	if (Q_stricmp(cmd, "bots") == 0)
 	{
 		if (!bot_enable->value) {
-			gi.dprintf("%s: bot_enable is 0; Bots are disabled, desired bots: %d\n", __func__, bot_connections.desire_bots);
+			gi.dprintf("%s: bot_enable is 0; Bots are disabled\n", __func__);
 			bot_connections.desire_bots = 0;
-			return true;
 		}
 
 		int cc = gi.argc();
