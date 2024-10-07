@@ -1090,11 +1090,6 @@ Please run a NULL check on the leader before calling this
 */
 qboolean _EspLeaderAliveCheck(edict_t *ent, edict_t *leader)
 {
-	if(!leader){
-		gi.dprintf("%s: Warning: Leader is NULL\n", __func__);
-		return false;
-	}
-
 	if (espsettings.esp_mode < 0) {
 		gi.dprintf("%s: Warning: Invalid espsettings.esp_mode returned\n", __func__);
 		return false;
@@ -1184,19 +1179,26 @@ edict_t *EspRespawnOnLeader(edict_t *ent, char *cname)
 	teamLeader = teams[ent->client->resp.team].leader;
 	VectorCopy(teamLeader->s.origin, respawn_coords);
 
-	spawn = G_Spawn();
-	respawn_coords[2] += 9; // So they don't spawn in the floor
-	VectorCopy(respawn_coords, spawn->s.origin);
-	spawn->s.angles[YAW] = teamLeader->s.angles[YAW]; // Facing the same direction as the leader on respawn
-	spawn->classname = ED_NewString(cname);
-	spawn->think = G_FreeEdict;
-	spawn->nextthink = level.framenum + 1;
-	//ED_CallSpawn(spawn);
+	// Perform a trace to check if the spawn point is within a solid brush
+    if (SV_TestEntityPosition(teamLeader)) {
+		gi.dprintf("%s: %s: Team %d leader's spawn point was inside a solid brush, defaulting to original spawnpoint\n", __func__, ent->client->pers.netname, ent->client->resp.team);
+		gi.cprintf(ent, PRINT_HIGH, "Your Leader is in a tight spot, you're unable to spawn near them!\n");
+		return chosenSpawnpoint[ent->client->resp.team];
+	} else {
+		spawn = G_Spawn();
+		respawn_coords[2] += 9; // So they don't spawn in the floor
+		VectorCopy(respawn_coords, spawn->s.origin);
+		spawn->s.angles[YAW] = teamLeader->s.angles[YAW]; // Facing the same direction as the leader on respawn
+		spawn->classname = ED_NewString(cname);
+		spawn->think = G_FreeEdict;
+		spawn->nextthink = level.framenum + 1;
+		//ED_CallSpawn(spawn);
 
-	if (esp_debug->value)
-		gi.dprintf("%s: %s on team %d respawn coordinates are %f %f %f %f\n", __func__, ent->client->pers.netname, ent->client->resp.team, teamLeader->s.origin[0], teamLeader->s.origin[1], teamLeader->s.origin[2], teamLeader->s.angles[YAW]);
+		if (esp_debug->value)
+			gi.dprintf("%s: %s on team %d respawn coordinates are %f %f %f %f\n", __func__, ent->client->pers.netname, ent->client->resp.team, teamLeader->s.origin[0], teamLeader->s.origin[1], teamLeader->s.origin[2], teamLeader->s.angles[YAW]);
 
-	return spawn;
+		return spawn;
+	}
 }
 
 edict_t *SelectEspSpawnPoint(edict_t *ent)
