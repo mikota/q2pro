@@ -45,7 +45,6 @@ qboolean ACECM_Commands(edict_t *ent)
 	cmd = gi.argv(0);
 
 	if (!bot_enable->value) {
-		gi.dprintf("bot_enable is 0; Bots are disabled\n");
 		return true;
 	}
 
