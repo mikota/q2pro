@@ -315,7 +315,9 @@ void CL_RegisterTEntSounds(void)
     }
 
     CL_RegisterFootsteps();
-    CL_RegisterAQtionSounds();
+
+    // Commenting out until better support is added, else we're just wasting memory and sound slots
+    //CL_RegisterAQtionSounds();
 
     cl_sfx_lightning = S_RegisterSound("weapons/tesla.wav");
     cl_sfx_disrexp = S_RegisterSound("weapons/disrupthit.wav");
