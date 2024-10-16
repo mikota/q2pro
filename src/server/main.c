@@ -1978,6 +1978,9 @@ static void SV_RunGameFrame(void)
         time_after_game = Sys_Milliseconds();
 #endif
 
+    if (msg_write.overflowed)
+        Com_Error(ERR_DROP, "%s: message buffer overflowed", __func__);
+
     if (msg_write.cursize) {
         Com_WPrintf("Game left %u bytes "
                     "in multicast buffer, cleared.\n",
@@ -2455,6 +2458,7 @@ void SV_Init(void)
 	g_view_predict = Cvar_Get("g_view_predict", "0", CVAR_ROM);
 	g_view_low = Cvar_Get("g_view_low", "0", CVAR_ROM);
 	g_view_high = Cvar_Get("g_view_high", "0", CVAR_ROM);
+	sv_load_ent = Cvar_Get("sv_load_ent", "1", CVAR_LATCH);
 
     init_rate_limits();
 

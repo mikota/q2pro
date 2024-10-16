@@ -1060,9 +1060,9 @@ int Gamemode(void)
 		gamemode = GM_DOMINATION;
 	} else if (deathmatch->value) {
 		gamemode = GM_DEATHMATCH;
-	} else if (esp->value && atl->value) {
+	} else if (esp->value && espsettings.esp_mode == ESPMODE_ATL) {
 		gamemode = GM_ASSASSINATE_THE_LEADER;
-	} else if (esp->value && etv->value) {
+	} else if (esp->value && espsettings.esp_mode == ESPMODE_ETV) {
 		gamemode = GM_ESCORT_THE_VIP;
 	}
 	return gamemode;
@@ -1243,7 +1243,7 @@ void SpawnEntities (const char *mapname, const char *entities, const char *spawn
 			gi.cvar_forceset(teamplay->name, "1");
 		}
 		// ETV mode doesn't support 3 teams, but ATL does
-		if (etv->value && use_3teams->value) {
+		if (espsettings.esp_mode == ESPMODE_ETV && use_3teams->value) {
 			gi.dprintf ("Espionage ETV Enabled - Incompatible with 3 Teams, reverting to ATL mode\n");
 			EspForceEspionage(ESPMODE_ATL);
 		}
@@ -1574,12 +1574,14 @@ void SpawnEntities (const char *mapname, const char *entities, const char *spawn
 
 //rekkie -- s
 #ifndef NO_BOTS
-	BOTLIB_InitNavigation(NULL);
-#ifdef USE_ZLIB
-	BOTLIB_LoadNavCompressed();
-#else
-	BOTLIB_LoadNav();
-#endif
+	if (bot_enable->value) {
+		BOTLIB_InitNavigation(NULL);
+	#ifdef USE_ZLIB
+		BOTLIB_LoadNavCompressed();
+	#else
+		BOTLIB_LoadNav();
+
+	#endif
 
 	//ACEND_LoadAAS(false); // This will also generate AAS if it doesn't exist
 	//ACEND_BSP(NULL);
@@ -1591,11 +1593,13 @@ void SpawnEntities (const char *mapname, const char *entities, const char *spawn
 	memset(&botlib_noises, 0, sizeof(botlib_noises));
 
 	//rekkie -- Fake Bot Client -- s
-	gi.SV_BotClearClients(); // So the server can clear all fake bot clients
+	gi.SV_BotClearClients();
+	//gi.SV_BotClearClients(); // So the server can clear all fake bot clients
 	//rekkie -- Fake Bot Client -- e
 
 	if(bot_personality->value)
 		BOTLIB_PersonalityFile();
+	}
 #endif
 //rekkie -- e
 }

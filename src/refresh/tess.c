@@ -73,6 +73,7 @@ void GL_DrawParticles(void)
         return;
 
     GL_LoadMatrix(glr.viewmatrix);
+    GL_LoadUniforms();
     GL_BindArrays(VA_EFFECT);
 
     bits = (gl_partstyle->integer ? GLS_BLEND_ADD : GLS_BLEND_BLEND) | GLS_DEPTHMASK_FALSE;
@@ -126,7 +127,7 @@ void GL_DrawParticles(void)
         qglDrawArrays(GL_TRIANGLES, 0, numverts);
 
         if (gl_showtris->integer & SHOWTRIS_FX)
-            GL_DrawOutlines(numverts, NULL, false);
+            GL_DrawOutlines(numverts, 0, NULL);
 
         GL_UnlockArrays();
     } while (total);
@@ -542,22 +543,24 @@ static const glVaDesc_t arraydescs[VA_TOTAL][VERT_ATTR_COUNT] = {
 
 void GL_BindArrays(glVertexArray_t va)
 {
-    const GLfloat *ptr = tess.vertices;
-    GLuint buffer = 0;
-
     if (gls.currentva == va)
         return;
 
-    if (va == VA_3D && !gl_static.world.vertices) {
-        buffer = gl_static.world.buffer;
-        ptr = NULL;
-    } else if (!(gl_config.caps & QGL_CAP_CLIENT_VA)) {
-        buffer = gl_static.vertex_buffer;
-        ptr = NULL;
-    }
+    if (va != VA_NONE) {
+        const GLfloat *ptr = tess.vertices;
+        GLuint buffer = 0;
 
-    GL_BindBuffer(GL_ARRAY_BUFFER, buffer);
-    gl_backend->array_pointers(arraydescs[va], ptr);
+        if (va == VA_3D && !gl_static.world.vertices) {
+            buffer = gl_static.world.buffer;
+            ptr = NULL;
+        } else if (!(gl_config.caps & QGL_CAP_CLIENT_VA)) {
+            buffer = gl_static.vertex_buffer;
+            ptr = NULL;
+        }
+
+        GL_BindBuffer(GL_ARRAY_BUFFER, buffer);
+        gl_backend->array_pointers(arraydescs[va], ptr);
+    }
 
     gls.currentva = va;
     c.vertexArrayBinds++;
@@ -565,6 +568,8 @@ void GL_BindArrays(glVertexArray_t va)
 
 void GL_LockArrays(GLsizei count)
 {
+    if (gls.currentva == VA_NONE)
+        return;
     if (gls.currentva == VA_3D && !gl_static.world.vertices)
         return;
     if (gl_config.caps & QGL_CAP_CLIENT_VA) {
@@ -579,6 +584,8 @@ void GL_LockArrays(GLsizei count)
 
 void GL_UnlockArrays(void)
 {
+    if (gls.currentva == VA_NONE)
+        return;
     if (gls.currentva == VA_3D && !gl_static.world.vertices)
         return;
     if (!(gl_config.caps & QGL_CAP_CLIENT_VA))
@@ -591,19 +598,25 @@ void GL_DrawIndexed(showtris_t showtris)
 {
     const glIndex_t *indices = tess.indices;
 
+    Q_assert(gls.currentva != VA_NONE);
+
+    GL_LoadUniforms();
+
     GL_LockArrays(tess.numverts);
 
-    if (!(gl_config.caps & QGL_CAP_CLIENT_VA)) {
+    if (gl_config.caps & QGL_CAP_CLIENT_VA) {
+        GL_BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    } else {
         GL_BindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl_static.index_buffer);
         qglBufferData(GL_ELEMENT_ARRAY_BUFFER, tess.numindices * sizeof(indices[0]), indices, GL_STREAM_DRAW);
         indices = NULL;
     }
 
-    GL_DrawTriangles(tess.numindices, indices);
+    qglDrawElements(GL_TRIANGLES, tess.numindices, QGL_INDEX_TYPE, indices);
     c.trisDrawn += tess.numindices / 3;
 
     if (gl_showtris->integer & showtris)
-        GL_DrawOutlines(tess.numindices, indices, true);
+        GL_DrawOutlines(tess.numindices, QGL_INDEX_TYPE, indices);
 
     GL_UnlockArrays();
 }
@@ -638,7 +651,9 @@ void GL_Flush3D(void)
     if (!tess.numindices)
         return;
 
-    if (q_likely(tess.texnum[TMU_LIGHTMAP])) {
+    if (q_unlikely(state & GLS_SKY_MASK)) {
+        array = GLA_VERTEX;
+    } else if (q_likely(tess.texnum[TMU_LIGHTMAP])) {
         state |= GLS_LIGHTMAP_ENABLE;
         array |= GLA_LMTC;
 
@@ -655,7 +670,9 @@ void GL_Flush3D(void)
     GL_StateBits(state);
     GL_ArrayBits(array);
 
-    if (qglBindTextures) {
+    if (state & GLS_DEFAULT_SKY) {
+        GL_BindCubemap(tess.texnum[TMU_TEXTURE]);
+    } else if (qglBindTextures) {
 #if USE_DEBUG
         if (q_unlikely(gl_nobind->integer))
             tess.texnum[TMU_TEXTURE] = TEXNUM_DEFAULT;
@@ -715,8 +732,9 @@ static const image_t *GL_TextureAnimation(const mtexinfo_t *tex)
 static void GL_DrawFace(const mface_t *surf)
 {
     const image_t *image = GL_TextureAnimation(surf->texinfo);
-    int numtris = surf->numsurfedges - 2;
-    int numindices = numtris * 3;
+    const int numtris = surf->numsurfedges - 2;
+    const int numindices = numtris * 3;
+    glStateBits_t state = surf->statebits;
     GLuint texnum[MAX_TMUS] = { 0 };
     glIndex_t *dst_indices;
     int i, j;
@@ -730,10 +748,17 @@ static void GL_DrawFace(const mface_t *surf)
             texnum[TMU_TEXTURE] = TEXNUM_WHITE;
             texnum[TMU_GLOWMAP] = 0;
         }
+    } else if (state & GLS_CLASSIC_SKY) {
+        if (q_likely(gl_drawsky->integer)) {
+            texnum[TMU_LIGHTMAP] = image->texnum2;
+        } else {
+            texnum[TMU_TEXTURE ] = TEXNUM_BLACK;
+            state &= ~GLS_CLASSIC_SKY;
+        }
     }
 
     if (memcmp(tess.texnum, texnum, sizeof(texnum)) ||
-        tess.flags != surf->statebits ||
+        tess.flags != state ||
         tess.numindices + numindices > TESS_MAX_INDICES)
         GL_Flush3D();
 
@@ -752,7 +777,7 @@ static void GL_DrawFace(const mface_t *surf)
     tess.numindices += numindices;
 
     memcpy(tess.texnum, texnum, sizeof(texnum));
-    tess.flags = surf->statebits;
+    tess.flags = state;
 
     c.facesTris += numtris;
     c.facesDrawn++;
@@ -787,7 +812,9 @@ void GL_DrawAlphaFaces(void)
             glr.ent = face->entity;
             GL_Flush3D();
             GL_SetEntityAxis();
-            GL_RotateForEntity();
+            GL_RotateForEntity(glr.ent == &gl_world ?
+                               gl_static.use_cubemaps :
+                               gl_static.use_bmodel_skies);
         }
         GL_DrawFace(face);
     }
@@ -805,10 +832,10 @@ void GL_AddSolidFace(mface_t *face)
     faces_next[face->hash] = &face->next;
 }
 
-void GL_AddAlphaFace(mface_t *face, entity_t *ent)
+void GL_AddAlphaFace(mface_t *face)
 {
     // draw back-to-front
-    face->entity = ent;
+    face->entity = glr.ent;
     face->next = faces_alpha;
     faces_alpha = face;
 }
