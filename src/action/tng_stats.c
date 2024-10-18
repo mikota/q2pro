@@ -717,7 +717,7 @@ void G_RegisterScore(void)
         return;
     }
 
-	if (teamplay->value && game.roundNum == 0){
+	if ((teamplay->value && game.roundNum == 0) && !ctf->value){
 		gi.dprintf("No rounds were played, so no highscore will be recorded\n");
 		return; // No rounds were played, so skip
 	}
@@ -729,7 +729,7 @@ void G_RegisterScore(void)
 	score = c->resp.score;
 
 	// Calculate FPR, if mode is teamplay, else FPH
-	if (teamplay->value && game.roundNum > 0){
+	if ((teamplay->value && game.roundNum > 0) || !ctf->value){
 		fragsper = c->resp.score / game.roundNum;
 	} else {
 		sec = (level.framenum - c->resp.enterframe) / HZ;
@@ -766,6 +766,11 @@ void G_RegisterScore(void)
     level.record = s->time;
 
     qsort(level.scores, level.numscores, sizeof(highscore_t), ScoreCmp);
+
+	// Disable counting bot high scores if the cvar is set
+	edict_t* player = FindEdictByClient(c);
+	if (player->is_bot && !g_highscores_countbots->value)
+		return;
 
     gi.dprintf("Added highscore entry for %s with %d score\n",
                c->pers.netname, score);

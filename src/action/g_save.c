@@ -672,6 +672,7 @@ void InitGame( void )
 		gi.cvar_forceset("bholelimit", "30");
 	}
 	g_highscores_dir = gi.cvar("g_highscores_dir", "highscores", 0);
+	g_highscores_countbots = gi.cvar("g_highscores_countbots", "0", 0);
 	lca_grenade = gi.cvar("lca_grenade", "0", 0);
 
 

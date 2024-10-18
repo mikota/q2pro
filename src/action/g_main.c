@@ -573,6 +573,7 @@ cvar_t *use_pickup;						// Enable pickup notifications from the server
 
 cvar_t *training_mode; // Sets training mode vars
 cvar_t *g_highscores_dir; // Sets the highscores directory
+cvar_t *g_highscores_countbots; // Toggles if we save highscores achieved by bots
 cvar_t *lca_grenade; // Allows grenade pin pulling during LCA
 cvar_t *breakableglass; // Moved from cgf_sfx_glass, enables breakable glass (0,1,2)
 cvar_t *glassfragmentlimit; // Moved from cgf_sfx_glass, sets glass fragment limit

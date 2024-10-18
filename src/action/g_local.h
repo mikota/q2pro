@@ -1366,6 +1366,7 @@ extern cvar_t *use_pickup;
 
 extern cvar_t *training_mode; // Sets training mode vars
 extern cvar_t *g_highscores_dir; // Sets the highscores directory
+extern cvar_t *g_highscores_countbots; // Toggles if we save highscores achieved by bots
 extern cvar_t *lca_grenade; // Allows grenade pin pulling during LCA
 extern cvar_t *breakableglass; // Moved from cgf_sfx_glass, enables breakable glass (0,1,2)
 extern cvar_t *glassfragmentlimit; // Moved from cgf_sfx_glass, sets glass fragment limit
@@ -1547,6 +1548,7 @@ qboolean infront( edict_t *self, edict_t *other );
 void disablecvar(cvar_t *cvar, char *msg);
 int eztimer(int seconds);
 float sigmoid(float x);
+edict_t* FindEdictByClient(gclient_t* client);
 
 // Re-enabled for bots
 float *tv (float x, float y, float z);
