@@ -3878,7 +3878,10 @@ void A_ScoreboardMessage (edict_t * ent, edict_t * killer)
 #ifndef NO_BOTS
 					//rekkie -- Fake Bot Client -- s
 					if (cl_ent->is_bot)
-						Q_snprintf(buf, sizeof(buf), "%4i", min(9999, cl_ent->bot.bot_ping));
+						if (bot_reportasclient->value)
+							Q_snprintf(buf, sizeof(buf), "%4i", min(9999, cl_ent->bot.bot_ping));
+						else
+							Q_snprintf(buf, sizeof(buf), " BOT");
 					//if (0)
 					//rekkie -- Fake Bot Client -- e
 					//if( cl_ent->is_bot )
