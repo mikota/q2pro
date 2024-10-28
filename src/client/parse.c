@@ -1521,6 +1521,7 @@ void CL_ParseServerMessage(void)
 
 		case svc_temp_entity:
 			CL_ParseTEntPacket();
+			CL_ParseTEnt();
 			break;
 
 		case svc_muzzleflash:
