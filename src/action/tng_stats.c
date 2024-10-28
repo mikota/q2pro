@@ -729,7 +729,7 @@ void G_RegisterScore(void)
 	score = c->resp.score;
 
 	// Calculate FPR, if mode is teamplay, else FPH
-	if ((teamplay->value && game.roundNum > 0) || !ctf->value){
+	if ((teamplay->value && game.roundNum > 0) || !ctf->value || game.roundNum > 0){
 		fragsper = c->resp.score / game.roundNum;
 	} else {
 		sec = (level.framenum - c->resp.enterframe) / HZ;
