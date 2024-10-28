@@ -711,13 +711,19 @@ void G_RegisterScore(void)
     int score;
 	int sec;
 	float accuracy, fragsper;
+	qboolean roundbased;
 
     total = G_CalcRanks(ranks);
     if (!total) {
         return;
     }
 
-	if ((teamplay->value && game.roundNum == 0) && !ctf->value){
+	if (strcmp(gm->string, "tp") == 0 || strcmp(gm->string, "esp") == 0)
+		roundbased = true;
+	else
+		roundbased = false;
+
+	if (roundbased && game.roundNum == 0) {
 		gi.dprintf("No rounds were played, so no highscore will be recorded\n");
 		return; // No rounds were played, so skip
 	}
@@ -729,7 +735,7 @@ void G_RegisterScore(void)
 	score = c->resp.score;
 
 	// Calculate FPR, if mode is teamplay, else FPH
-	if ((teamplay->value && game.roundNum > 0) || !ctf->value || game.roundNum > 0){
+	if (roundbased && game.roundNum > 0) {
 		fragsper = c->resp.score / game.roundNum;
 	} else {
 		sec = (level.framenum - c->resp.enterframe) / HZ;
@@ -769,8 +775,10 @@ void G_RegisterScore(void)
 
 	// Disable counting bot high scores if the cvar is set
 	edict_t* player = FindEdictByClient(c);
-	if (player->is_bot && !g_highscores_countbots->value)
+	if (player->is_bot && !g_highscores_countbots->value) {
+		gi.dprintf("g_highscores_countbots is disabled, %s's score will not be recorded\n", player->client->pers.netname);
 		return;
+	}
 
     gi.dprintf("Added highscore entry for %s with %d score\n",
                c->pers.netname, score);

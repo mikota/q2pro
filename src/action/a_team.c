@@ -471,12 +471,25 @@ char* PrintMatchRules(void)
 	// CTF rules
 	else if (ctf->value)
 	{
-		if (!capturelimit->value) {
-			Q_snprintf( rulesmsg, sizeof( rulesmsg ), "%s\nvs\n%s\n\nCapture the other team's flag!\nNo capturelimit set!\n",
-			teams[TEAM1].name, teams[TEAM2].name );
-		} else {
-			Q_snprintf( rulesmsg, sizeof( rulesmsg ), "%s\nvs\n%s\n\nCapture the other team's flag!\nThe first team to %s captures wins!\n",
+		if (capturelimit->value && timelimit->value)
+		{
+			Q_snprintf( rulesmsg, sizeof( rulesmsg ), "%s\nvs\n%s\n\nCapture the other team's flag!\n\nThe first team to %s captures wins!\nTime limit: %s minutes\n",
+			teams[TEAM1].name, teams[TEAM2].name, capturelimit->string, timelimit->string );
+		}
+		else if (capturelimit->value)
+		{
+			Q_snprintf( rulesmsg, sizeof( rulesmsg ), "%s\nvs\n%s\n\nCapture the other team's flag!\n\nThe first team to %s captures wins!\n",
 			teams[TEAM1].name, teams[TEAM2].name, capturelimit->string );
+		}
+		else if (timelimit->value)
+		{
+			Q_snprintf( rulesmsg, sizeof( rulesmsg ), "%s\nvs\n%s\n\nCapture the other team's flag!\n\nTime limit: %s minutes\n",
+			teams[TEAM1].name, teams[TEAM2].name, timelimit->string );
+		}
+		else
+		{
+			Q_snprintf( rulesmsg, sizeof( rulesmsg ), "%s\nvs\n%s\n\nCapture the other team's flag!\n\nNo capturelimit or timelimit set!\n",
+			teams[TEAM1].name, teams[TEAM2].name );
 		}
 	}
 	// Domination rules
