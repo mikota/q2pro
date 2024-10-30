@@ -2955,6 +2955,12 @@ typedef enum {
 	h_team_l_num,
 	h_team_r,
 	h_team_r_num,
+	h_spectator_stats,
+	h_spectator_timer,
+	h_spectator_time_tm,
+	h_spectator_time_mm,
+	h_spectator_time_ts,
+	h_spectator_time_ss,
 } huditem_t;
 
 void HUD_SetType(edict_t *clent, int type);
