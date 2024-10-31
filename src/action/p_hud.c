@@ -836,7 +836,7 @@ void HUD_SpectatorStatsSetup(edict_t *clent)
 	hud[k] = Ghud_NewElement(clent, GHT_FILL);
 	Ghud_SetPosition(clent, hud[k], x, y);
 	Ghud_SetAnchor(clent, hud[k], 1, 0);
-	Ghud_SetSize(clent, hud[k], 0, 12);
+	Ghud_SetSize(clent, hud[k], 288, 12);
 	Ghud_SetColor(clent, hud[k], 0, 0, 0, 0);
 
 	k = h_sbar + 1; // stat table text
@@ -1240,7 +1240,7 @@ void HUD_SpectatorUpdate(edict_t *clent)
 			// update fields
 
 			// Change color based on team
-			int nameplate_alpha = 200;
+			int nameplate_alpha = 180;
 
 			// Red team colors
 			int red_team_red = 220;
@@ -1279,17 +1279,17 @@ void HUD_SpectatorUpdate(edict_t *clent)
 			// Color per team
 			if (clent->client->chase_target) {
 				if (targ->client->resp.team == TEAM1) {
-					Ghud_SetColor(clent, hud[h_nbar], 150, 150, 150, nameplate_alpha);
+					Ghud_SetColor(clent, hud[h_nbar], red_team_red, red_team_green, red_team_blue, nameplate_alpha);
 					Ghud_SetColor(clent, hud[h_sbar], alt_red_team_red, alt_red_team_green, alt_red_team_blue, 255);
-					Ghud_SetColor(clent, hud[h_base], red_team_red, red_team_green, red_team_blue, 255);
+					Ghud_SetColor(clent, hud[h_base], 150, 150, 150, 255);
 				} else if (targ->client->resp.team == TEAM2) {
-					Ghud_SetColor(clent, hud[h_nbar], 150, 150, 150, nameplate_alpha);
+					Ghud_SetColor(clent, hud[h_nbar], blue_team_red, blue_team_green, blue_team_blue, nameplate_alpha);
 					Ghud_SetColor(clent, hud[h_sbar], alt_blue_team_red, alt_blue_team_green, alt_blue_team_blue, 255);
-					Ghud_SetColor(clent, hud[h_base], blue_team_red, blue_team_green, blue_team_blue, 255);
+					Ghud_SetColor(clent, hud[h_base], 150, 150, 150, 255);
 				} else if (targ->client->resp.team == TEAM3) {
-					Ghud_SetColor(clent, hud[h_nbar], 150, 150, 150, nameplate_alpha);
+					Ghud_SetColor(clent, hud[h_nbar], green_team_red, green_team_green, green_team_blue, nameplate_alpha);
 					Ghud_SetColor(clent, hud[h_sbar], alt_green_team_red, alt_green_team_green, alt_green_team_blue, 255);
-					Ghud_SetColor(clent, hud[h_base], green_team_red, green_team_green, green_team_blue, 255);
+					Ghud_SetColor(clent, hud[h_base], 150, 150, 150, 255);
 				}
 			}
 		}
