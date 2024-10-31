@@ -773,7 +773,6 @@ void HUD_ClientUpdate(edict_t *clent)
 
 void HUD_SpectatorStatsSetup(edict_t *clent)
 {
-	Ghud_ClearForClient(clent);
 	clent->client->resp.hud_type = 1;
 	int *hud = clent->client->resp.hud_items;
 
@@ -792,7 +791,8 @@ void HUD_SpectatorStatsSetup(edict_t *clent)
 	Ghud_SetPosition(clent, hud[h], x, y + 12);
 	Ghud_SetAnchor(clent, hud[h], 1, 0);
 	Ghud_SetSize(clent, hud[h], 288, 12);
-	Ghud_SetColor(clent, hud[h], 0, 0, 0, 0);
+	Ghud_SetFlags(clent, hud[h], GHF_HIDE);
+	//Ghud_SetColor(clent, hud[h], 0, 0, 0, 0);
 
 	h = h_base + 1; // frags
 	hud[h] = Ghud_AddText(clent, x + 32, y + 14, "");
@@ -823,7 +823,8 @@ void HUD_SpectatorStatsSetup(edict_t *clent)
 	Ghud_SetPosition(clent, hud[j], x, y - 12);
 	Ghud_SetAnchor(clent, hud[j], 1, 0);
 	Ghud_SetSize(clent, hud[j], 288, 12);
-	Ghud_SetColor(clent, hud[j], 0, 0, 0, 0);
+	//Ghud_SetColor(clent, hud[j], 0, 0, 0, 0);
+	Ghud_SetFlags(clent, hud[j], GHF_HIDE);
 
 	j = h_nbar + 1; // name print
 	hud[j] = Ghud_AddText(clent, x, y + 12, "");
@@ -837,7 +838,8 @@ void HUD_SpectatorStatsSetup(edict_t *clent)
 	Ghud_SetPosition(clent, hud[k], x, y);
 	Ghud_SetAnchor(clent, hud[k], 1, 0);
 	Ghud_SetSize(clent, hud[k], 288, 12);
-	Ghud_SetColor(clent, hud[k], 0, 0, 0, 0);
+	//Ghud_SetColor(clent, hud[k], 0, 0, 0, 0);
+	Ghud_SetFlags(clent, hud[k], GHF_HIDE);
 
 	k = h_sbar + 1; // stat table text
 	hud[k] = Ghud_AddText(clent, x, y, "");
@@ -950,6 +952,9 @@ void HUD_SpectatorSetup(edict_t *clent)
 			Ghud_SetAnchor(clent, hud[h], 1, 0);
 		}
 
+		// GHUD chase player stats
+		HUD_SpectatorStatsSetup(clent);
+
 		if (timelimit->value) {
 			// GHUD top middle time display
 			int x, y;
@@ -969,21 +974,21 @@ void HUD_SpectatorSetup(edict_t *clent)
 			hud[h_spectator_time_mm] = Ghud_AddNumber(clent, -96, 2, 0);
 			hud[h_spectator_time_ts] = Ghud_AddNumber(clent, -64, 2, 0);
 			hud[h_spectator_time_ss] = Ghud_AddNumber(clent, -32, 2, 0);
-
+		}
 			// GHUD top corner team icon
 
-			hud[h_team_l] = Ghud_AddIcon(clent, 2, 2, level.pic_teamskin[1], 24, 24);
-			Ghud_SetAnchor(clent, hud[h_team_l], 0, 0);
-			hud[h_team_l_num] = Ghud_AddNumber(clent, 96, 2, 0);
-			Ghud_SetSize(clent, hud[h_team_l_num], 2, 0);
-			Ghud_SetAnchor(clent, hud[h_team_l_num], 0, 0);
+		hud[h_team_l] = Ghud_AddIcon(clent, 2, 2, level.pic_teamskin[1], 24, 24);
+		Ghud_SetAnchor(clent, hud[h_team_l], 0, 0);
+		hud[h_team_l_num] = Ghud_AddNumber(clent, 96, 2, 0);
+		Ghud_SetSize(clent, hud[h_team_l_num], 2, 0);
+		Ghud_SetAnchor(clent, hud[h_team_l_num], 0, 0);
 
-			hud[h_team_r] = Ghud_AddIcon(clent, -26, 2, level.pic_teamskin[2], 24, 24);
-			Ghud_SetAnchor(clent, hud[h_team_r], 1, 0);
-			hud[h_team_r_num] = Ghud_AddNumber(clent, -128, 2, 0);
-			Ghud_SetSize(clent, hud[h_team_r_num], 1, 0);
-			Ghud_SetAnchor(clent, hud[h_team_r_num], 1, 0);
-		}
+		hud[h_team_r] = Ghud_AddIcon(clent, -26, 2, level.pic_teamskin[2], 24, 24);
+		Ghud_SetAnchor(clent, hud[h_team_r], 1, 0);
+		hud[h_team_r_num] = Ghud_AddNumber(clent, -128, 2, 0);
+		Ghud_SetSize(clent, hud[h_team_r_num], 1, 0);
+		Ghud_SetAnchor(clent, hud[h_team_r_num], 1, 0);
+
 	}
 }
 
@@ -997,7 +1002,7 @@ void HUD_SpectatorUpdate(edict_t *clent)
 
 		if (!(clent->client->pers.spec_flags & SPECFL_SPECHUD_NEW)) // hide all elements since client doesn't want them
 		{
-			for (i = 0; i <= h_team_r_num; i++)
+			for (i = 0; i <= h_spectator_time_ss; i++)
 			{
 				Ghud_SetFlags(clent, hud[i], GHF_HIDE);
 			}
@@ -1212,8 +1217,10 @@ void HUD_SpectatorUpdate(edict_t *clent)
 		int h_nbar = h_spectator_name_bar;
 		int h_sbar = h_spectator_stats_bar;
 		// If we're chasing a target, display their stats
+
+		//gi.dprintf("chase target: %s\n", clent->client->chase_target ? clent->client->chase_target->client->pers.netname : "none");
+		//gi.dprintf("chase target mode: %i\n", clent->client->chase_mode);
 		if (clent->client->chase_target) {
-			HUD_SpectatorStatsSetup(clent);
 			// GHUD bottom center stat display
 			Ghud_SetFlags(clent, hud[h_spectator_stats], 0);
 			Ghud_SetFlags(clent, hud[h_spectator_stats + 1], 0);
@@ -1292,6 +1299,16 @@ void HUD_SpectatorUpdate(edict_t *clent)
 					Ghud_SetColor(clent, hud[h_base], 150, 150, 150, 255);
 				}
 			}
+		} else {  // Hide the stats if we're not chasing a target
+			Ghud_SetFlags(clent, hud[h_spectator_stats], GHF_HIDE);
+			Ghud_SetFlags(clent, hud[h_spectator_stats + 1], GHF_HIDE);
+			Ghud_SetFlags(clent, hud[h_spectator_stats + 2], GHF_HIDE);
+			Ghud_SetFlags(clent, hud[h_spectator_stats + 3], GHF_HIDE);
+			Ghud_SetFlags(clent, hud[h_spectator_stats + 4], GHF_HIDE);
+			Ghud_SetFlags(clent, hud[h_spectator_name_bar], GHF_HIDE);
+			Ghud_SetFlags(clent, hud[h_spectator_name_bar + 1], GHF_HIDE);
+			Ghud_SetFlags(clent, hud[h_spectator_stats_bar], GHF_HIDE);
+			Ghud_SetFlags(clent, hud[h_spectator_stats_bar + 1], GHF_HIDE);
 		}
 
 		if (timelimit->value) {
