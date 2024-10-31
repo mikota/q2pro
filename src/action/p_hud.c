@@ -770,6 +770,100 @@ void HUD_ClientUpdate(edict_t *clent)
 {
 
 }
+typedef enum {
+    tm = 0,
+    mm = 1,
+    ts = 2,
+    ss = 3
+} hud_time_digits;
+
+static int GetRemainingTimeDigits(hud_time_digits timeval)
+{
+    int remaining = 0, rmins = 0, rsecs = 0, gametime = 0;
+
+    gametime = level.matchTime;
+
+    remaining = (timelimit->value * 60) - gametime;
+
+    rmins = remaining / 60;
+    rsecs = remaining % 60;
+
+    switch (timeval) {
+        case tm: // Tens of minutes
+            return (rmins / 10) % 10;
+        case mm: // Minutes
+            return rmins % 10;
+        case ts: // Tens of seconds
+            return (rsecs / 10) % 10;
+        case ss: // Seconds
+            return rsecs % 10;
+        default:
+            return -1; // Invalid timeval
+    }
+}
+
+static void HUD_UpdateSpectatorTimer(edict_t *clent)
+{
+	int *hud = clent->client->resp.hud_items;
+
+    // Update the HUD elements with the individual digits
+	Ghud_SetInt(clent, hud[h_spectator_time_tm], GetRemainingTimeDigits(tm));
+	Ghud_SetInt(clent, hud[h_spectator_time_mm], GetRemainingTimeDigits(mm));
+	Ghud_SetInt(clent, hud[h_spectator_time_ts], GetRemainingTimeDigits(ts));
+	Ghud_SetInt(clent, hud[h_spectator_time_ss], GetRemainingTimeDigits(ss));
+
+	if (GetRemainingTimeDigits(tm) == 0 && GetRemainingTimeDigits(mm) < 1) {
+		// Change bar color to red
+		Ghud_SetColor(clent, hud[h_spectator_timer], 255, 0, 0, 120);
+	} else if (GetRemainingTimeDigits(tm) == 0 && GetRemainingTimeDigits(mm) < 3)
+	{
+		// Change bar color to orange
+		Ghud_SetColor(clent, hud[h_spectator_timer], 255, 165, 0, 120);
+	}
+	
+}
+
+void HUD_SpectatorTimerSetup(edict_t *clent)
+{
+	int h_base = h_spectator_timer;
+	int h;
+	h = h_base; // timer area
+	int *hud = clent->client->resp.hud_items;
+
+    if (timelimit->value) {
+        // GHUD top middle time display
+        clent->client->resp.hud_type = 1;
+        
+        // GHUD bottom center stat display
+        int x, y;
+
+        x = 450;
+        y = 16;
+
+        hud[h] = Ghud_NewElement(clent, GHT_FILL);
+        Ghud_SetPosition(clent, hud[h], x, y + 12);
+        Ghud_SetAnchor(clent, hud[h], 0, 0);
+        Ghud_SetSize(clent, hud[h], 90, -48);
+        Ghud_SetColor(clent, hud[h], 50, 130, 50, 120);
+
+        // Add number elements for minutes
+        hud[h_spectator_time_tm] = Ghud_AddNumber(clent, x, 2, 0);
+        hud[h_spectator_time_mm] = Ghud_AddNumber(clent, x + 20, 2, 0);
+
+		// Draw timer seperator
+		hud[h_spectator_time_sep] = Ghud_AddText(clent, x + 40, y - 4 , ":");
+
+		// Add number elements for seconds
+        hud[h_spectator_time_ts] = Ghud_AddNumber(clent, x + 50, 2, 0);
+        hud[h_spectator_time_ss] = Ghud_AddNumber(clent, x + 70, 2, 0);
+    } else {
+		Ghud_SetFlags(clent, hud[h_spectator_time_tm], GHF_HIDE);
+		Ghud_SetFlags(clent, hud[h_spectator_time_mm], GHF_HIDE);
+		Ghud_SetFlags(clent, hud[h_spectator_time_sep], GHF_HIDE);
+		Ghud_SetFlags(clent, hud[h_spectator_time_ts], GHF_HIDE);
+		Ghud_SetFlags(clent, hud[h_spectator_time_ss], GHF_HIDE);
+	}
+}
 
 void HUD_SpectatorStatsSetup(edict_t *clent)
 {
@@ -955,28 +1049,10 @@ void HUD_SpectatorSetup(edict_t *clent)
 		// GHUD chase player stats
 		HUD_SpectatorStatsSetup(clent);
 
-		if (timelimit->value) {
-			// GHUD top middle time display
-			int x, y;
-			int h_base = h_spectator_timer;
-			int h;
-
-			x = -640;
-			y = 16;
-
-			h = h_base; // timer area
-			hud[h] = Ghud_NewElement(clent, GHT_FILL);
-			Ghud_SetPosition(clent, hud[h], x, y);
-			Ghud_SetAnchor(clent, hud[h], 1, 0);
-			Ghud_SetSize(clent, hud[h], 288, 24);
-			Ghud_SetColor(clent, hud[h], 0, 0, 0, 0);
-			hud[h_spectator_time_tm] = Ghud_AddNumber(clent, -128, 2, 0);
-			hud[h_spectator_time_mm] = Ghud_AddNumber(clent, -96, 2, 0);
-			hud[h_spectator_time_ts] = Ghud_AddNumber(clent, -64, 2, 0);
-			hud[h_spectator_time_ss] = Ghud_AddNumber(clent, -32, 2, 0);
-		}
-			// GHUD top corner team icon
-
+		// GHUD top middle time display
+		HUD_SpectatorTimerSetup(clent);
+		
+		// GHUD top corner team icon
 		hud[h_team_l] = Ghud_AddIcon(clent, 2, 2, level.pic_teamskin[1], 24, 24);
 		Ghud_SetAnchor(clent, hud[h_team_l], 0, 0);
 		hud[h_team_l_num] = Ghud_AddNumber(clent, 96, 2, 0);
@@ -1311,14 +1387,8 @@ void HUD_SpectatorUpdate(edict_t *clent)
 			Ghud_SetFlags(clent, hud[h_spectator_stats_bar + 1], GHF_HIDE);
 		}
 
-		if (timelimit->value) {
-			// GHUD top middle time display
-			Ghud_SetFlags(clent, hud[h_spectator_timer], 0);
-			Ghud_SetFlags(clent, hud[h_spectator_time_tm], 0);
-			Ghud_SetFlags(clent, hud[h_spectator_time_mm], 0);
-			Ghud_SetFlags(clent, hud[h_spectator_time_ts], 0);
-			Ghud_SetFlags(clent, hud[h_spectator_time_ss], 0);
-		}
+		// Update the timer display
+        HUD_UpdateSpectatorTimer(clent);
 	}
 }
 

@@ -2955,14 +2955,15 @@ typedef enum {
 	h_team_l_num,
 	h_team_r,
 	h_team_r_num,
-	h_spectator_stats = 66,
-	h_spectator_stats_bar = 72,
-	h_spectator_name_bar = 74,
-	h_spectator_timer = 76,
+	h_spectator_stats = 66, // display up to 5 stats at once
+	h_spectator_stats_bar = 73, // h_spectator_stats_bar text is 74
+	h_spectator_name_bar = 75, // h_spectator_name_bar text is 76
+	h_spectator_timer = 77,
 	h_spectator_time_tm,
 	h_spectator_time_mm,
 	h_spectator_time_ts,
 	h_spectator_time_ss,
+	h_spectator_time_sep, // Time seperator (:)
 } huditem_t;
 
 void HUD_SetType(edict_t *clent, int type);
