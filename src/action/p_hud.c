@@ -1313,7 +1313,6 @@ void HUD_SpectatorUpdate(edict_t *clent)
 			char deaths_s[24];
 			char dmg_s[24];
 			char acc_s[10];
-			int x, y;
 			edict_t *targ = clent->client->chase_target;
 			memcpy(nm_s, targ->client->pers.netname, 16);
 			snprintf(frags_s, sizeof(frags_s), "%i", targ->client->resp.kills);
@@ -1388,7 +1387,16 @@ void HUD_SpectatorUpdate(edict_t *clent)
 		}
 
 		// Update the timer display
-        HUD_UpdateSpectatorTimer(clent);
+		if (timelimit->value) {
+        	HUD_UpdateSpectatorTimer(clent);
+		} else {
+			Ghud_SetFlags(clent, hud[h_spectator_timer], GHF_HIDE);
+			Ghud_SetFlags(clent, hud[h_spectator_time_tm], GHF_HIDE);
+			Ghud_SetFlags(clent, hud[h_spectator_time_mm], GHF_HIDE);
+			Ghud_SetFlags(clent, hud[h_spectator_time_sep], GHF_HIDE);
+			Ghud_SetFlags(clent, hud[h_spectator_time_ts], GHF_HIDE);
+			Ghud_SetFlags(clent, hud[h_spectator_time_ss], GHF_HIDE);
+		}
 	}
 }
 
