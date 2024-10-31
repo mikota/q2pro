@@ -814,11 +814,14 @@ static void HUD_UpdateSpectatorTimer(edict_t *clent)
 
 	if (GetRemainingTimeDigits(tm) == 0 && GetRemainingTimeDigits(mm) < 1) {
 		// Change bar color to red
-		Ghud_SetColor(clent, hud[h_spectator_timer], 255, 0, 0, 120);
+		Ghud_SetColor(clent, hud[h_spectator_timer_border], 255, 0, 0, 120);
 	} else if (GetRemainingTimeDigits(tm) == 0 && GetRemainingTimeDigits(mm) < 3)
 	{
 		// Change bar color to orange
-		Ghud_SetColor(clent, hud[h_spectator_timer], 255, 165, 0, 120);
+		Ghud_SetColor(clent, hud[h_spectator_timer_border], 255, 165, 0, 120);
+	} else {
+		// Change bar color to green
+		Ghud_SetColor(clent, hud[h_spectator_timer_border], 50, 150, 50, 120);
 	}
 	
 }
@@ -837,18 +840,25 @@ void HUD_SpectatorTimerSetup(edict_t *clent)
         // GHUD bottom center stat display
         int x, y;
 
-        x = 450;
+        x = 470;
         y = 16;
+
+		hud[h_spectator_timer_border] = Ghud_NewElement(clent, GHT_FILL);
+        Ghud_SetPosition(clent, hud[h_spectator_timer_border], x - 1, y - 18);
+        Ghud_SetAnchor(clent, hud[h_spectator_timer_border], 0, 0);
+        Ghud_SetSize(clent, hud[h_spectator_timer_border], 92, 31);
+        Ghud_SetColor(clent, hud[h_spectator_timer_border], 50, 150, 50, 120);
 
         hud[h] = Ghud_NewElement(clent, GHT_FILL);
         Ghud_SetPosition(clent, hud[h], x, y + 12);
         Ghud_SetAnchor(clent, hud[h], 0, 0);
         Ghud_SetSize(clent, hud[h], 90, -48);
-        Ghud_SetColor(clent, hud[h], 50, 130, 50, 120);
+        Ghud_SetColor(clent, hud[h], 50, 50, 50, 255);
 
         // Add number elements for minutes
         hud[h_spectator_time_tm] = Ghud_AddNumber(clent, x, 2, 0);
         hud[h_spectator_time_mm] = Ghud_AddNumber(clent, x + 20, 2, 0);
+		
 
 		// Draw timer seperator
 		hud[h_spectator_time_sep] = Ghud_AddText(clent, x + 40, y - 4 , ":");
@@ -1390,6 +1400,7 @@ void HUD_SpectatorUpdate(edict_t *clent)
 		if (timelimit->value) {
         	HUD_UpdateSpectatorTimer(clent);
 		} else {
+			Ghud_SetFlags(clent, hud[h_spectator_timer_border], GHF_HIDE);
 			Ghud_SetFlags(clent, hud[h_spectator_timer], GHF_HIDE);
 			Ghud_SetFlags(clent, hud[h_spectator_time_tm], GHF_HIDE);
 			Ghud_SetFlags(clent, hud[h_spectator_time_mm], GHF_HIDE);

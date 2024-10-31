@@ -2959,6 +2959,7 @@ typedef enum {
 	h_spectator_stats_bar = 73, // h_spectator_stats_bar text is 74
 	h_spectator_name_bar = 75, // h_spectator_name_bar text is 76
 	h_spectator_timer = 77,
+	h_spectator_timer_border,
 	h_spectator_time_tm,
 	h_spectator_time_mm,
 	h_spectator_time_ts,
