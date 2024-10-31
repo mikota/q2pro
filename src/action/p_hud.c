@@ -771,12 +771,103 @@ void HUD_ClientUpdate(edict_t *clent)
 
 }
 
+void HUD_SpectatorStatsSetup(edict_t *clent)
+{
+	Ghud_ClearForClient(clent);
+	clent->client->resp.hud_type = 1;
+	int *hud = clent->client->resp.hud_items;
+
+	// GHUD bottom center stat display
+	int x, y;
+	int h_base = h_spectator_stats;
+	int h_nbar = h_spectator_name_bar;
+	int h_sbar = h_spectator_stats_bar;
+	int h, j, k;
+
+	x = -640;
+	y = 480;
+
+	h = h_base; // back bar
+	hud[h] = Ghud_NewElement(clent, GHT_FILL);
+	Ghud_SetPosition(clent, hud[h], x, y + 12);
+	Ghud_SetAnchor(clent, hud[h], 1, 0);
+	Ghud_SetSize(clent, hud[h], 288, 12);
+	Ghud_SetColor(clent, hud[h], 0, 0, 0, 0);
+
+	h = h_base + 1; // frags
+	hud[h] = Ghud_AddText(clent, x + 32, y + 14, "");
+	Ghud_SetAnchor(clent, hud[h], 1, 0);
+	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
+
+	h = h_base + 2; // deaths
+	hud[h] = Ghud_AddText(clent, x + 96, y + 14, "");
+	Ghud_SetAnchor(clent, hud[h], 1, 0);
+	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
+
+	h = h_base + 3; // damage
+	hud[h] = Ghud_AddText(clent, x + 120, y + 14, "");
+	Ghud_SetAnchor(clent, hud[h], 1, 0);
+	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
+
+	h = h_base + 4; // accuracy
+	hud[h] = Ghud_AddText(clent, x + 185, y + 14, "");
+	Ghud_SetAnchor(clent, hud[h], 1, 0);
+	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
+
+	h = h_base + 10; // weapon selection
+	hud[h] = Ghud_AddIcon(clent, x - 680, y + 2, level.pic_items[M4_NUM], 20, 20);
+	Ghud_SetAnchor(clent, hud[h], 1, 0);
+
+	j = h_nbar; // name bar
+	hud[j] = Ghud_NewElement(clent, GHT_FILL);
+	Ghud_SetPosition(clent, hud[j], x, y - 12);
+	Ghud_SetAnchor(clent, hud[j], 1, 0);
+	Ghud_SetSize(clent, hud[j], 288, 12);
+	Ghud_SetColor(clent, hud[j], 0, 0, 0, 0);
+
+	j = h_nbar + 1; // name print
+	hud[j] = Ghud_AddText(clent, x, y + 12, "");
+	Ghud_SetPosition(clent, hud[j], x + 120, y - 12);
+	Ghud_SetAnchor(clent, hud[j], 1, 0);
+	Ghud_SetSize(clent, hud[j], 20, 12);
+	Ghud_SetTextFlags(clent, hud[j], UI_CENTER);
+
+	k = h_sbar; // stat table bar
+	hud[k] = Ghud_NewElement(clent, GHT_FILL);
+	Ghud_SetPosition(clent, hud[k], x, y);
+	Ghud_SetAnchor(clent, hud[k], 1, 0);
+	Ghud_SetSize(clent, hud[k], 0, 12);
+	Ghud_SetColor(clent, hud[k], 0, 0, 0, 0);
+
+	k = h_sbar + 1; // stat table text
+	hud[k] = Ghud_AddText(clent, x, y, "");
+	Ghud_SetAnchor(clent, hud[k], 1, 0);
+	Ghud_SetTextFlags(clent, hud[k], UI_LEFT);
+}
 
 void HUD_SpectatorSetup(edict_t *clent)
 {
 	Ghud_ClearForClient(clent);
 	clent->client->resp.hud_type = 1;
 
+	int nameplate_alpha = 230;
+
+	// Red team colors
+	int red_team_red = 220;
+	int red_team_green = 60;
+	int red_team_blue = 60;
+	int alt_red_team_red = 110;
+	int alt_red_team_green = 45;
+	int alt_red_team_blue = 45;
+
+	// Blue team colors
+	int blue_team_red = 40;
+	int blue_team_green = 80;
+	int blue_team_blue = 220;
+	int alt_blue_team_red = 30;
+	int alt_blue_team_green = 60;
+	int alt_blue_team_blue = 110;
+	
 	int *hud = clent->client->resp.hud_items;
 	int i;
 
@@ -796,14 +887,14 @@ void HUD_SpectatorSetup(edict_t *clent)
 			Ghud_SetPosition(clent, hud[h], x, y);
 			Ghud_SetAnchor(clent, hud[h], 0, 0);
 			Ghud_SetSize(clent, hud[h], 144, 24);
-			Ghud_SetColor(clent, hud[h], 110, 45, 45, 230);
+			Ghud_SetColor(clent, hud[h], alt_red_team_red, alt_red_team_green, alt_red_team_blue, nameplate_alpha);
 
 			h = h_base + 1; // health bar
 			hud[h] = Ghud_NewElement(clent, GHT_FILL);
 			Ghud_SetPosition(clent, hud[h], x, y);
 			Ghud_SetAnchor(clent, hud[h], 0, 0);
 			Ghud_SetSize(clent, hud[h], 0, 24);
-			Ghud_SetColor(clent, hud[h], 220, 60, 60, 230);
+			Ghud_SetColor(clent, hud[h], red_team_red, red_team_green, red_team_blue, nameplate_alpha);
 
 			h = h_base + 2; // name
 			hud[h] = Ghud_AddText(clent, x + 142, y + 3, "");
@@ -835,14 +926,14 @@ void HUD_SpectatorSetup(edict_t *clent)
 			Ghud_SetPosition(clent, hud[h], x, y);
 			Ghud_SetAnchor(clent, hud[h], 1, 0);
 			Ghud_SetSize(clent, hud[h], 144, 24);
-			Ghud_SetColor(clent, hud[h], 30, 60, 110, 230);
+			Ghud_SetColor(clent, hud[h], alt_blue_team_red, alt_blue_team_green, alt_blue_team_blue, nameplate_alpha);
 
 			h = h_base + 1; // health bar
 			hud[h] = Ghud_NewElement(clent, GHT_FILL);
 			Ghud_SetPosition(clent, hud[h], x, y);
 			Ghud_SetAnchor(clent, hud[h], 1, 0);
 			Ghud_SetSize(clent, hud[h], 0, 24);
-			Ghud_SetColor(clent, hud[h], 40, 80, 220, 230);
+			Ghud_SetColor(clent, hud[h], blue_team_red, blue_team_green, blue_team_blue, nameplate_alpha);
 
 			h = h_base + 2; // name
 			hud[h] = Ghud_AddText(clent, x + 2, y + 3, "");
@@ -856,79 +947,6 @@ void HUD_SpectatorSetup(edict_t *clent)
 
 			h = h_base + 4; // weapon select
 			hud[h] = Ghud_AddIcon(clent, x + 122, y + 2, level.pic_items[M4_NUM], 20, 20);
-			Ghud_SetAnchor(clent, hud[h], 1, 0);
-		}
-
-		if (1) {
-			// GHUD bottom center stat display
-			int x, y;
-			int h_base = h_spectator_stats;
-			int h;
-
-			x = -640;
-			y = 480;
-
-			h = h_base; // back bar
-			hud[h] = Ghud_NewElement(clent, GHT_FILL);
-			Ghud_SetPosition(clent, hud[h], x, y);
-			Ghud_SetAnchor(clent, hud[h], 1, 0);
-			Ghud_SetSize(clent, hud[h], 288, 24);
-			Ghud_SetColor(clent, hud[h], 30, 60, 110, 255);
-
-			h = h_base + 1; // name bar
-			hud[h] = Ghud_NewElement(clent, GHT_FILL);
-			Ghud_SetPosition(clent, hud[h], x, y - 16);
-			Ghud_SetAnchor(clent, hud[h], 1, 0);
-			Ghud_SetSize(clent, hud[h], 20, 12);
-			Ghud_SetColor(clent, hud[h], 40, 80, 220, 255);
-			Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
-
-			h = h_base + 2; // name print
-			hud[h] = Ghud_AddText(clent, x + 32, y + 32, "");
-			Ghud_SetPosition(clent, hud[h], x, y - 16);
-			Ghud_SetAnchor(clent, hud[h], 1, 0);
-			Ghud_SetSize(clent, hud[h], 20, 12);
-			Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
-
-			h = h_base + 3; // stat table bar
-			hud[h] = Ghud_NewElement(clent, GHT_FILL);
-			Ghud_SetPosition(clent, hud[h], x, y + 16);
-			Ghud_SetAnchor(clent, hud[h], 1, 0);
-			Ghud_SetSize(clent, hud[h], 0, 24);
-			Ghud_SetColor(clent, hud[h], 20, 40, 230, 255);
-
-			h = h_base + 4; // stat table text
-			hud[h] = Ghud_AddText(clent, x, y, "");
-			Ghud_SetAnchor(clent, hud[h], 1, 0);
-			Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
-
-			h = h_base + 5; // frags
-			hud[h] = Ghud_AddText(clent, x + 32, y + 14, "");
-			Ghud_SetAnchor(clent, hud[h], 1, 0);
-			Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
-
-			h = h_base + 6; // deaths
-			hud[h] = Ghud_AddText(clent, x + 96, y + 14, "");
-			Ghud_SetAnchor(clent, hud[h], 1, 0);
-			Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
-
-			h = h_base + 7; // damage
-			hud[h] = Ghud_AddText(clent, x + 120, y + 14, "");
-			Ghud_SetAnchor(clent, hud[h], 1, 0);
-			Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
-
-			h = h_base + 8; // accuracy
-			hud[h] = Ghud_AddText(clent, x + 185, y + 14, "");
-			Ghud_SetAnchor(clent, hud[h], 1, 0);
-			Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
-
-
-
-
-
-
-			h = h_base + 10; // weapon select
-			hud[h] = Ghud_AddIcon(clent, x - 680, y + 2, level.pic_items[M4_NUM], 20, 20);
 			Ghud_SetAnchor(clent, hud[h], 1, 0);
 		}
 
@@ -1190,16 +1208,22 @@ void HUD_SpectatorUpdate(edict_t *clent)
 				Ghud_SetInt(clent, hud[h + 4], level.pic_items[MK23_NUM]);
 		}
 
+		int h_base = h_spectator_stats;
+		int h_nbar = h_spectator_name_bar;
+		int h_sbar = h_spectator_stats_bar;
 		// If we're chasing a target, display their stats
 		if (clent->client->chase_target) {
+			HUD_SpectatorStatsSetup(clent);
 			// GHUD bottom center stat display
 			Ghud_SetFlags(clent, hud[h_spectator_stats], 0);
 			Ghud_SetFlags(clent, hud[h_spectator_stats + 1], 0);
 			Ghud_SetFlags(clent, hud[h_spectator_stats + 2], 0);
 			Ghud_SetFlags(clent, hud[h_spectator_stats + 3], 0);
 			Ghud_SetFlags(clent, hud[h_spectator_stats + 4], 0);
-			Ghud_SetFlags(clent, hud[h_spectator_stats + 5], 0);
-			Ghud_SetFlags(clent, hud[h_spectator_stats + 6], 0);
+			Ghud_SetFlags(clent, hud[h_spectator_name_bar], 0);
+			Ghud_SetFlags(clent, hud[h_spectator_name_bar + 1], 0);
+			Ghud_SetFlags(clent, hud[h_spectator_stats_bar], 0);
+			Ghud_SetFlags(clent, hud[h_spectator_stats_bar + 1], 0);
 
 			char nm_s[17];
 			char frags_s[24];
@@ -1207,7 +1231,6 @@ void HUD_SpectatorUpdate(edict_t *clent)
 			char dmg_s[24];
 			char acc_s[10];
 			int x, y;
-			int h = h_spectator_stats;
 			edict_t *targ = clent->client->chase_target;
 			memcpy(nm_s, targ->client->pers.netname, 16);
 			snprintf(frags_s, sizeof(frags_s), "%i", targ->client->resp.kills);
@@ -1215,26 +1238,70 @@ void HUD_SpectatorUpdate(edict_t *clent)
 			snprintf(dmg_s, sizeof(dmg_s), "%i", targ->client->resp.damage_dealt);
 			snprintf(acc_s, sizeof(acc_s), "%.2f%%", CalculateAccuracy(targ));
 			// update fields
-			Ghud_SetText(clent, hud[h + 2], nm_s);
-			Ghud_SetText(clent, hud[h + 4], "Frags  Deaths  Damage  Acc.");
-			Ghud_SetText(clent, hud[h + 5], frags_s);
-			Ghud_SetText(clent, hud[h + 6], deaths_s);
-			Ghud_SetText(clent, hud[h + 7], dmg_s);
-			Ghud_SetText(clent, hud[h + 8], acc_s);
+
+			// Change color based on team
+			int nameplate_alpha = 200;
+
+			// Red team colors
+			int red_team_red = 220;
+			int red_team_green = 60;
+			int red_team_blue = 60;
+			int alt_red_team_red = 110;
+			int alt_red_team_green = 45;
+			int alt_red_team_blue = 45;
+
+			// Blue team colors
+			int blue_team_red = 40;
+			int blue_team_green = 80;
+			int blue_team_blue = 220;
+			int alt_blue_team_red = 30;
+			int alt_blue_team_green = 60;
+			int alt_blue_team_blue = 110;
+
+			// Green team colors
+			int green_team_red = 40;
+			int green_team_green = 220;
+			int green_team_blue = 40;
+			int alt_green_team_red = 30;
+			int alt_green_team_green = 140;
+			int alt_green_team_blue = 30;
+
+			// target name
+			Ghud_SetText(clent, hud[h_nbar + 1], nm_s);
+			// target stat bar
+			Ghud_SetText(clent, hud[h_sbar + 1], "Frags  Deaths  Damage  Acc.");
+			// target stat values
+			Ghud_SetText(clent, hud[h_base + 1], frags_s);
+			Ghud_SetText(clent, hud[h_base + 2], deaths_s);
+			Ghud_SetText(clent, hud[h_base + 3], dmg_s);
+			Ghud_SetText(clent, hud[h_base + 4], acc_s);
+
+			// Color per team
+			if (clent->client->chase_target) {
+				if (targ->client->resp.team == TEAM1) {
+					Ghud_SetColor(clent, hud[h_nbar], 150, 150, 150, nameplate_alpha);
+					Ghud_SetColor(clent, hud[h_sbar], alt_red_team_red, alt_red_team_green, alt_red_team_blue, 255);
+					Ghud_SetColor(clent, hud[h_base], red_team_red, red_team_green, red_team_blue, 255);
+				} else if (targ->client->resp.team == TEAM2) {
+					Ghud_SetColor(clent, hud[h_nbar], 150, 150, 150, nameplate_alpha);
+					Ghud_SetColor(clent, hud[h_sbar], alt_blue_team_red, alt_blue_team_green, alt_blue_team_blue, 255);
+					Ghud_SetColor(clent, hud[h_base], blue_team_red, blue_team_green, blue_team_blue, 255);
+				} else if (targ->client->resp.team == TEAM3) {
+					Ghud_SetColor(clent, hud[h_nbar], 150, 150, 150, nameplate_alpha);
+					Ghud_SetColor(clent, hud[h_sbar], alt_green_team_red, alt_green_team_green, alt_green_team_blue, 255);
+					Ghud_SetColor(clent, hud[h_base], green_team_red, green_team_green, green_team_blue, 255);
+				}
+			}
 		}
 
-
-		
-
-
-		// GHUD top middle time display
-		Ghud_SetFlags(clent, hud[h_spectator_timer], 0);
-		Ghud_SetFlags(clent, hud[h_spectator_time_tm], 0);
-		Ghud_SetFlags(clent, hud[h_spectator_time_mm], 0);
-		Ghud_SetFlags(clent, hud[h_spectator_time_ts], 0);
-		Ghud_SetFlags(clent, hud[h_spectator_time_ss], 0);
-
-
+		if (timelimit->value) {
+			// GHUD top middle time display
+			Ghud_SetFlags(clent, hud[h_spectator_timer], 0);
+			Ghud_SetFlags(clent, hud[h_spectator_time_tm], 0);
+			Ghud_SetFlags(clent, hud[h_spectator_time_mm], 0);
+			Ghud_SetFlags(clent, hud[h_spectator_time_ts], 0);
+			Ghud_SetFlags(clent, hud[h_spectator_time_ss], 0);
+		}
 	}
 }
 
