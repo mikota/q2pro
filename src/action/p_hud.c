@@ -1112,7 +1112,6 @@ void HUD_SpectatorSetup(edict_t *clent)
 void HUD_SpectatorUpdate(edict_t *clent)
 {
 	int i;
-
 	if (spectator_hud->value) {
 		int *hud = clent->client->resp.hud_items;
 		if (teamplay->value) {
