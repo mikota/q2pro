@@ -1184,7 +1184,10 @@ void HUD_SpectatorUpdate(edict_t *clent)
 			// team 1 (red team)
 			Ghud_SetFlags(clent, hud[h_team_l], 0);
 			Ghud_SetFlags(clent, hud[h_team_l_num], 0);
-			Ghud_SetInt(clent, hud[h_team_l_num], teams[TEAM1].score);
+			if (ctf->value)
+				Ghud_SetInt(clent, hud[h_team_l_num], ctfgame.team1);
+			else
+				Ghud_SetInt(clent, hud[h_team_l_num], teams[TEAM1].score);
 
 			for (i = 0; i < 6; i++)
 			{
@@ -1263,7 +1266,11 @@ void HUD_SpectatorUpdate(edict_t *clent)
 			// team 2 (blue team)
 			Ghud_SetFlags(clent, hud[h_team_r], 0);
 			Ghud_SetFlags(clent, hud[h_team_r_num], 0);
-			Ghud_SetInt(clent, hud[h_team_r_num], teams[TEAM2].score);
+			if (ctf->value)
+				Ghud_SetInt(clent, hud[h_team_l_num], ctfgame.team2);
+			else
+				Ghud_SetInt(clent, hud[h_team_l_num], teams[TEAM2].score);
+
 			if (teams[TEAM2].score >= 10) // gotta readjust size for justifying purposes
 				Ghud_SetSize(clent, hud[h_team_r_num], 2, 0);
 			else
