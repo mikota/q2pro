@@ -909,7 +909,6 @@ void HUD_SpectatorStatsSetup(edict_t *clent)
 	Ghud_SetPosition(clent, hud[h], x, y);
 	Ghud_SetSize(clent, hud[h], bar_width, bar_height);
 	Ghud_SetFlags(clent, hud[h], GHF_HIDE);
-	//Ghud_SetColor(clent, hud[h], 0, 0, 0, 0);
 
 	h = h_base + 1; // frags
 	hud[h] = Ghud_AddText(clent, x + 500, y + 200, "");
@@ -939,19 +938,19 @@ void HUD_SpectatorStatsSetup(edict_t *clent)
 	hud[h] = Ghud_AddText(clent, x, y, "");
 	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
 	Ghud_SetPosition(clent, hud[h], x + 248, y + 2);
-	Ghud_SetTextFlags(clent, hud[h], UI_LEFT | UI_ALTCOLOR);
+	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
 
 	h = h_base + 6; // impressive awards
 	hud[h] = Ghud_AddText(clent, x, y, "");
 	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
 	Ghud_SetPosition(clent, hud[h], x + 273, y + 2);
-	Ghud_SetTextFlags(clent, hud[h], UI_LEFT | UI_ALTCOLOR);
+	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
 
 	h = h_base + 7; // excellent awards
 	hud[h] = Ghud_AddText(clent, x, y, "");
 	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
 	Ghud_SetPosition(clent, hud[h], x + 296, y + 2);
-	Ghud_SetTextFlags(clent, hud[h], UI_LEFT | UI_ALTCOLOR);
+	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
 
 	// h = h_base + 10; // weapon selection
 	// Ghud_SetAnchor(clent, hud[h], 0.5, 1);
@@ -963,7 +962,6 @@ void HUD_SpectatorStatsSetup(edict_t *clent)
 	Ghud_SetAnchor(clent, hud[j], 0.5, 1);
 	Ghud_SetPosition(clent, hud[j], x, y - 24);
 	Ghud_SetSize(clent, hud[j], bar_width, bar_height);
-	//Ghud_SetColor(clent, hud[j], 0, 0, 0, 0);
 	Ghud_SetFlags(clent, hud[j], GHF_HIDE);
 
 	j = h_nbar + 1; // name print
@@ -978,7 +976,6 @@ void HUD_SpectatorStatsSetup(edict_t *clent)
 	Ghud_SetAnchor(clent, hud[k], 0.5, 1);
 	Ghud_SetPosition(clent, hud[k], x, y - 12);
 	Ghud_SetSize(clent, hud[k], bar_width, bar_height);
-	//Ghud_SetColor(clent, hud[k], 0, 0, 0, 0);
 	Ghud_SetFlags(clent, hud[k], GHF_HIDE);
 
 	k = h_sbar + 1; // stat table text
@@ -1423,15 +1420,15 @@ void HUD_SpectatorUpdate(edict_t *clent)
 				if (targ->client->resp.team == TEAM1) {
 					Ghud_SetColor(clent, hud[h_nbar], red_team_red, red_team_green, red_team_blue, nameplate_alpha);
 					Ghud_SetColor(clent, hud[h_sbar], alt_red_team_red, alt_red_team_green, alt_red_team_blue, 255);
-					Ghud_SetColor(clent, hud[h_base], 150, 150, 150, 255);
+					Ghud_SetColor(clent, hud[h_base], 100, 100, 100, 255);
 				} else if (targ->client->resp.team == TEAM2) {
 					Ghud_SetColor(clent, hud[h_nbar], blue_team_red, blue_team_green, blue_team_blue, nameplate_alpha);
 					Ghud_SetColor(clent, hud[h_sbar], alt_blue_team_red, alt_blue_team_green, alt_blue_team_blue, 255);
-					Ghud_SetColor(clent, hud[h_base], 150, 150, 150, 255);
+					Ghud_SetColor(clent, hud[h_base], 100, 100, 100, 255);
 				} else if (targ->client->resp.team == TEAM3) {
 					Ghud_SetColor(clent, hud[h_nbar], green_team_red, green_team_green, green_team_blue, nameplate_alpha);
 					Ghud_SetColor(clent, hud[h_sbar], alt_green_team_red, alt_green_team_green, alt_green_team_blue, 255);
-					Ghud_SetColor(clent, hud[h_base], 150, 150, 150, 255);
+					Ghud_SetColor(clent, hud[h_base], 100, 100, 100, 255);
 				} else if (targ->client->resp.team == 0) {  // Deathmatch!
 					Ghud_SetColor(clent, hud[h_nbar], 220, 220, 220, nameplate_alpha);
 					Ghud_SetColor(clent, hud[h_sbar], 110, 110, 110, 255);
