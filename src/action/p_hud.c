@@ -892,37 +892,57 @@ void HUD_SpectatorStatsSetup(edict_t *clent)
 	// All elements are anchored from the gray bar at the bottom
 	x = -160;
 	y = -60;
+	int bar_width = 305;
+	int bar_height = 12;
 
 	h = h_base; // gray bar
 	hud[h] = Ghud_NewElement(clent, GHT_FILL);
 	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
 	Ghud_SetPosition(clent, hud[h], x, y);
-	Ghud_SetSize(clent, hud[h], 288, 12);
+	Ghud_SetSize(clent, hud[h], bar_width, bar_height);
 	Ghud_SetFlags(clent, hud[h], GHF_HIDE);
 	//Ghud_SetColor(clent, hud[h], 0, 0, 0, 0);
 
 	h = h_base + 1; // frags
 	hud[h] = Ghud_AddText(clent, x + 500, y + 200, "");
 	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
-	Ghud_SetPosition(clent, hud[h], x + 33, y + 2);
+	Ghud_SetPosition(clent, hud[h], x + 16, y + 2);
 	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
 
 	h = h_base + 2; // deaths
 	hud[h] = Ghud_AddText(clent, x, y, "");
 	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
-	Ghud_SetPosition(clent, hud[h], x + 97, y + 2);
+	Ghud_SetPosition(clent, hud[h], x + 72, y + 2);
 	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
 
 	h = h_base + 3; // damage
 	hud[h] = Ghud_AddText(clent, x, y, "");
 	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
-	Ghud_SetPosition(clent, hud[h], x + 160, y + 2);
+	Ghud_SetPosition(clent, hud[h], x + 120, y + 2);
 	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
 
 	h = h_base + 4; // accuracy
 	hud[h] = Ghud_AddText(clent, x, y, "");
 	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
-	Ghud_SetPosition(clent, hud[h], x + 192, y + 2);
+	Ghud_SetPosition(clent, hud[h], x + 184, y + 2);
+	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
+
+	h = h_base + 5; // accuracy awards
+	hud[h] = Ghud_AddText(clent, x, y, "");
+	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
+	Ghud_SetPosition(clent, hud[h], x + 248, y + 2);
+	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
+
+	h = h_base + 6; // impressive awards
+	hud[h] = Ghud_AddText(clent, x, y, "");
+	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
+	Ghud_SetPosition(clent, hud[h], x + 273, y + 2);
+	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
+
+	h = h_base + 7; // excellent awards
+	hud[h] = Ghud_AddText(clent, x, y, "");
+	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
+	Ghud_SetPosition(clent, hud[h], x + 296, y + 2);
 	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
 
 	// h = h_base + 10; // weapon selection
@@ -934,7 +954,7 @@ void HUD_SpectatorStatsSetup(edict_t *clent)
 	hud[j] = Ghud_NewElement(clent, GHT_FILL);
 	Ghud_SetAnchor(clent, hud[j], 0.5, 1);
 	Ghud_SetPosition(clent, hud[j], x, y - 24);
-	Ghud_SetSize(clent, hud[j], 288, 12);
+	Ghud_SetSize(clent, hud[j], bar_width, bar_height);
 	//Ghud_SetColor(clent, hud[j], 0, 0, 0, 0);
 	Ghud_SetFlags(clent, hud[j], GHF_HIDE);
 
@@ -949,7 +969,7 @@ void HUD_SpectatorStatsSetup(edict_t *clent)
 	hud[k] = Ghud_NewElement(clent, GHT_FILL);
 	Ghud_SetAnchor(clent, hud[k], 0.5, 1);
 	Ghud_SetPosition(clent, hud[k], x, y - 12);
-	Ghud_SetSize(clent, hud[k], 288, 12);
+	Ghud_SetSize(clent, hud[k], bar_width, bar_height);
 	//Ghud_SetColor(clent, hud[k], 0, 0, 0, 0);
 	Ghud_SetFlags(clent, hud[k], GHF_HIDE);
 
@@ -1323,6 +1343,9 @@ void HUD_SpectatorUpdate(edict_t *clent)
 			Ghud_SetFlags(clent, hud[h_spectator_stats + 2], 0);
 			Ghud_SetFlags(clent, hud[h_spectator_stats + 3], 0);
 			Ghud_SetFlags(clent, hud[h_spectator_stats + 4], 0);
+			Ghud_SetFlags(clent, hud[h_spectator_stats + 5], 0);
+			Ghud_SetFlags(clent, hud[h_spectator_stats + 6], 0);
+			Ghud_SetFlags(clent, hud[h_spectator_stats + 7], 0);
 			Ghud_SetFlags(clent, hud[h_spectator_name_bar], 0);
 			Ghud_SetFlags(clent, hud[h_spectator_name_bar + 1], 0);
 			Ghud_SetFlags(clent, hud[h_spectator_stats_bar], 0);
@@ -1333,12 +1356,18 @@ void HUD_SpectatorUpdate(edict_t *clent)
 			char deaths_s[24];
 			char dmg_s[24];
 			char acc_s[10];
+			char a_s[10];
+			char i_s[10];
+			char e_s[10];
 			edict_t *targ = clent->client->chase_target;
 			memcpy(nm_s, targ->client->pers.netname, 16);
 			snprintf(frags_s, sizeof(frags_s), "%i", targ->client->resp.kills);
 			snprintf(deaths_s, sizeof(deaths_s), "%i", targ->client->resp.deaths);
 			snprintf(dmg_s, sizeof(dmg_s), "%i", targ->client->resp.damage_dealt);
 			snprintf(acc_s, sizeof(acc_s), "%.2f%%", CalculateAccuracy(targ));
+			snprintf(a_s, sizeof(a_s), "%i", targ->client->resp.awardstats[ACCURACY]);
+			snprintf(i_s, sizeof(i_s), "%i", targ->client->resp.awardstats[IMPRESSIVE]);
+			snprintf(e_s, sizeof(e_s), "%i", targ->client->resp.awardstats[EXCELLENT]);
 			// update fields
 
 			// Change color based on team
@@ -1371,12 +1400,15 @@ void HUD_SpectatorUpdate(edict_t *clent)
 			// target name
 			Ghud_SetText(clent, hud[h_nbar + 1], nm_s);
 			// target stat bar
-			Ghud_SetText(clent, hud[h_sbar + 1], "Frags  Deaths  Damage  Acc.");
+			Ghud_SetText(clent, hud[h_sbar + 1], "Frags  Deaths  Damage  Acc.    A  I  E");
 			// target stat values
 			Ghud_SetText(clent, hud[h_base + 1], frags_s);
 			Ghud_SetText(clent, hud[h_base + 2], deaths_s);
 			Ghud_SetText(clent, hud[h_base + 3], dmg_s);
 			Ghud_SetText(clent, hud[h_base + 4], acc_s);
+			Ghud_SetText(clent, hud[h_base + 5], a_s);
+			Ghud_SetText(clent, hud[h_base + 6], i_s);
+			Ghud_SetText(clent, hud[h_base + 7], e_s);
 
 			// Color per team
 			if (clent->client->chase_target) {
@@ -1400,6 +1432,9 @@ void HUD_SpectatorUpdate(edict_t *clent)
 			Ghud_SetFlags(clent, hud[h_spectator_stats + 2], GHF_HIDE);
 			Ghud_SetFlags(clent, hud[h_spectator_stats + 3], GHF_HIDE);
 			Ghud_SetFlags(clent, hud[h_spectator_stats + 4], GHF_HIDE);
+			Ghud_SetFlags(clent, hud[h_spectator_stats + 5], GHF_HIDE);
+			Ghud_SetFlags(clent, hud[h_spectator_stats + 6], GHF_HIDE);
+			Ghud_SetFlags(clent, hud[h_spectator_stats + 7], GHF_HIDE);
 			Ghud_SetFlags(clent, hud[h_spectator_name_bar], GHF_HIDE);
 			Ghud_SetFlags(clent, hud[h_spectator_name_bar + 1], GHF_HIDE);
 			Ghud_SetFlags(clent, hud[h_spectator_stats_bar], GHF_HIDE);
