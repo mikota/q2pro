@@ -840,6 +840,15 @@ void HUD_SpectatorTimerSetup(edict_t *clent)
     if (timelimit->value) {
         // GHUD top middle time display
         clent->client->resp.hud_type = 1;
+
+		// Unhide the other HUD elements
+		Ghud_SetFlags(clent, hud[h_spectator_timer_border], 0);
+		Ghud_SetFlags(clent, hud[h_spectator_timer], 0);
+		Ghud_SetFlags(clent, hud[h_spectator_time_tm], 0);
+		Ghud_SetFlags(clent, hud[h_spectator_time_mm], 0);
+		Ghud_SetFlags(clent, hud[h_spectator_time_sep], 0);
+		Ghud_SetFlags(clent, hud[h_spectator_time_ts], 0);
+		Ghud_SetFlags(clent, hud[h_spectator_time_ss], 0);
         
         // GHUD bottom center stat display
         int x, y;
