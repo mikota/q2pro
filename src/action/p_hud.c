@@ -904,7 +904,7 @@ void HUD_SpectatorStatsSetup(edict_t *clent)
 	h = h_base + 1; // frags
 	hud[h] = Ghud_AddText(clent, x + 500, y + 200, "");
 	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
-	Ghud_SetPosition(clent, hud[h], x + 33, y);
+	Ghud_SetPosition(clent, hud[h], x + 33, y - 2);
 	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
 
 	h = h_base + 2; // deaths
