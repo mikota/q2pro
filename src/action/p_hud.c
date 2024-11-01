@@ -788,6 +788,14 @@ static int GetRemainingTimeDigits(hud_time_digits timeval)
     rmins = remaining / 60;
     rsecs = remaining % 60;
 
+	// Ensure rmins and rsecs are non-negative
+    if (rmins < 0) {
+        rmins = 0;
+    }
+    if (rsecs < 0) {
+        rsecs = 0;
+    }
+
     switch (timeval) {
         case tm: // Tens of minutes
             return (rmins / 10) % 10;
@@ -798,7 +806,7 @@ static int GetRemainingTimeDigits(hud_time_digits timeval)
         case ss: // Seconds
             return rsecs % 10;
         default:
-            return -1; // Invalid timeval
+            return 0; // Invalid timeval
     }
 }
 
@@ -931,19 +939,19 @@ void HUD_SpectatorStatsSetup(edict_t *clent)
 	hud[h] = Ghud_AddText(clent, x, y, "");
 	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
 	Ghud_SetPosition(clent, hud[h], x + 248, y + 2);
-	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
+	Ghud_SetTextFlags(clent, hud[h], UI_LEFT | UI_ALTCOLOR);
 
 	h = h_base + 6; // impressive awards
 	hud[h] = Ghud_AddText(clent, x, y, "");
 	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
 	Ghud_SetPosition(clent, hud[h], x + 273, y + 2);
-	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
+	Ghud_SetTextFlags(clent, hud[h], UI_LEFT | UI_ALTCOLOR);
 
 	h = h_base + 7; // excellent awards
 	hud[h] = Ghud_AddText(clent, x, y, "");
 	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
 	Ghud_SetPosition(clent, hud[h], x + 296, y + 2);
-	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
+	Ghud_SetTextFlags(clent, hud[h], UI_LEFT | UI_ALTCOLOR);
 
 	// h = h_base + 10; // weapon selection
 	// Ghud_SetAnchor(clent, hud[h], 0.5, 1);
@@ -1445,8 +1453,8 @@ void HUD_SpectatorUpdate(edict_t *clent)
 			Ghud_SetFlags(clent, hud[h_spectator_stats_bar + 1], GHF_HIDE);
 		}
 
-		// Update the timer display
-		if (timelimit->value) {
+		// Update the timer display if set and we're not in intermission
+		if (timelimit->value && !level.intermission_framenum) {
         	HUD_UpdateSpectatorTimer(clent);
 		} else {
 			Ghud_SetFlags(clent, hud[h_spectator_timer_border], GHF_HIDE);
