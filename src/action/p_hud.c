@@ -889,67 +889,75 @@ void HUD_SpectatorStatsSetup(edict_t *clent)
 	int h_sbar = h_spectator_stats_bar;
 	int h, j, k;
 
-	x = -640;
-	y = 480;
+	// All elements are anchored from the gray bar at the bottom
+	x = -160;
+	y = -60;
 
-	h = h_base; // back bar
+	h = h_base; // gray bar
 	hud[h] = Ghud_NewElement(clent, GHT_FILL);
-	Ghud_SetPosition(clent, hud[h], x, y + 12);
-	Ghud_SetAnchor(clent, hud[h], 1, 0);
+	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
+	Ghud_SetPosition(clent, hud[h], x, y);
 	Ghud_SetSize(clent, hud[h], 288, 12);
 	Ghud_SetFlags(clent, hud[h], GHF_HIDE);
 	//Ghud_SetColor(clent, hud[h], 0, 0, 0, 0);
 
 	h = h_base + 1; // frags
-	hud[h] = Ghud_AddText(clent, x + 32, y + 14, "");
-	Ghud_SetAnchor(clent, hud[h], 1, 0);
+	hud[h] = Ghud_AddText(clent, x + 500, y + 200, "");
+	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
+	Ghud_SetPosition(clent, hud[h], x + 33, y);
 	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
 
 	h = h_base + 2; // deaths
-	hud[h] = Ghud_AddText(clent, x + 96, y + 14, "");
-	Ghud_SetAnchor(clent, hud[h], 1, 0);
+	hud[h] = Ghud_AddText(clent, x, y, "");
+	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
+	Ghud_SetPosition(clent, hud[h], x + 97, y);
 	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
 
 	h = h_base + 3; // damage
-	hud[h] = Ghud_AddText(clent, x + 120, y + 14, "");
-	Ghud_SetAnchor(clent, hud[h], 1, 0);
+	hud[h] = Ghud_AddText(clent, x, y, "");
+	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
+	Ghud_SetPosition(clent, hud[h], x + 160, y);
 	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
 
 	h = h_base + 4; // accuracy
-	hud[h] = Ghud_AddText(clent, x + 185, y + 14, "");
-	Ghud_SetAnchor(clent, hud[h], 1, 0);
+	hud[h] = Ghud_AddText(clent, x, y, "");
+	Ghud_SetAnchor(clent, hud[h], 0.5, 1);
+	Ghud_SetPosition(clent, hud[h], x + 192, y);
 	Ghud_SetTextFlags(clent, hud[h], UI_LEFT);
 
-	h = h_base + 10; // weapon selection
-	hud[h] = Ghud_AddIcon(clent, x - 680, y + 2, level.pic_items[M4_NUM], 20, 20);
-	Ghud_SetAnchor(clent, hud[h], 1, 0);
+	// h = h_base + 10; // weapon selection
+	// Ghud_SetAnchor(clent, hud[h], 0.5, 1);
+	// hud[h] = Ghud_AddIcon(clent, x + 200, y + 200, level.pic_items[M4_NUM], 20, 20);
+	
 
 	j = h_nbar; // name bar
 	hud[j] = Ghud_NewElement(clent, GHT_FILL);
-	Ghud_SetPosition(clent, hud[j], x, y - 12);
-	Ghud_SetAnchor(clent, hud[j], 1, 0);
+	Ghud_SetAnchor(clent, hud[j], 0.5, 1);
+	Ghud_SetPosition(clent, hud[j], x, y - 24);
 	Ghud_SetSize(clent, hud[j], 288, 12);
 	//Ghud_SetColor(clent, hud[j], 0, 0, 0, 0);
 	Ghud_SetFlags(clent, hud[j], GHF_HIDE);
 
 	j = h_nbar + 1; // name print
-	hud[j] = Ghud_AddText(clent, x, y + 12, "");
-	Ghud_SetPosition(clent, hud[j], x + 120, y - 12);
-	Ghud_SetAnchor(clent, hud[j], 1, 0);
+	hud[j] = Ghud_AddText(clent, x, y + 22, "");
+	Ghud_SetAnchor(clent, hud[j], 0.5, 1);
+	Ghud_SetPosition(clent, hud[j], x + 140, y - 22);
 	Ghud_SetSize(clent, hud[j], 20, 12);
 	Ghud_SetTextFlags(clent, hud[j], UI_CENTER);
 
 	k = h_sbar; // stat table bar
 	hud[k] = Ghud_NewElement(clent, GHT_FILL);
-	Ghud_SetPosition(clent, hud[k], x, y);
-	Ghud_SetAnchor(clent, hud[k], 1, 0);
+	Ghud_SetAnchor(clent, hud[k], 0.5, 1);
+	Ghud_SetPosition(clent, hud[k], x, y - 12);
 	Ghud_SetSize(clent, hud[k], 288, 12);
 	//Ghud_SetColor(clent, hud[k], 0, 0, 0, 0);
 	Ghud_SetFlags(clent, hud[k], GHF_HIDE);
 
 	k = h_sbar + 1; // stat table text
-	hud[k] = Ghud_AddText(clent, x, y, "");
-	Ghud_SetAnchor(clent, hud[k], 1, 0);
+	hud[k] = Ghud_AddText(clent, x, y - 10, "");
+	Ghud_SetAnchor(clent, hud[k], 0.5, 1);
+	Ghud_SetPosition(clent, hud[k], x, y - 10);
+	Ghud_SetSize(clent, hud[k], 20, 12);
 	Ghud_SetTextFlags(clent, hud[k], UI_LEFT);
 }
 
