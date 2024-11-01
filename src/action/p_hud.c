@@ -1405,7 +1405,7 @@ void HUD_SpectatorUpdate(edict_t *clent)
 			// target name
 			Ghud_SetText(clent, hud[h_nbar + 1], nm_s);
 			// target stat bar
-			Ghud_SetText(clent, hud[h_sbar + 1], "Frags  Deaths  Damage  Acc.    A  I  E");
+			Ghud_SetText(clent, hud[h_sbar + 1], "Frags  Deaths  Damage  Acc.    \x07  \x0E  \x0F");
 			// target stat values
 			Ghud_SetText(clent, hud[h_base + 1], frags_s);
 			Ghud_SetText(clent, hud[h_base + 2], deaths_s);
