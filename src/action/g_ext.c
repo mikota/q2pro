@@ -413,6 +413,11 @@ void Ghud_SetSize(edict_t *ent, int i, int x, int y)
 	engine_Ghud_SetSize(ent, i, x, y);
 }
 
+// anchor is a float from 0 to 1, 0 being left/top, 1 being right/bottom
+// for example, 0.5, 0.5 is center
+// 0, 0 is top left
+// 1, 1 is bottom right
+
 void Ghud_SetAnchor(edict_t *ent, int i, float x, float y)
 {
 	if (!engine_Ghud_SetAnchor)
