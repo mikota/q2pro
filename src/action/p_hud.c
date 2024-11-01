@@ -1101,14 +1101,27 @@ void HUD_SpectatorSetup(edict_t *clent)
 				Ghud_SetAnchor(clent, hud[h], 1, 0);
 			}
 
-			// GHUD top corner team icon
-			hud[h_team_l] = Ghud_AddIcon(clent, 2, 2, level.pic_teamskin[1], 24, 24);
+			// GHUD top corner team icons
+
+			// Team 1
+			if (ctf->value) // CTF
+				hud[h_team_l] = Ghud_AddIcon(clent, 2, 2, level.pic_ctf_flagbase[TEAM1], 24, 24);
+			else if (esp->value) // Espionage
+				hud[h_team_l] = Ghud_AddIcon(clent, 2, 2, level.pic_esp_teamicon[TEAM1], 24, 24);
+			else // Teamplay/Matchmode/Domination
+				hud[h_team_l] = Ghud_AddIcon(clent, 2, 2, level.pic_teamskin[TEAM1], 24, 24);
 			Ghud_SetAnchor(clent, hud[h_team_l], 0, 0);
 			hud[h_team_l_num] = Ghud_AddNumber(clent, 96, 2, 0);
 			Ghud_SetSize(clent, hud[h_team_l_num], 2, 0);
 			Ghud_SetAnchor(clent, hud[h_team_l_num], 0, 0);
 
-			hud[h_team_r] = Ghud_AddIcon(clent, -26, 2, level.pic_teamskin[2], 24, 24);
+			// Team 2
+			if (ctf->value) // CTF
+				hud[h_team_r] = Ghud_AddIcon(clent, -26, 2, level.pic_ctf_flagbase[TEAM2], 24, 24);
+			else if (esp->value) // Espionage
+				hud[h_team_r] = Ghud_AddIcon(clent, -26, 2, level.pic_esp_teamicon[TEAM2], 24, 24);
+			else // Teamplay/Matchmode/Domination
+				hud[h_team_r] = Ghud_AddIcon(clent, -26, 2, level.pic_teamskin[TEAM2], 24, 24);
 			Ghud_SetAnchor(clent, hud[h_team_r], 1, 0);
 			hud[h_team_r_num] = Ghud_AddNumber(clent, -128, 2, 0);
 			Ghud_SetSize(clent, hud[h_team_r_num], 1, 0);
