@@ -862,7 +862,7 @@ static void HUD_UpdateSpectatorTimer(edict_t *clent)
 	if (ctf->value)
 		Ghud_SetInt(clent, hud[h_team_l_num], ctfgame.team1);
 	else
-		//Ghud_SetInt(clent, hud[h_team_l_num], 13);
+		//Ghud_SetInt(clent, hud[h_team_l_num], 13);  // Testing double digits
 		Ghud_SetInt(clent, hud[h_team_l_num], teams[TEAM1].score);
 
 	// team 2 (blue team)
@@ -871,7 +871,7 @@ static void HUD_UpdateSpectatorTimer(edict_t *clent)
 	if (ctf->value)
 		Ghud_SetInt(clent, hud[h_team_r_num], ctfgame.team2);
 	else
-		//Ghud_SetInt(clent, hud[h_team_r_num], 25);
+		//Ghud_SetInt(clent, hud[h_team_r_num], 25);  // Testing double digits
 		Ghud_SetInt(clent, hud[h_team_r_num], teams[TEAM2].score);
 }
 
@@ -975,7 +975,7 @@ void HUD_SpectatorTimerSetup(edict_t *clent)
 	if (teams[TEAM2].score >= 10) // gotta readjust size for justifying purposes
 		hud[h_team_r_num] = Ghud_AddNumber(clent, 35, 60, 0);
 	else
-		hud[h_team_r_num] = Ghud_AddNumber(clent, 0, 60, 0);
+		hud[h_team_r_num] = Ghud_AddNumber(clent, 20, 60, 0);
 
 	Ghud_SetSize(clent, hud[h_team_r_num], 2, 0);
 	Ghud_SetAnchor(clent, hud[h_team_r_num], 0.5, 0);
