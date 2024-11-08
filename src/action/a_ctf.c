@@ -1486,6 +1486,9 @@ void CTFCapReward(edict_t * ent)
 
 void CTFSetupStatusbar( void )
 {
+	// Frags closer to the team scores
+	Q_strncatz(level.statusbar, "xr -76 yb -188 num 3 14 ", sizeof(level.statusbar));
+
 	Q_strncatz(level.statusbar,
 		// Red Team
 		"yb -164 " "if 24 " "xr -24 " "pic 24 " "endif " "xr -60 " "num 2 26 "

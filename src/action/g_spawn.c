@@ -1710,8 +1710,15 @@ void G_SetupStatusbar( void )
 	{
 		Q_strncpyz(level.statusbar, STATBAR_COMMON, sizeof(level.statusbar));
 
-		if(!((noscore->value || hud_noscore->value) && teamplay->value)) //  frags
-			Q_strncatz(level.statusbar, "xr -50 yt 2 num 3 14 ", sizeof(level.statusbar));
+		// if(!((noscore->value || hud_noscore->value) && teamplay->value) && !ctf->value) //  frags
+		// 	Q_strncatz(level.statusbar, "xr -50 yt 2 num 3 14 ", sizeof(level.statusbar));
+
+		// Display frags in top-right corner if teamplay, but not in CTF (moved that to CTFSetupStatusbar())
+		if (!(noscore->value || hud_noscore->value) || !teamplay->value) {
+			if (!ctf->value) {
+				Q_strncatz(level.statusbar, "xr -50 yt 2 num 3 14 ", sizeof(level.statusbar));
+			}
+		}
 
 		if (ctf->value)
 			CTFSetupStatusbar();

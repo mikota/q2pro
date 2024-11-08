@@ -68,7 +68,8 @@ typedef struct {
 
 game_import_ex_t
 
-These pointer functions exist in the engine (server), and this enables importing them to be available for use by the gamelib
+These pointer functions exist in the engine (server), 
+and this enables importing them to be available for use by the gamelib
 
     server->gamedll
 
@@ -91,7 +92,8 @@ typedef struct {
 
 game_export_ex_t
 
-These pointer functions exist in the gamedll, and this enables importing them to be available for use by the engine (server)
+These pointer functions exist in the gamedll, 
+and this enables importing them to be available for use by the engine (server)
 
     gamedll->server
 

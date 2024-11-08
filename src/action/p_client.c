@@ -6275,6 +6275,10 @@ void ClientBeginServerFrame(edict_t * ent)
 					// then Action!
 					EspRespawnPlayer(ent);
 				}
+				#ifdef AQTION_EXTENSION
+				// Redraw GHUD
+				HUD_SetType(ent, 1);
+				#endif
 			}
 			else
 			{

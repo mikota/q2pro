@@ -837,6 +837,23 @@ void G_LoadScores(void)
     G_FreeFile(f);
 }
 
+float CalculateAccuracy(edict_t* ent)
+{
+    int shots;
+    float accuracy;
+
+    shots = ent->client->resp.shotsTotal;
+
+    if (shots)
+        accuracy = (float)ent->client->resp.hitsTotal * 100.0f / (float)shots;
+    else
+        accuracy = 0.0f;
+
+    // Round the accuracy to two decimal places
+    accuracy = roundf(accuracy * 100.0f) / 100.0f;
+
+    return accuracy;
+}
 
 #if USE_AQTION
 
