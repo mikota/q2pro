@@ -623,20 +623,43 @@ static char *discord_PickupReqMsg(char* msg)
     char *team_name = "Players";
     char field_content[64];
     snprintf(field_content, sizeof(field_content), "%s", team_name);
-    char *team_players = TeamConstructPlayerList(0);
 
+    // Buffer to hold the concatenated player lists for all teams
+    // (16 max characters per name * 32 clients = 512 characters, give some extra buffer room)
+    char all_team_players[544] = ""; // Adjust size as needed
+
+    // Iterate through each team (0 to 3) and concatenate the player lists
+    int MAX_TEAM = 0;
+    int MIN_TEAM = 0;
+
+    if (teamplay->value) {
+        MIN_TEAM = TEAM1;
+        MAX_TEAM = teamCount;
+    } else {
+        MIN_TEAM = 0;
+        MAX_TEAM = 0;
+    }
+
+    for (int team = MIN_TEAM; team <= MAX_TEAM; team++) {
+    char *team_players = TeamConstructPlayerList(team);
+        if (team_players) {
+            // Check if adding the next player list would exceed 512 characters
+            if (strlen(all_team_players) + strlen(team_players) + 1 >= 512) { // +1 for the newline character
+                break; // Stop adding more players
+            }
+            strncat(all_team_players, team_players, sizeof(all_team_players) - strlen(all_team_players) - 1);
+            strncat(all_team_players, "\n", sizeof(all_team_players) - strlen(all_team_players) - 1); // Add a newline between team lists
+        }
+    }
     // Add triple backticks for Discord formatting
-    char discord_formatted_players[1280];
-    snprintf(discord_formatted_players, sizeof(discord_formatted_players), "```\n%s```", team_players);
-
+    char discord_formatted_players[1280]; // Adjust size as needed
+    snprintf(discord_formatted_players, sizeof(discord_formatted_players), "```\n%s```", all_team_players);
 
     json_t *field = json_object();
     json_object_set_new(field, "name", json_string(field_content));
     json_object_set_new(field, "value", json_string(discord_formatted_players));
     json_object_set_new(field, "inline", json_true());
     json_array_append_new(fields, field);
-
-    free(team_players); // Free the allocated memory for team_players
 
     // Game Settings
     json_t *gamesettings = json_object();
@@ -836,7 +859,7 @@ void lc_discord_webhook(char* message, Discord_Notifications msgtype, Awards awa
     // Get a new request object
     request = new_request();
     if (request == NULL) {
-        gi.dprintf("Ran out of request slots\n");
+        gi.dprintf("%s: Ran out of request slots\n", __func__);
         return;
     }
 
