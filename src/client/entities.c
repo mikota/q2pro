@@ -1389,52 +1389,11 @@ void CL_CalcViewValues(void)
 
     } else {
         // just use interpolated values
-     //   if (cl_betterspec_vangles->integer == 0) {
-        if (1) {
-            for (int i = 0; i < 3; i++) {
-                cl.refdef.vieworg[i] = SHORT2COORD(ops->pmove.origin[i] +
-                    lerp * (ps->pmove.origin[i] - ops->pmove.origin[i]));
-            }
-        } else {
-            //betterspec lerping, see below for
-            //the viewangle lerping which has explanation
-            vec3_t org_old, org_new, org_start, org_end;
-            vec3_t org_deltas[3];
-            float orglerp;
-            for (int i=0; i<3; i++) {
-                //first loop is to setup the known values
-                org_old[i] = SHORT2COORD(ops->pmove.origin[i]);
-                org_new[i] = SHORT2COORD(ps->pmove.origin[i]);
-                for (int j=0; j<3; j++) {
-                    org_deltas[i][j] = (SHORT2COORD(ps->betterspec_orgdeltas[i][j]));
-                }
-            }
-            for (int i=0; i<3; i++) {
-                //calculate org_start and org_end
-                //which are used for the actual lerp
-                if (lerp <= 0.25) {
-                    orglerp = lerp * 4;
-                    org_start[i] = org_old[i];
-                    org_end[i] = org_old[i] + org_deltas[0][i];
-                } else if (lerp <= 0.5) {
-                    orglerp = (lerp - 0.25) * 4;
-                    org_start[i] = org_old[i] + org_deltas[0][i];
-                    org_end[i] = org_old[i] + org_deltas[1][i];
-                } else if (lerp <= 0.75) {
-                    orglerp = (lerp - 0.5) * 4;
-                    org_start[i] = org_old[i] + org_deltas[1][i];
-                    org_end[i] = org_old[i] + org_deltas[2][i];
-                } else {
-                    orglerp = (lerp - 0.75) * 4;
-                    org_start[i] = org_old[i] + org_deltas[2][i];
-                    org_end[i] = org_new[i];
-                }
-            }
-            for (int i=0; i<3; i++) {
-                //lerp
-                cl.refdef.vieworg[i] = org_start[i] + orglerp * (org_end[i] - org_start[i]);
-            }
+        for (int i = 0; i < 3; i++) {
+            cl.refdef.vieworg[i] = SHORT2COORD(ops->pmove.origin[i] +
+                lerp * (ps->pmove.origin[i] - ops->pmove.origin[i]));
         }
+
 #if USE_FPS
         LerpVector(keyops->viewoffset, keyps->viewoffset, cl.keylerpfrac, viewoffset);
 #else
@@ -1475,7 +1434,12 @@ void CL_CalcViewValues(void)
         //OLD ----------------------------> NEW
         //new lerping:
         //OLD -> BS[0] -> BS[1] -> BS[2] -> NEW
-        if (VectorEmpty(ps->betterspec_vangles[0]) || cl_betterspec_vangles->integer == 0) 
+        qboolean highfps_server = false; //don't want to do this on high sv_fps servers
+#if USE_FPS
+        if (cl.lerpfrac != cl.keylerpfrac) //idk how else to detect it
+            highfps_server = true;
+#endif
+        if (highfps_server || VectorEmpty(ps->betterspec_vangles[0]) || cl_betterspec_vangles->integer == 0) 
             LerpAngles(ops->viewangles, ps->viewangles, lerp, cl.refdef.viewangles);
         else {
             if (lerp < 0.25) {

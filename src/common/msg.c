@@ -853,10 +853,6 @@ void MSG_PackPlayerOld(player_packed_t *out, const player_state_old_t *in)
     PACK_OFFSET(out->gunangles, in->gunangles);
 	for(int i=0; i<3; i++)
 		PACK_ANGLES(out->betterspec_vangles[i], in->betterspec_vangles[i]);
-	for(int i=0; i<3; i++) {
-		//PACK_COORDS(out->betterspec_orgdeltas[i], in->betterspec_orgdeltas[i]);
-		//VectorCopy(in->betterspec_orgdeltas[i], out->betterspec_orgdeltas[i]);
-	}
     out->gunindex = in->gunindex;
     out->gunframe = in->gunframe;
     PACK_BLEND(out->blend, in->blend);
@@ -878,8 +874,6 @@ void MSG_PackPlayerNew(player_packed_t *out, const player_state_new_t *in)
     PACK_OFFSET(out->gunangles, in->gunangles);
 	for(int i=0; i<3; i++) {
 		PACK_ANGLES(out->betterspec_vangles[i], in->betterspec_vangles[i]);
-		//PACK_COORDS(out->betterspec_orgdeltas[i], in->betterspec_orgdeltas[i]);
-		//VectorCopy(in->betterspec_orgdeltas[i], out->betterspec_orgdeltas[i]);
 	}
     out->gunindex = in->gunindex;
     out->gunframe = in->gunframe;
@@ -1438,6 +1432,10 @@ int MSG_WriteDeltaPlayerstate_Aqtion(const player_packed_t    *from,
 		if (from->viewangles[2] != to->viewangles[2])
 			eflags |= EPS_VIEWANGLE2;
 		#ifdef AQTION_EXTENSION
+		//betterspec makes chasecam glitchy, but
+		//I don't know how to pass this info from game
+		//to the server :<
+		//if (chase_mode == 2)
 			aqtflags |= AQPS_BETTERSPEC;
 		#endif
 	}
@@ -1590,12 +1588,6 @@ int MSG_WriteDeltaPlayerstate_Aqtion(const player_packed_t    *from,
 		for(int i=0; i<3; i++) {
 			for (int j=0; j<3; j++)
 				MSG_WriteShort(to->betterspec_vangles[i][j]);
-		}
-		for(int i=0; i<3; i++) {
-			for (int j=0; j<3; j++) {
-			//	MSG_WriteShort(COORD2SHORT(to->betterspec_orgdeltas[i][j]));
-			//temporarily gave up on this
-			}
 		}
 	}
 #endif
@@ -2983,11 +2975,6 @@ void MSG_ParseDeltaPlayerstate_Aqtion(const player_state_t    *from,
 				to->betterspec_vangles[i][j] = MSG_ReadAngle16();
 			}
 		}
-		for (int i=0; i<3; i++) {
-			for (int j=0; j<3; j++) {
-				//to->betterspec_orgdeltas[i][j] = MSG_ReadShort();
-			}	
-		}
 	}
 #else
 	aqtflags = MSG_ReadByte();
@@ -3005,7 +2992,6 @@ void MSG_ParseDeltaPlayerstate_Aqtion(const player_state_t    *from,
 		for (int i=0; i<3; i++) {
 			for (int j=0; j<3; j++) {
 				MSG_ReadShort();
-			//	MSG_ReadShort(); used to be for orgdeltas
 			}
 		}
 	}

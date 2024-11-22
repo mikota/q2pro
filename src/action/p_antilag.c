@@ -174,47 +174,27 @@ void antilag_unmove_all(void)
 
 void betterspec_serverframe(edict_t *ent)
 {
-	//Com_Printf("SVFRAME\n");
-	//for(int i=0; i<3; i++) VectorClear(client->ps.betterspec_vangles[i]);
+	//ended up being unused
 }
 
 void betterspec_clientframe(edict_t *ent)
 {
 	gclient_t *client = ent->client;
+	if (ent->client->chase_target)
+		UpdateChaseCam(ent); //make chasecam less glitchly, still not perfect
 	float advanced_since_svframe = client->antilag_state.curr_timestamp - level.time + FRAMETIME;
 	advanced_since_svframe *= 1000;
 	if (advanced_since_svframe <= 0) return;
-
-	//vec3_t base_org;
-	//VectorCopy(antilag_state->hist_origin[(antilag_state->seek-1) & ANTILAG_MASK], base_org);
 	int index = -1;
-	//Com_Printf("CLFRAME: advanced_since_svframe %f ms\n", advanced_since_svframe);
 	if (advanced_since_svframe <= 25) {
 		index = 0;
-		//Com_Printf("BS 0.25:\n");
-		//Com_Printf("%f %f %f\n", client->ps.viewangles[0], client->ps.viewangles[1], client->ps.viewangles[2]);
 	}
 	else if (advanced_since_svframe <= 50) {
 		index = 1;
-		//Com_Printf("BS 0.5:\n");
-		//Com_Printf("%f %f %f\n", client->ps.viewangles[0], client->ps.viewangles[1], client->ps.viewangles[2]);
 	}
 	else if (advanced_since_svframe <= 75) {
 		index = 2;
-		//Com_Printf("BS 0.75:\n");
-		//Com_Printf("%f %f %f\n", client->ps.viewangles[0], client->ps.viewangles[1], client->ps.viewangles[2]);
 	}
 	if (index == -1) return;
 	VectorCopy(client->ps.viewangles, client->ps.betterspec_vangles[index]);
-	//VectorCopy(client->ps.pmove.origin - base_org, client->ps.betterspec_orgdeltas[index]);
-	//Com_Printf("org:\n");
-	for (int i=0; i<3; i++) {
-//		client->ps.betterspec_orgdeltas[index][i] = client->ps.pmove.origin[i] - base_org[i];
-	}
-	//orgdelta
-//	Com_Printf("%d %d %d\n", client->ps.betterspec_orgdeltas[index][0], client->ps.betterspec_orgdeltas[index][1], client->ps.betterspec_orgdeltas[index][2]);
-	//base org
-//	Com_Printf("%d %d %d\n", base_org[0], base_org[1], base_org[2]);
-	//current org
-//	Com_Printf("%d %d %d\n", client->ps.pmove.origin[0], client->ps.pmove.origin[1], client->ps.pmove.origin[2]);
 }

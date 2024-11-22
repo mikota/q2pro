@@ -64,7 +64,6 @@ typedef struct {
     uint8_t             rdflags;
     int16_t             stats[MAX_STATS_NEW];
     int16_t             betterspec_vangles[3][3];
-    int16_t             betterspec_orgdeltas[3][3];
 } player_packed_t;
 
 typedef enum {
