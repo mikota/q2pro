@@ -1401,6 +1401,8 @@ void SCR_Init(void)
     xhair_elasticity = Cvar_Get("xhair_elasticity","1",0);
     xhair_enabled = Cvar_Get("xhair_enabled","0",0);
 
+    cl_betterspec_vangles = Cvar_Get("cl_betterspec_vangles", "1", 0);
+
     r_maxfps = Cvar_Get("r_maxfps","0",0);
 
     ch_health = Cvar_Get("ch_health", "0", 0);

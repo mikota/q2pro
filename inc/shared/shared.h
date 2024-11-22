@@ -1763,6 +1763,10 @@ typedef struct {
     int         rdflags;        // refdef flags
 
     short       stats[MAX_STATS_OLD];   // fast status bar updates
+#ifdef AQTION_EXTENSION
+    vec3_t      betterspec_vangles[3];
+	int16_t     betterspec_orgdeltas[3][3];
+#endif
 } player_state_old_t;
 
 #if USE_NEW_GAME_API
@@ -1791,6 +1795,10 @@ typedef struct {
     int         reserved[4];
 
     int16_t     stats[MAX_STATS_NEW];   // fast status bar updates
+#ifdef AQTION_EXTENSION
+    vec3_t      betterspec_vangles[3];
+    int16_t     betterspec_orgdeltas[3][3];
+#endif
 } player_state_new_t;
 #endif
 

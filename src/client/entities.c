@@ -1388,14 +1388,55 @@ void CL_CalcViewValues(void)
         }
 
     } else {
-        int i;
         // just use interpolated values
-        for (i = 0; i < 3; i++) {
-            cl.refdef.vieworg[i] = SHORT2COORD(ops->pmove.origin[i] +
-                lerp * (ps->pmove.origin[i] - ops->pmove.origin[i]));
+     //   if (cl_betterspec_vangles->integer == 0) {
+        if (1) {
+            for (int i = 0; i < 3; i++) {
+                cl.refdef.vieworg[i] = SHORT2COORD(ops->pmove.origin[i] +
+                    lerp * (ps->pmove.origin[i] - ops->pmove.origin[i]));
+            }
+        } else {
+            //betterspec lerping, see below for
+            //the viewangle lerping which has explanation
+            vec3_t org_old, org_new, org_start, org_end;
+            vec3_t org_deltas[3];
+            float orglerp;
+            for (int i=0; i<3; i++) {
+                //first loop is to setup the known values
+                org_old[i] = SHORT2COORD(ops->pmove.origin[i]);
+                org_new[i] = SHORT2COORD(ps->pmove.origin[i]);
+                for (int j=0; j<3; j++) {
+                    org_deltas[i][j] = (SHORT2COORD(ps->betterspec_orgdeltas[i][j]));
+                }
+            }
+            for (int i=0; i<3; i++) {
+                //calculate org_start and org_end
+                //which are used for the actual lerp
+                if (lerp <= 0.25) {
+                    orglerp = lerp * 4;
+                    org_start[i] = org_old[i];
+                    org_end[i] = org_old[i] + org_deltas[0][i];
+                } else if (lerp <= 0.5) {
+                    orglerp = (lerp - 0.25) * 4;
+                    org_start[i] = org_old[i] + org_deltas[0][i];
+                    org_end[i] = org_old[i] + org_deltas[1][i];
+                } else if (lerp <= 0.75) {
+                    orglerp = (lerp - 0.5) * 4;
+                    org_start[i] = org_old[i] + org_deltas[1][i];
+                    org_end[i] = org_old[i] + org_deltas[2][i];
+                } else {
+                    orglerp = (lerp - 0.75) * 4;
+                    org_start[i] = org_old[i] + org_deltas[2][i];
+                    org_end[i] = org_new[i];
+                }
+            }
+            for (int i=0; i<3; i++) {
+                //lerp
+                cl.refdef.vieworg[i] = org_start[i] + orglerp * (org_end[i] - org_start[i]);
+            }
         }
 #if USE_FPS
-		LerpVector(keyops->viewoffset, keyps->viewoffset, cl.keylerpfrac, viewoffset);
+        LerpVector(keyops->viewoffset, keyps->viewoffset, cl.keylerpfrac, viewoffset);
 #else
     LerpVector(ops->viewoffset, ps->viewoffset, lerp, viewoffset);
 #endif
@@ -1427,7 +1468,26 @@ void CL_CalcViewValues(void)
 #endif
     } else {
         // just use interpolated values
-        LerpAngles(ops->viewangles, ps->viewangles, lerp, cl.refdef.viewangles);
+        //betterspec sends 3 additional viewangle values
+        //to bypass the 10hz restriction.
+        //spectating viewangles become more accurate
+        //old lerping:
+        //OLD ----------------------------> NEW
+        //new lerping:
+        //OLD -> BS[0] -> BS[1] -> BS[2] -> NEW
+        if (VectorEmpty(ps->betterspec_vangles[0]) || cl_betterspec_vangles->integer == 0) 
+            LerpAngles(ops->viewangles, ps->viewangles, lerp, cl.refdef.viewangles);
+        else {
+            if (lerp < 0.25) {
+                LerpAngles(ops->viewangles, ps->betterspec_vangles[0], lerp * 4, cl.refdef.viewangles);
+            } else if (lerp < 0.5) {
+                LerpAngles(ps->betterspec_vangles[0], ps->betterspec_vangles[1], (lerp - 0.25) * 4, cl.refdef.viewangles);
+            } else if (lerp < 0.75) {
+                LerpAngles(ps->betterspec_vangles[1], ps->betterspec_vangles[2], (lerp - 0.5) * 4, cl.refdef.viewangles);
+            } else {
+                LerpAngles(ps->betterspec_vangles[2], ps->viewangles, (lerp - 0.75) * 4, cl.refdef.viewangles);
+            }
+        }
     }
 
     // don't interpolate blend color
