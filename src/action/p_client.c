@@ -3538,6 +3538,12 @@ void ClientUserinfoChanged(edict_t *ent, char *userinfo)
 
 		if (sv_antilag->value && antilag_value != client->pers.antilag_optout)
 			gi.cprintf(ent, PRINT_MEDIUM, "YOUR CL_ANTILAG IS NOW SET TO %i\n", !client->pers.antilag_optout);
+
+		s = Info_ValueForKey(userinfo, "cl_betterspec_showlag");
+		if (atoi(s))
+			client->pers.spec_flags |= SPECFL_BETTERSPEC_SHOWLAG;
+		else
+			client->pers.spec_flags &= ~SPECFL_BETTERSPEC_SHOWLAG;
 #ifdef AQTION_EXTENSION
 	}
 #endif

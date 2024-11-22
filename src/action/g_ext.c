@@ -236,6 +236,16 @@ int G_customizeentityforclient(edict_t *clent, edict_t *ent, entity_state_t *sta
 		}
 	}
 
+	if (clent->client->pers.spec_flags & SPECFL_BETTERSPEC_SHOWLAG)
+	{
+		if (!(clent->client->pers.spectator)) return;
+		if (ent->client)
+		{
+			antilag_t *antilag_state = &(ent->client->antilag_state);
+			VectorCopy(antilag_state->hist_origin[(antilag_state->seek - 0) & ANTILAG_MASK], state->origin);
+		}
+	}
+
 	return true;
 }
 
@@ -287,6 +297,11 @@ void G_CvarSync_Updated(int index, edict_t *clent)
 			else
 				client->pers.spec_flags &= ~SPECFL_KILLFEED;
 			break;
+		case clcvar_cl_betterspec_showlag:
+			if (val_i)
+				client->pers.spec_flags |= SPECFL_BETTERSPEC_SHOWLAG;
+			else
+				client->pers.spec_flags &= ~SPECFL_BETTERSPEC_SHOWLAG;
 	}
 }
 

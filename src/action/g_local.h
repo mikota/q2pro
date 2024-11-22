@@ -368,6 +368,7 @@ typedef struct gclient_s gclient_t;
 #define SPECFL_KILLFEED					BIT(0)
 #define SPECFL_SPECHUD					BIT(1)
 #define SPECFL_SPECHUD_NEW				BIT(2)
+#define SPECFL_BETTERSPEC_SHOWLAG		BIT(3)
 
 // variable server FPS
 #ifndef NO_FPS
@@ -2980,6 +2981,7 @@ typedef enum {
 	clcvar_cl_xerp,
 	clcvar_cl_spectatorhud,
 	clcvar_cl_spectatorkillfeed,
+	clcvar_cl_betterspec_showlag
 } clcvar_t;
 
 // UI flags from q2pro
