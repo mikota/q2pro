@@ -544,6 +544,8 @@ void InitGame( void )
   	glassfragmentlimit = gi.cvar("glassfragmentlimit", "30", 0);
 	//CGF_SFX_InstallGlassSupport();	// william for CGF (glass fx)
 
+	grenade_drop = gi.cvar( "grenade_drop", "0", 0 ); // Raptor007 - added grenade drop
+
 	g_select_empty = gi.cvar( "g_select_empty", "0", CVAR_ARCHIVE );
 	g_protocol_extensions = gi.cvar("g_protocol_extensions", "0", CVAR_LATCH);
 

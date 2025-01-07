@@ -396,7 +396,7 @@ qboolean Pickup_Weapon(edict_t* ent, edict_t* other)
 		return false;
 
 	case GRENADE_NUM:
-		if (!(gameSettings & GS_DEATHMATCH) && ctf->value != 2 && !band)
+		if (!(gameSettings & GS_DEATHMATCH) && ctf->value != 2 && !band && !(grenade_drop->value))
 			return false;
 
 		if (other->client->inventory[index] >= other->client->grenade_max)

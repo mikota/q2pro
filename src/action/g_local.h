@@ -1373,6 +1373,7 @@ extern cvar_t *g_highscores_countbots; // Toggles if we save highscores achieved
 extern cvar_t *lca_grenade; // Allows grenade pin pulling during LCA
 extern cvar_t *breakableglass; // Moved from cgf_sfx_glass, enables breakable glass (0,1,2)
 extern cvar_t *glassfragmentlimit; // Moved from cgf_sfx_glass, sets glass fragment limit
+extern cvar_t *grenade_drop; // Allows grenades to be dropped on death
 
 #ifdef AQTION_EXTENSION
 extern int (*engine_Client_GetVersion)(edict_t *ent);
