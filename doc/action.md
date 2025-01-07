@@ -556,6 +556,7 @@ To see how well players are doing, we have implemented statistics into TNG. This
 - `stats list` - this will display a list of all players and their ID. (client side)
 - `stats [#]` - this will display the stats for the player with the id given. (client side)
 - `stats_mode [0/1/2]` - when set to 1, it will automatically display the stats of the player at the end of each round. When set to 2, it will automatically display the stats of the player at the end of the map. By default this is set to 0 (off). (client side)
+  - ^ This is a legacy entry that has no code associated with it, I'm only keeping it in this doc for historical reasons.
 
 ### Automatic Joining/Equipping/Menu
 For the lazy players under us, we have created three new commands to make things easier.
