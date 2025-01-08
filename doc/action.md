@@ -708,6 +708,7 @@ Inspired by AQ2:ETE, these additions are optional server vars to create a differ
 - `gun_dualmk23_enhance [0/1]` - server cvar, default 0.  If enabled, this allows both the silencer and the laser sight to be used on the Dual MK23 Pistols.
 - `use_gren_bonk [0/1]` - server cvar, default 0.  If enabled, this enables impact damage of the grenade to cause damage on direct contact with a player.  The speed of which the grenade is thrown will determine the damage dealt. Thanks to JukS for the idea and the code.
 - `lca_grenade` - server cvar, default 0.  If enabled, players can pull the grenade pin during Lights Camera Action, but they still cannot throw it until Action!
+- `grenade_drop [0/#]` - server cvar, default 0.  If enabled, players who have grenades in their inventory when they die will drop unspent grenades on the ground.  This value can be set to any number, but it probably makes sense to keep it below 3
 
 ### Highscores
 Borrowing code from OpenTDM (thank you Skuller!), high scores are stored in a local file on the server.  Each time a new high score is achieved, it is registered in this file.  The high scores are separated by map and by game mode.  For example, `highscores/dm/wizs.txt` is the highscores file for the map `wizs` in `dm` mode.
