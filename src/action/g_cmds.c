@@ -1523,8 +1523,26 @@ static void Cmd_PlayerList_f (edict_t * ent)
 	char st[64];
 	char text[1024] = { 0 };
 	edict_t *e2;
+	int header_settings = 0;
 
 	// connect time, ping, score, name
+
+	// Set appropriate header based on settings
+	if (limchasecam->value) {
+		Q_snprintf(st, sizeof(st), "%-5s  %-3s %-3s %-16s\n", "Time", "Ping", "Team", "Name");
+		header_settings = 1;
+	} else if (matchmode->value && IS_CAPTAIN(ent)) {
+		Q_snprintf(st, sizeof(st), "%-5s  %-3s %-3s %-16s\n", "Time", "Ping", "Num", "Name");
+		header_settings = 2;
+	} else if (!teamplay->value || !noscore->value) {
+		Q_snprintf(st, sizeof(st), "%-5s  %-3s %-5s %-16s\n", "Time", "Ping", "Score", "Name");
+		header_settings = 3;
+	} else {
+		Q_snprintf(st, sizeof(st), "%-5s  %-3s %-16s\n", "Time", "Ping", "Name");
+		header_settings = 0;
+	}
+	// Print the header
+	gi.cprintf(ent, PRINT_HIGH, "%s", st);
 
 	// Set the lines:
 	for (i = 0, e2 = g_edicts + 1; i < game.maxclients; i++, e2++)
@@ -1535,12 +1553,15 @@ static void Cmd_PlayerList_f (edict_t * ent)
 		if (!e2->inuse || !e2->client || e2->client->pers.mvdspec)
 			continue;
 
-		if(limchasecam->value)
-			Q_snprintf (st, sizeof (st), "%02d:%02d %4d %3d %s\n", minutes, seconds, e2->client->ping, e2->client->resp.team, e2->client->pers.netname); // This shouldn't show player's being 'spectators' during games with limchasecam set and/or during matchmode
-		else if (!teamplay->value || !noscore->value)
-			Q_snprintf (st, sizeof (st), "%02d:%02d %4d %3d %s%s\n", minutes, seconds, e2->client->ping, e2->client->resp.score, e2->client->pers.netname, (e2->solid == SOLID_NOT && e2->deadflag != DEAD_DEAD) ? " (dead)" : ""); // replaced 'spectator' with 'dead'
+		// Set the lines with fixed width columns:
+		if(header_settings == 1)
+			Q_snprintf(st, sizeof(st), "%02d:%02d  %-3d  %-3d  %-16s\n", minutes, seconds, e2->client->ping, e2->client->resp.team, e2->client->pers.netname);
+		else if (header_settings == 2)
+			Q_snprintf(st, sizeof(st), "%02d:%02d  %-3d  %-3d  %-16s\n", minutes, seconds, e2->client->ping, e2->client->clientNum, e2->client->pers.netname);
+		else if (header_settings == 3)
+			Q_snprintf(st, sizeof(st), "%02d:%02d  %-3d  %-5d  %-16s%s\n", minutes, seconds, e2->client->ping, e2->client->resp.score, e2->client->pers.netname, (e2->solid == SOLID_NOT && e2->deadflag != DEAD_DEAD) ? " (dead)" : "");
 		else
-			Q_snprintf (st, sizeof (st), "%02d:%02d %4d %s%s\n", minutes, seconds, e2->client->ping, e2->client->pers.netname, (e2->solid == SOLID_NOT && e2->deadflag != DEAD_DEAD) ? " (dead)" : ""); // replaced 'spectator' with 'dead'
+			Q_snprintf(st, sizeof(st), "%02d:%02d  %-3d  %-16s%s\n", minutes, seconds, e2->client->ping, e2->client->pers.netname, (e2->solid == SOLID_NOT && e2->deadflag != DEAD_DEAD) ? " (dead)" : "");
 
 		if (strlen(text) + strlen(st) > sizeof(text) - 6)
 		{
@@ -1960,6 +1981,7 @@ static cmdList_t commandList[] =
 	{ "ready", Cmd_Ready_f, 0 },
 	{ "teamname", Cmd_Teamname_f, 0 },
 	{ "teamskin", Cmd_Teamskin_f, 0 },
+	{ "teamnone", Cmd_Teamnone_f, 0 },
 	{ "lock", Cmd_LockTeam_f, 0 },
 	{ "unlock", Cmd_UnlockTeam_f, 0 },
 	{ "entcount", Cmd_Ent_Count_f, 0 },
