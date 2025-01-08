@@ -528,6 +528,12 @@ void Cmd_Teamnone_f(edict_t *ent)
 			gi.cprintf(ent, PRINT_HIGH, "You cannot remove bots in this way, use the sv bot commands\n");
 			return;
 		}
+		// This should never happen but just in case...
+		if (esp->value && IS_LEADER(target)){
+			gi.cprintf(ent, PRINT_HIGH, "You cannot remove the leader of your team\n");
+			return;
+		}
+
 		// Finally, after all the checks, remove the player from your team
 		gi.bprintf(PRINT_HIGH, "%s removed %s (clientNum %i) from team %i\n", ent->client->pers.netname, target->client->pers.netname, playernum, target->client->resp.team);
 		JoinTeam(target, NOTEAM, 1);
