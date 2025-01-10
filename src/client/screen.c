@@ -1334,8 +1334,6 @@ void SCR_RegisterMedia(void)
 static void scr_scale_changed(cvar_t *self)
 {
     scr.hud_scale = R_ClampScale(self);
-
-    scr_crosshair_changed(scr_crosshair);
 }
 static void scr_lag_draw_scale_changed(cvar_t *self)
 {
