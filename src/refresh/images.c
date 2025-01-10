@@ -2065,11 +2065,6 @@ IMG_ForHandle
 */
 image_t *IMG_ForHandle(qhandle_t h)
 {
-    // if (h < 0 || h >= r_numImages)
-    // Com_EPrintf("Invalid image handle: %i (max %i) called from %s\nCurrent r_numImages: %d\nCaller address: %p\n", 
-    //             h, r_numImages - 1, __func__, r_numImages, __builtin_return_address(0));
-
-
     Q_assert(h >= 0 && h < r_numImages);
     return &r_images[h];
 }
@@ -2175,8 +2170,6 @@ void IMG_FreeAll(void)
     image_t *image;
     int i, count = 0;
 
-    Com_Printf("IMG_FreeAll: Starting cleanup with r_numImages: %d\n", r_numImages);
-
     for (i = R_NUM_AUTO_IMG, image = r_images + i; i < r_numImages; i++, image++) {
         if (!image->name[0])
             continue;        // free image_t slot
@@ -2195,9 +2188,6 @@ void IMG_FreeAll(void)
 
     // &r_images[0] == R_NOTEXTURE
     r_numImages = R_NUM_AUTO_IMG;
-
-    Com_Printf("IMG_FreeAll: Completed with r_numImages: %d\n", r_numImages);
-
 }
 
 /*
@@ -2253,8 +2243,6 @@ static const cmdreg_t img_cmd[] = {
 void IMG_Init(void)
 {
     int i;
-    Com_Printf("IMG_Init: Starting image system initialization\n");
-
     Q_assert(!r_numImages);
 
 #if USE_PNG || USE_JPG || USE_TGA
@@ -2290,9 +2278,6 @@ void IMG_Init(void)
 
     // &r_images[0] == R_NOTEXTURE
     r_numImages = R_NUM_AUTO_IMG;
-
-    Com_Printf("IMG_Init: Completed with r_numImages: %d\n", r_numImages);
-
 }
 
 void IMG_Shutdown(void)
