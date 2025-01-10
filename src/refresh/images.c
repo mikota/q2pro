@@ -1536,6 +1536,7 @@ static void IMG_List_f(void)
             Cmd_PrintHelp(o_imagelist);
             Com_Printf(
                 "Types legend:\n"
+                "H: handle\n"
                 "P: pics\n"
                 "F: fonts\n"
                 "M: skins\n"
@@ -1574,7 +1575,8 @@ static void IMG_List_f(void)
         if (paletted == -1 && (image->flags & IF_PALETTED))
             continue;
 
-        Com_Printf("%c%c%c%c %4i %4i %s: %s\n",
+        Com_Printf("[%3i] %c%c%c%c %4i %4i %s: %s\n",
+                   i,  // Add this line to show the handle number
                    types[image->type > IT_MAX ? IT_MAX : image->type],
                    (image->flags & IF_TRANSPARENT) ? 'T' : ' ',
                    (image->flags & IF_SCRAP) ? 'S' : image->texnum2 ? 'G' : ' ',
@@ -2063,6 +2065,11 @@ IMG_ForHandle
 */
 image_t *IMG_ForHandle(qhandle_t h)
 {
+    if (h < 0 || h >= r_numImages)
+    Com_EPrintf("Invalid image handle: %i (max %i) called from %s\nCurrent r_numImages: %d\nCaller address: %p\n", 
+                h, r_numImages - 1, __func__, r_numImages, __builtin_return_address(0));
+
+
     Q_assert(h >= 0 && h < r_numImages);
     return &r_images[h];
 }
@@ -2168,6 +2175,8 @@ void IMG_FreeAll(void)
     image_t *image;
     int i, count = 0;
 
+    Com_Printf("IMG_FreeAll: Starting cleanup with r_numImages: %d\n", r_numImages);
+
     for (i = R_NUM_AUTO_IMG, image = r_images + i; i < r_numImages; i++, image++) {
         if (!image->name[0])
             continue;        // free image_t slot
@@ -2186,6 +2195,9 @@ void IMG_FreeAll(void)
 
     // &r_images[0] == R_NOTEXTURE
     r_numImages = R_NUM_AUTO_IMG;
+
+    Com_Printf("IMG_FreeAll: Completed with r_numImages: %d\n", r_numImages);
+
 }
 
 /*
@@ -2241,6 +2253,7 @@ static const cmdreg_t img_cmd[] = {
 void IMG_Init(void)
 {
     int i;
+    Com_Printf("IMG_Init: Starting image system initialization\n");
 
     Q_assert(!r_numImages);
 
@@ -2277,6 +2290,9 @@ void IMG_Init(void)
 
     // &r_images[0] == R_NOTEXTURE
     r_numImages = R_NUM_AUTO_IMG;
+
+    Com_Printf("IMG_Init: Completed with r_numImages: %d\n", r_numImages);
+
 }
 
 void IMG_Shutdown(void)
