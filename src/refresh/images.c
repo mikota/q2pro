@@ -1576,7 +1576,7 @@ static void IMG_List_f(void)
             continue;
 
         Com_Printf("[%3i] %c%c%c%c %4i %4i %s: %s\n",
-                   i,  // Add this line to show the handle number
+                   i,  // Image handle number
                    types[image->type > IT_MAX ? IT_MAX : image->type],
                    (image->flags & IF_TRANSPARENT) ? 'T' : ' ',
                    (image->flags & IF_SCRAP) ? 'S' : image->texnum2 ? 'G' : ' ',
@@ -2243,6 +2243,7 @@ static const cmdreg_t img_cmd[] = {
 void IMG_Init(void)
 {
     int i;
+
     Q_assert(!r_numImages);
 
 #if USE_PNG || USE_JPG || USE_TGA
