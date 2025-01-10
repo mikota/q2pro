@@ -241,7 +241,8 @@ Clients will have a few more things to do during matchmode: they have to have a 
   - `sub` - this will make you a sub for the team or remove you from the subs and back in the team
   - `ready` - this will ready/unready the team. A new round won't start if a team isn't read
   - `teamname "name"` - allows the captain to set the name of his/her team
-  - `teamskin "male/resdog"` - allows the captain to set the name of his/her team 
+  - `teamskin "male/resdog"` - allows the captain to set the name of his/her team
+  - `teamnone <#>` - Using 'playerlist' to determine player numbers, use this to remove players from your team (send them to team 0), usable by Captains
   - `matchadmin <pass>` - this will allow a player to get admin status
   - `lock` - allows a captain to lock his team. When a team is locked, no one can join it. Locks are removed on a new map
   - `unlock` - allows a captain to unlock his team
