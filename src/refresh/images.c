@@ -2065,9 +2065,9 @@ IMG_ForHandle
 */
 image_t *IMG_ForHandle(qhandle_t h)
 {
-    if (h < 0 || h >= r_numImages)
-    Com_EPrintf("Invalid image handle: %i (max %i) called from %s\nCurrent r_numImages: %d\nCaller address: %p\n", 
-                h, r_numImages - 1, __func__, r_numImages, __builtin_return_address(0));
+    // if (h < 0 || h >= r_numImages)
+    // Com_EPrintf("Invalid image handle: %i (max %i) called from %s\nCurrent r_numImages: %d\nCaller address: %p\n", 
+    //             h, r_numImages - 1, __func__, r_numImages, __builtin_return_address(0));
 
 
     Q_assert(h >= 0 && h < r_numImages);
