@@ -557,6 +557,7 @@ To see how well players are doing, we have implemented statistics into TNG. This
 - `stats list` - this will display a list of all players and their ID. (client side)
 - `stats [#]` - this will display the stats for the player with the id given. (client side)
 - `stats_mode [0/1/2]` - when set to 1, it will automatically display the stats of the player at the end of each round. When set to 2, it will automatically display the stats of the player at the end of the map. By default this is set to 0 (off). (client side)
+  - ^ This is a legacy entry that has no code associated with it, I'm only keeping it in this doc for historical reasons.
 
 ### Automatic Joining/Equipping/Menu
 For the lazy players under us, we have created three new commands to make things easier.
@@ -708,6 +709,7 @@ Inspired by AQ2:ETE, these additions are optional server vars to create a differ
 - `gun_dualmk23_enhance [0/1]` - server cvar, default 0.  If enabled, this allows both the silencer and the laser sight to be used on the Dual MK23 Pistols.
 - `use_gren_bonk [0/1]` - server cvar, default 0.  If enabled, this enables impact damage of the grenade to cause damage on direct contact with a player.  The speed of which the grenade is thrown will determine the damage dealt. Thanks to JukS for the idea and the code.
 - `lca_grenade` - server cvar, default 0.  If enabled, players can pull the grenade pin during Lights Camera Action, but they still cannot throw it until Action!
+- `grenade_drop [0/#]` - server cvar, default 0.  If enabled, players who have grenades in their inventory when they die will drop unspent grenades on the ground.  This value can be set to any number, but it probably makes sense to keep it below 3
 
 ### Highscores
 Borrowing code from OpenTDM (thank you Skuller!), high scores are stored in a local file on the server.  Each time a new high score is achieved, it is registered in this file.  The high scores are separated by map and by game mode.  For example, `highscores/dm/wizs.txt` is the highscores file for the map `wizs` in `dm` mode.
