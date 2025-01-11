@@ -1568,6 +1568,8 @@ qboolean AllTeamsHaveLeaders(void)
 		teams[TEAM2].leader_dead = false;
 		if (teamCount == 3)
 			teams[TEAM3].leader_dead = false;
+
+		return true;
 	} else {
 		return false;
 	}
