@@ -1074,7 +1074,11 @@ void LogKill(edict_t *self, edict_t *inflictor, edict_t *attacker)
 
 		// Item identifier, taking item kit mode into account
 		if (!item_kit_mode->value) {
-			chosenItem = attacker->client->pers.chosenItem->typeNum;
+			if (!attacker->client->pers.chosenItem) {
+				chosenItem = 0;
+			} else {
+				chosenItem = attacker->client->pers.chosenItem->typeNum;
+			}
 		} else {
 			if (attacker->client->pers.chosenItem->typeNum == KEV_NUM) {
 				chosenItem = KEV_NUM;
