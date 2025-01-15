@@ -428,8 +428,10 @@ static void GL_DrawNullModel(void)
     GL_StateBits(GLS_DEFAULT);
     GL_ArrayBits(GLA_VERTEX | GLA_COLOR);
 
-    GL_ColorBytePointer(4, 0, (GLubyte *)colors);
-    GL_VertexPointer(3, 0, &points[0][0]);
+    if(!gl_shaders->value) {
+        GL_ColorBytePointer(4, 0, (GLubyte *)colors);
+        GL_VertexPointer(3, 0, &points[0][0]);
+    }
 
     GL_LockArrays(6);
 
