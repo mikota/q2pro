@@ -44,6 +44,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #define LAYOUT_MSEC     3000
 
+#define CAMPATH_MAX_SIZE    16
+
 typedef enum {
     LAYOUT_NONE,        // no layout at all
     LAYOUT_FOLLOW,      // display chase target name
@@ -69,6 +71,11 @@ typedef struct {
     char name[16];
     mvd_cs_t *configstrings;
 } mvd_player_t;
+
+#define CPF_ENABLED     BIT(0)
+#define CPF_DOLLY       BIT(1)
+#define CPF_BEZIER      BIT(2)
+#define CAMPATH_DEFAULT CPF_BEZIER
 
 typedef struct {
     /* =================== */
@@ -104,6 +111,10 @@ typedef struct {
     usercmd_t lastcmd;
     //short delta_angles[3];
     int jump_held;
+    player_state_new_t  campath_pts[CAMPATH_MAX_SIZE];
+    int                 campath_framenums[CAMPATH_MAX_SIZE];
+    int                 campath_size;
+    char                campath_flags;
 } mvd_client_t;
 
 #define MAX_MVD_NAME    16

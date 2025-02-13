@@ -869,6 +869,8 @@ static void MVD_ChangeLevel(mvd_t *mvd)
             client->oldtarget = client->target;
         }
         client->target = NULL;
+		client->campath_size = 0;
+        client->campath_flags = CAMPATH_DEFAULT;
         SV_ClientReset(client->cl);
         client->cl->spawncount = mvd->servercount;
         SV_ClientAddMessage(client->cl, MSG_RELIABLE);

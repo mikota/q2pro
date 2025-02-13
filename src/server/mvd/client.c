@@ -2685,7 +2685,12 @@ static const cmdreg_t c_mvd[] = {
     { "mvdpause", MVD_Pause_f },
     { "mvdskip", MVD_Skip_f },
     { "mvdseek", MVD_Seek_f },
-
+    { "campath_append" },
+    { "campath_clear" },
+    { "campath_roll_inc"},
+    { "campath_roll_dec"},
+    { "campath_dolly_enable"},
+    { "campath_dolly_disable"},
     { NULL }
 };
 

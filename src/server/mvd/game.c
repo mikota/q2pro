@@ -424,6 +424,95 @@ static void MVD_UpdateLayouts(mvd_t *mvd)
     mvd->dirty = false;
 }
 
+/*
+==============================================================================
+
+CAMPATH
+
+==============================================================================
+*/
+
+void MVD_CampathAppend_f(mvd_client_t *client) {
+    if (client->campath_size >= CAMPATH_MAX_SIZE) {
+        SV_ClientPrintf(client->cl, PRINT_HIGH, "Campath is full.\n");
+        return;
+    }
+    mvd_t *mvd = client->mvd;
+    static const usercmd_t emptycmd;
+    client->campath_size++;
+    SV_ClientPrintf(client->cl, PRINT_HIGH, "Campath point %d added.\n", client->campath_size);
+    client->campath_pts[client->campath_size - 1] = client->ps;
+    client->campath_pts[client->campath_size - 1].pmove.pm_flags = PMF_NO_PREDICTION;
+    client->campath_framenums[client->campath_size - 1] = mvd->framenum;
+}
+
+void MVD_CampathClear_f(mvd_client_t *client) {
+    SV_ClientPrintf(client->cl, PRINT_HIGH, "Campath with %d points cleared.\n", client->campath_size);
+    client->campath_size = 0;
+    client->campath_flags = CAMPATH_DEFAULT;
+}
+
+void MVD_CampathDelete_f(mvd_client_t *client) {
+    if (client->campath_size) {
+        client->campath_size--;
+    }
+    SV_ClientPrintf(client->cl, PRINT_HIGH, "Campath point %d deleted.\n", client->campath_size);
+}
+
+void MVD_CampathIncRoll_f(mvd_client_t *client) {
+    client->ps.kick_angles[ROLL] += 5;
+}
+
+void MVD_CampathDecRoll_f(mvd_client_t *client) {
+    client->ps.kick_angles[ROLL] -= 5;
+}
+
+void MVD_CampathDollyEnable_f(mvd_client_t *client) {
+    client->campath_flags |= CPF_DOLLY;
+    SV_ClientPrintf(client->cl, PRINT_HIGH, "Dolly mode enabled.\n");
+}
+
+void MVD_CampathDollyDisable_f(mvd_client_t *client) {
+    client->campath_flags &= ~CPF_DOLLY;
+    SV_ClientPrintf(client->cl, PRINT_HIGH, "Dolly mode disabled.\n");
+}
+
+void MVD_CampathPrint(mvd_client_t *client) {
+    SV_ClientPrintf(client->cl, PRINT_HIGH, "Campath has %d points.\n", client->campath_size);
+    for (int i = 0; i < client->campath_size; i++) {
+        SV_ClientPrintf(client->cl, PRINT_HIGH, "Point %d at tick %d\n", i, client->campath_framenums[i]);
+    }
+    SV_ClientPrintf(client->cl, PRINT_HIGH, "Campath set to Bezier interpolation.\n");
+}
+
+static player_state_t MVD_Campath_CalcCubicBezier(player_state_t *pts, float t, int dolly) {
+    player_state_t result = pts[0];
+    int i;
+    for (i = 0; i < 3; i++) {
+        vec3_t a,b,c,d,e;
+        if (!dolly) {
+            LerpAngles(pts[0].viewangles, pts[1].viewangles, t, a);
+            LerpAngles(pts[1].viewangles, pts[2].viewangles, t, b);
+            LerpAngles(pts[2].viewangles, pts[3].viewangles, t, c);
+            LerpAngles(a, b, t, d);
+            LerpAngles(b, c, t, e);
+            LerpAngles(d, e, t, result.viewangles);
+        }
+        result.pmove.origin[i] = 
+            (1 - t) * (1 - t) * (1 - t) * pts[0].pmove.origin[i] +
+            3 * (1 - t) * (1 - t) * t * pts[1].pmove.origin[i] +
+            3 * (1 - t) * t * t * pts[2].pmove.origin[i] +
+            t * t * t * pts[3].pmove.origin[i];
+    }
+
+    result.kick_angles[ROLL] = 
+        (1 - t) * (1 - t) * (1 - t) * pts[0].kick_angles[ROLL] +
+        3 * (1 - t) * (1 - t) * t * pts[1].kick_angles[ROLL] +
+        3 * (1 - t) * t * t * pts[2].kick_angles[ROLL] +
+        t * t * t * pts[3].kick_angles[ROLL];
+    return result;
+}
+
 
 /*
 ==============================================================================
@@ -651,8 +740,47 @@ static void MVD_UpdateClient(mvd_client_t *client)
     mvd_t *mvd = client->mvd;
     mvd_player_t *target = client->target;
     int i;
+    int use_campath = 0;
+    if (client->campath_size > 8) { 
+        if (mvd->framenum >= client->campath_framenums[0] &&
+            mvd->framenum <= client->campath_framenums[client->campath_size - 1]) {
+            use_campath = 1;
+        }
+    }
 
-    if (!target) {
+    if (use_campath) {
+       int ctrlpt_id = 0;
+       while (1) {
+            if (ctrlpt_id >= client->campath_size - 2)
+                break;
+            int ctrlpt_framenum = client->campath_framenums[ctrlpt_id];
+            int ctrlpt_framenum_next = client->campath_framenums[ctrlpt_id + 3];
+            if (mvd->framenum >= ctrlpt_framenum && mvd->framenum < ctrlpt_framenum_next) {
+                float lerpfrac = ((float)(mvd->framenum - ctrlpt_framenum)) /
+                                (ctrlpt_framenum_next - ctrlpt_framenum);
+                player_state_t control_pts[4] = {
+                    client->campath_pts[ctrlpt_id],
+                    client->campath_pts[ctrlpt_id + 1],
+                    client->campath_pts[ctrlpt_id + 2],
+                    client->campath_pts[ctrlpt_id + 3]
+                };
+                int dolly = client->campath_flags & CPF_DOLLY;
+                vec3_t vangles;
+                VectorCopy(client->ps.viewangles, vangles);
+                client->ps = MVD_Campath_CalcCubicBezier(control_pts, lerpfrac, dolly);
+                if (dolly) {
+                    VectorCopy(vangles, client->ps.viewangles);
+                    client->ps.pmove.pm_type &= ~PM_FREEZE;
+                } else {
+                    client->ps.pmove.pm_type = PM_FREEZE;
+                }
+                SV_ClientPrintf(client->cl, PRINT_HIGH, "Ctrlpt %d, lerpfrac %f\n", ctrlpt_id, lerpfrac);
+                SV_ClientPrintf(client->cl, PRINT_HIGH, "MVD framenum %d, ctrlpt framenum %d, next %d\n", mvd->framenum, ctrlpt_framenum, ctrlpt_framenum_next);
+                break;
+            }
+            ctrlpt_id += 3;
+       }
+    } else if (!target) {
         int contents = 0;
 
         // copy stats of the dummy MVD observer
@@ -661,7 +789,6 @@ static void MVD_UpdateClient(mvd_client_t *client)
                 client->ps.stats[i] = mvd->dummy->ps.stats[i];
             }
         }
-
         // get contents from world
         if (mvd->cm.cache) {
             vec3_t vieworg;
@@ -817,6 +944,8 @@ void MVD_SwitchChannel(mvd_client_t *client, mvd_t *mvd)
     client->chase_mask = 0;
     client->chase_auto = 0;
     client->chase_wait = 0;
+    client->campath_size = 0;
+    client->campath_flags = CAMPATH_DEFAULT;
     memset(client->chase_bitmap, 0, sizeof(client->chase_bitmap));
     MVD_SetServerState(cl, mvd);
 
@@ -1586,6 +1715,30 @@ static void MVD_GameClientCommand(edict_t *ent)
         MVD_TrySwitchChannel(client, &mvd_waitingRoom);
         return;
     }
+    if (!strcmp(cmd, "campath_append")) {
+        MVD_CampathAppend_f(client);
+        return;
+    }
+    if (!strcmp(cmd, "campath_clear")) {
+        MVD_CampathClear_f(client);
+        return;
+    }
+    if (!strcmp(cmd, "campath_roll_inc")) {
+        MVD_CampathIncRoll_f(client);
+        return;
+    }
+    if (!strcmp(cmd, "campath_roll_dec")) {
+        MVD_CampathDecRoll_f(client);
+        return;
+    }
+    if (!strcmp(cmd, "campath_dolly_enable")) {
+        MVD_CampathDollyEnable_f(client);
+        return;
+    }
+    if (!strcmp(cmd, "campath_dolly_disable")) {
+        MVD_CampathDollyDisable_f(client);
+        return;
+    }
     if (!strcmp(cmd, "commands")) {
         MVD_Commands_f(client);
         return;
@@ -1944,6 +2097,7 @@ static void MVD_GameClientBegin(edict_t *ent)
     }
 
     client->target = NULL;
+    client->campath_flags = 0;
     client->begin_time = svs.realtime;
 
     MVD_SetDefaultLayout(client);
