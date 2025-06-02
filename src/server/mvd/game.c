@@ -513,6 +513,31 @@ static player_state_t MVD_Campath_CalcCubicBezier(player_state_t *pts, float t, 
     return result;
 }
 
+static void LerpPlayerState(player_state_t *a, player_state_t *b, float t, player_state_t *out) {
+    int i;
+    *out = *a;
+    LerpAngles(a->viewangles, b->viewangles, t, out->viewangles);
+    for (i = 0; i < 3; i++) {
+        out->pmove.origin[i] = (1 - t) * a->pmove.origin[i] + t * b->pmove.origin[i];
+    }
+    out->kick_angles[ROLL] = (1 - t) * a->kick_angles[ROLL] + t * b->kick_angles[ROLL];
+}
+
+static player_state_t MVD_Campath_CalcNthBezier(player_state_t *pts, int n, float t, int dolly) {
+    if (n == 1) {
+        player_state_t result;
+        LerpPlayerState(&pts[0], &pts[1], t, &result);
+        return result;
+    }
+    
+    player_state_t left = MVD_Campath_CalcNthBezier(pts, n - 1, t, dolly);
+    player_state_t right = MVD_Campath_CalcNthBezier(pts + 1, n - 1, t, dolly);
+    player_state_t result;
+    LerpPlayerState(&left, &right, t, &result);
+    return result;
+}
+
+
 
 /*
 ==============================================================================
@@ -741,7 +766,7 @@ static void MVD_UpdateClient(mvd_client_t *client)
     mvd_player_t *target = client->target;
     int i;
     int use_campath = 0;
-    if (client->campath_size > 8) { 
+    if (client->campath_size > 3) { 
         if (mvd->framenum >= client->campath_framenums[0] &&
             mvd->framenum <= client->campath_framenums[client->campath_size - 1]) {
             use_campath = 1;
@@ -754,7 +779,7 @@ static void MVD_UpdateClient(mvd_client_t *client)
             if (ctrlpt_id >= client->campath_size - 2)
                 break;
             int ctrlpt_framenum = client->campath_framenums[ctrlpt_id];
-            int ctrlpt_framenum_next = client->campath_framenums[ctrlpt_id + 3];
+            int ctrlpt_framenum_next = client->campath_framenums[client->campath_size - 1];
             if (mvd->framenum >= ctrlpt_framenum && mvd->framenum < ctrlpt_framenum_next) {
                 float lerpfrac = ((float)(mvd->framenum - ctrlpt_framenum)) /
                                 (ctrlpt_framenum_next - ctrlpt_framenum);
@@ -767,15 +792,15 @@ static void MVD_UpdateClient(mvd_client_t *client)
                 int dolly = client->campath_flags & CPF_DOLLY;
                 vec3_t vangles;
                 VectorCopy(client->ps.viewangles, vangles);
-                client->ps = MVD_Campath_CalcCubicBezier(control_pts, lerpfrac, dolly);
+                client->ps = MVD_Campath_CalcNthBezier(client->campath_pts, client->campath_size-1, lerpfrac, dolly);
                 if (dolly) {
                     VectorCopy(vangles, client->ps.viewangles);
                     client->ps.pmove.pm_type &= ~PM_FREEZE;
                 } else {
                     client->ps.pmove.pm_type = PM_FREEZE;
                 }
-                SV_ClientPrintf(client->cl, PRINT_HIGH, "Ctrlpt %d, lerpfrac %f\n", ctrlpt_id, lerpfrac);
-                SV_ClientPrintf(client->cl, PRINT_HIGH, "MVD framenum %d, ctrlpt framenum %d, next %d\n", mvd->framenum, ctrlpt_framenum, ctrlpt_framenum_next);
+                //SV_ClientPrintf(client->cl, PRINT_HIGH, "Ctrlpt %d, lerpfrac %f\n", ctrlpt_id, lerpfrac);
+                //SV_ClientPrintf(client->cl, PRINT_HIGH, "MVD framenum %d, ctrlpt framenum %d, next %d\n", mvd->framenum, ctrlpt_framenum, ctrlpt_framenum_next);
                 break;
             }
             ctrlpt_id += 3;
